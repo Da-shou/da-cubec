@@ -1,4 +1,5 @@
 export BUILD="build"
+export EXECUTABLE="da-cubec"
 
 # Compile project using CMake
 if [[ "$OSTYPE" == "msys" ]]; then
@@ -19,6 +20,6 @@ if [[ -f "./$BUILD/compile_commands.json" ]]; then
 fi
 
 # Run program if successfully compiled
-if [[ -f "./$BUILD/da_renderer" ]] && [[ $1 == "run" ]]; then
-	"./$BUILD/da_renderer"
+if [[ -f "./$BUILD/$EXECUTABLE" ]] && [[ $1 == "run" ]]; then
+	"./$BUILD/$EXECUTABLE"
 fi
