@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 4.1.1)
 set(PROJECT_TITLE "da-cubec")
 project(${PROJECT_TITLE} VERSION 1.0)
 
-# Requiring C++17
-set(CMAKE_C_STANDARD 11)
+# Requiring C99
+set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
 # Export compile_commands.json for clangd
@@ -17,6 +17,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COMPILE_FLAGS}")
 
 add_executable(${PROJECT_TITLE}
 	src/main.c
+	src/utils/io_utils.c
+	src/utils/shader_utils.c
 )
 
 # Including our own header files to the project
