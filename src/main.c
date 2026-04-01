@@ -1,5 +1,3 @@
-#include "shader_utils.h"
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,6 +5,8 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
+#include "shader_utils.h"
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
@@ -44,7 +44,7 @@ int main(void) {
 
         // Printing compilation and runtime infos
         int version = gladLoadGL(glfwGetProcAddress);
-	printf("\nNow launching application...\n");
+        printf("\nNow launching application...\n");
         printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
                GLAD_VERSION_MINOR(version));
         printf("Compiled against GLFW %i.%i.%i\n", GLFW_VERSION_MAJOR,
@@ -56,10 +56,11 @@ int main(void) {
 
         // Setting up the vertices used by the triangles
         float vertices[] = {
-            0.5f,  0.5f,  0.0f, // top right
-            0.5f,  -0.5f, 0.0f, // bottom right
-            -0.5f, 0.5f,  0.0f, // top left
-            -0.5f, -0.5f, 0.0f, // bottom left
+            // positions	// colors
+            0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, // top right
+            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+            -0.5f, 0.5f,  0.0f, 0.0f, 0.0f, 1.0f, // top left
+            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f  // bottom left
         };
 
         unsigned int shader_program =
@@ -88,17 +89,28 @@ int main(void) {
         unsigned int EBO;
         glGenBuffers(1, &EBO);
 
-        // Defining our two triangles (0,1,3) and (1,2,3)
+        /* Defining our two triangles (0,1,3) and (1,2,3) */
         unsigned int indices[] = {0, 1, 3, 0, 2, 3};
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                      GL_STATIC_DRAW);
 
-        // Set vertex attribute pointers
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+        /* This is the important part, we are defining where each
+         * attributes of our vertices are located in the vertices array. We
+         * have a location, defined by three floats and a color, also
+         * defined by three floats. We thus have two parameters, 0 for
+         * position and 1 for color. The position parameter starts with an
+         * offset of 0 and has to skip 6*sizeof(float) to get to the next
+         * parameter. This space is called the stride. The color parameter
+         * starts with an offset of 3*sizeof(float) and has the same stride */
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
                               (void*)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                              (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+	
 
         // Set drawing mode (wireframe or full polygons)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -108,17 +120,7 @@ int main(void) {
                 glfwPollEvents();
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
-
-                /* Trying to use a changing color by updating
-                 * a global color variable over time. */
-                float time_value = glfwGetTime();
-                float color_value = (sin(time_value) / 2.0f) + 0.5f;
-                int vertex_color_location =
-                    glGetUniformLocation(shader_program, "global_color");
                 glUseProgram(shader_program);
-                glUniform4f(vertex_color_location, 0.0f, color_value, 0.0f,
-                            1.0f);
-
                 glBindVertexArray(VAO);
 
                 // Draw triangles
