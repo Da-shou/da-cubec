@@ -6,7 +6,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#include "shader_utils.h"
+#include <utils/shader_utils.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";

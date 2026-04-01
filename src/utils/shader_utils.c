@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#include "shader_utils.h"
-#include "io_utils.h"
+#include <utils/shader_utils.h>
+#include <utils/io_utils.h>
 
 unsigned int make_module(const char* filepath, unsigned int module_type) {
         const char* source = NULL;
