@@ -9,8 +9,8 @@
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
-const char* VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
-const char* FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
+const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
+const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
@@ -47,9 +47,13 @@ int main(void) {
         printf("Running against GLFW %i.%i.%i\n", major, minor, revision);
         printf("Platform ID %d\n", glfwGetPlatform());
 
-        // Setting up the triangle
-        float vertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f,
-                            0.0f,  0.0f,  0.5f, 0.0f};
+        // Setting up the vertices used by the triangles
+        float vertices[] = {
+            0.5f,  0.5f,  0.0f, // top right
+            0.5f,  -0.5f, 0.0f, // bottom right
+            -0.5f, 0.5f,  0.0f, // top left
+            -0.5f, -0.5f, 0.0f, // bottom left
+        };
 
         unsigned int shader_program =
             make_shader(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
@@ -72,23 +76,53 @@ int main(void) {
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                      GL_STATIC_DRAW);
 
+        /* Creating an element array buffer to store sets of vertices
+         * to be reused. In this case, to draw two triangles. */
+        unsigned int EBO;
+        glGenBuffers(1, &EBO);
+
+        // Defining our two triangles (0,1,3) and (1,2,3)
+        unsigned int indices[] = {0, 1, 3, 0, 2, 3};
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+                     GL_STATIC_DRAW);
+
+        // Set vertex attribute pointers
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                               (void*)0);
         glEnableVertexAttribArray(0);
 
+        glUseProgram(shader_program);
+
         // Main window loop
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
-                glClear(GL_COLOR_BUFFER_BIT);
                 glClearColor(0.5f, 0.6f, 0.9f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                /* Loading the shader is not needed in loop but good
+                 * practice. Maybe multiple shaders will be needed to be
+                 * drawn on the screen. */
                 glUseProgram(shader_program);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+                glBindVertexArray(VAO);
+
+                // Draw triangles
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+                // Unbind VAO for safety.
+                glBindVertexArray(0);
                 glfwSwapBuffers(window);
         }
+
+        glDeleteProgram(shader_program);
+        glDeleteBuffers(1, &EBO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteVertexArrays(1, &VAO);
 
         glfwDestroyWindow(window);
         glfwTerminate();
 
+        printf("%s\n", "Exiting now...");
         return EXIT_SUCCESS;
 }
