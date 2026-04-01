@@ -1,4 +1,5 @@
 #include "shader_utils.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -32,8 +33,13 @@ int main(void) {
         // Creating window
         GLFWwindow* window =
             glfwCreateWindow(WIDTH, HEIGHT, WINDOW_TITLE, NULL, NULL);
-        glfwMakeContextCurrent(window);
+        if (window == NULL) {
+                fprintf(stderr, "%s\n", "Failed to create GLFW window.");
+                glfwTerminate();
+                exit(EXIT_FAILURE);
+        }
 
+        glfwMakeContextCurrent(window);
         glfwSetKeyCallback(window, key_callback);
 
         // Printing compilation and runtime infos
@@ -93,18 +99,25 @@ int main(void) {
                               (void*)0);
         glEnableVertexAttribArray(0);
 
-        glUseProgram(shader_program);
+        // Set drawing mode (wireframe or full polygons)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Main window loop
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
-                glClearColor(0.5f, 0.6f, 0.9f, 1.0f);
+                glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
 
-                /* Loading the shader is not needed in loop but good
-                 * practice. Maybe multiple shaders will be needed to be
-                 * drawn on the screen. */
+                /* Trying to use a changing color by updating
+                 * a global color variable over time. */
+                float time_value = glfwGetTime();
+                float color_value = (sin(time_value) / 2.0f) + 0.5f;
+                int vertex_color_location =
+                    glGetUniformLocation(shader_program, "global_color");
                 glUseProgram(shader_program);
+                glUniform4f(vertex_color_location, 0.0f, color_value, 0.0f,
+                            1.0f);
+
                 glBindVertexArray(VAO);
 
                 // Draw triangles

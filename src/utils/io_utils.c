@@ -52,5 +52,5 @@ const char* const read_file(const char* filepath) {
         // Null terminate the buffer
         buffer[fsize] = '\0';
         const char* const source = buffer;
-	return source;
+        return source;
 }
