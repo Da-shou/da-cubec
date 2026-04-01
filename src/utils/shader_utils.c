@@ -7,7 +7,12 @@
 #include "io_utils.h"
 
 unsigned int make_module(const char* filepath, unsigned int module_type) {
-        const char* const source = read_file(filepath);
+        const char* source = NULL;
+        int read_status = read_file(filepath, &source);
+        if (read_status == -1) {
+                fprintf(stderr, "%s\n",
+                        "Shader source file could not be read.");
+        }
 
         // Assigning shader and source code to module
         unsigned int shader_module = glCreateShader(module_type);

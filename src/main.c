@@ -44,6 +44,7 @@ int main(void) {
 
         // Printing compilation and runtime infos
         int version = gladLoadGL(glfwGetProcAddress);
+	printf("\nNow launching application...\n");
         printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
                GLAD_VERSION_MINOR(version));
         printf("Compiled against GLFW %i.%i.%i\n", GLFW_VERSION_MAJOR,

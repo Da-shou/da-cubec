@@ -6,7 +6,8 @@
  * dynamically allocated character array.
  * @warn THE RETURNED POINTER NEEDS TO BE FREED MANUALLY.
  * @param filepath Path to the file
+ * @param out pointer to be modified with pointer to content of file.
  **/
-const char* const read_file(const char* filepath);
+int read_file(const char* filepath, const char** const out);
 
 #endif // IO_UTILS_H

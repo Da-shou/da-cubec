@@ -1,28 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "io_utils.h"
+#include <io_utils.h>
 
-const char* const read_file(const char* filepath) {
+int read_file(const char* filepath, const char** const out) {
         // Checking file in raw bytes
         FILE* fptr = fopen(filepath, "rb");
         if (!fptr) {
                 perror("Error opening file");
-                return 0;
+                return -1;
         }
 
         // Determine filesize
         if (fseek(fptr, 0, SEEK_END) != 0) {
                 perror("Error seeking to end of file");
                 fclose(fptr);
-                return 0;
+                return -1;
         }
 
         long fsize = ftell(fptr);
         if (fsize == -1) {
                 perror("Error getting file size");
                 fclose(fptr);
-                return 0;
+                return -1;
         }
         rewind(fptr);
 
@@ -31,7 +31,7 @@ const char* const read_file(const char* filepath) {
         if (!buffer) {
                 perror("Error allocating memory");
                 fclose(fptr);
-                return 0;
+                return -1;
         }
 
         // Read bytes into buffer
@@ -40,17 +40,18 @@ const char* const read_file(const char* filepath) {
                 perror("Error reading file");
                 free((void*)buffer);
                 fclose(fptr);
-                return 0;
+                return -1;
         }
 
         if (fclose(fptr)) {
                 perror("Error closing file");
                 free((void*)buffer);
-                return 0;
+                return -1;
         }
 
         // Null terminate the buffer
         buffer[fsize] = '\0';
-        const char* const source = buffer;
-        return source;
+        *out = buffer;
+
+        return 0;
 }
