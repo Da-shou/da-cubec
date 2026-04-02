@@ -6,6 +6,9 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include <shader.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
@@ -65,14 +68,45 @@ int main(void) {
         glfwGetFramebufferSize(window, &fb_width, &fb_height);
         glViewport(0, 0, fb_width, fb_height);
 
-        /* Setting up the vertices used by the triangles */
-        float vertices[] = {
-            // positions	// colors
-            0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, // top right
-            0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
-            -0.5f, 0.5f,  0.0f, 0.0f, 0.0f, 1.0f, // top left
-            -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f  // bottom left
-        };
+        /* Our vertices now have three attributes. One for position, one
+         * for color, and one for texture coordinates*/
+	float vertices[] = {
+	    // positions          // colors           // texture coords
+	     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+	     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+	    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+	    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+	};
+
+        int width, height, nb_channels;
+        unsigned char* image_data =
+            stbi_load("img/stone.jpg", &width, &height, &nb_channels, 0);
+	
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+        if (!image_data) {
+                fprintf(stderr, "%s\n",
+                        "Failed to load texture image from disk");
+        } else {
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
+                             GL_RGB, GL_UNSIGNED_BYTE, image_data);
+                glGenerateMipmap(GL_TEXTURE_2D);
+        }
+
+        stbi_image_free(image_data);
+        
+	/* Setting the texture parameters so that the texture repeats and
+         * no linear interpolation is used to smooth out the textures. */
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                        GL_MIRRORED_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                        GL_MIRRORED_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                        GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                        GL_NEAREST_MIPMAP_NEAREST);
 
         shader basic_shader;
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
@@ -102,7 +136,7 @@ int main(void) {
         glGenBuffers(1, &EBO);
 
         /* Defining our two triangles (0,1,3) and (1,2,3) */
-        unsigned int indices[] = {0, 1, 3, 0, 2, 3};
+        unsigned int indices[] = {2, 3, 1, 0, 1, 3};
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
@@ -117,12 +151,18 @@ int main(void) {
          * parameter. This space is called the stride. The color parameter
          * starts with an offset of 3*sizeof(float) and has the same stride
          */
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                               (void*)0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                               (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
+
+        /* Also informing that the vertex has a new attribute, its texture
+         * coordinates.*/
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                              (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
         // Set drawing mode (wireframe or full polygons)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -132,11 +172,10 @@ int main(void) {
                 glfwPollEvents();
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
+	
+		glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
-
                 glBindVertexArray(VAO);
-
-                // Draw triangles
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
                 // Unbind VAO for safety.
