@@ -1,11 +1,13 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-/** 
- * @brief Structure to represent an OpenGL shader 
- * @attribute */
+#include <stdbool.h>
+
+/**
+ * @brief Structure to represent an OpenGL shader
+ * @attribute ID unsigned integer locating the shader. */
 typedef struct {
-        unsigned int ID;
+        unsigned int id;
 } shader;
 
 /**
@@ -31,7 +33,7 @@ void shader_destroy(shader* s);
  * @param s Shader to modify.
  * @param name Name of uniform variable to set.
  * @param value Value to set the uniform variable to. */
-void shader_set_bool(shader* s, const char* name, _Bool value);
+void shader_set_bool(shader* s, const char* name, bool value);
 
 /**
  * @brief Sets a new integer uniform variable.

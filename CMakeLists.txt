@@ -17,6 +17,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COMPILE_FLAGS}")
 
 add_executable(${PROJECT_TITLE}
 	src/main.c
+	src/shader.c
 	src/utils/io_utils.c
 	src/utils/shader_utils.c
 )

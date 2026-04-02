@@ -8,6 +8,7 @@ elif [[ "$OSTYPE" == "linux-gnu" ]]; then
 	cmake -S . -B "$BUILD"
 fi
 
+# Clean files if asked to
 if [[ $1 == "clean" ]]; then
 	cmake --build "$BUILD" --target clean
 else
