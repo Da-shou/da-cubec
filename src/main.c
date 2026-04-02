@@ -19,6 +19,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
                 glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width,
+                  int height) {
+        glViewport(0, 0, width, height);
+}
+
 int main(void) {
         if (!glfwInit()) {
                 fprintf(stderr, "%s\n",
@@ -30,9 +35,9 @@ int main(void) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        // Creating window
+        /* Creating window */
         GLFWwindow* window =
-            glfwCreateWindow(WIDTH, HEIGHT, WINDOW_TITLE, NULL, NULL);
+        glfwCreateWindow(WIDTH, HEIGHT, WINDOW_TITLE, NULL, NULL);
         if (window == NULL) {
                 fprintf(stderr, "%s\n", "Failed to create GLFW window.");
                 glfwTerminate();
@@ -41,8 +46,9 @@ int main(void) {
 
         glfwMakeContextCurrent(window);
         glfwSetKeyCallback(window, key_callback);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-        // Printing compilation and runtime infos
+        /* Printing compilation and runtime infos */
         int version = gladLoadGL(glfwGetProcAddress);
         printf("\nNow launching application...\n");
         printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
@@ -54,7 +60,13 @@ int main(void) {
         printf("Running against GLFW %i.%i.%i\n", major, minor, revision);
         printf("Platform ID %d\n", glfwGetPlatform());
 
-        // Setting up the vertices used by the triangles
+        /* Fix initial viewport using actual framebuffer size (may differ from window
+         * size on HiDPI/Wayland displays) */
+        int fb_width, fb_height;
+        glfwGetFramebufferSize(window, &fb_width, &fb_height);
+        glViewport(0, 0, fb_width, fb_height);
+
+        /* Setting up the vertices used by the triangles */
         float vertices[] = {
             // positions	// colors
             0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, // top right

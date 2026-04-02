@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <io_utils.h>
+#include <utils/io_utils.h>
 
 int read_file(const char* filepath, const char** const out) {
         // Checking file in raw bytes
