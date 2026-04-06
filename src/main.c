@@ -5,10 +5,8 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
 #include <cglm/cglm.h>
 
 #include <shader.h>
@@ -18,12 +16,16 @@ const char* const WINDOW_TITLE = "da-cubec";
 const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
 const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
 
+/**
+ * @brief Called every time a key is pressed. */
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+/**
+ * @brief Called every time the window is resized */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
 }
@@ -86,7 +88,7 @@ int main(void) {
 
         int width, height, nb_channels;
         unsigned char* image_data =
-            stbi_load("img/stone.jpg", &width, &height, &nb_channels, 0);
+            stbi_load("img/stone.png", &width, &height, &nb_channels, 0);
 
         unsigned int texture;
         glGenTextures(1, &texture);
@@ -111,8 +113,7 @@ int main(void) {
                         GL_MIRRORED_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                         GL_NEAREST_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         shader basic_shader;
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
@@ -170,25 +171,28 @@ int main(void) {
                               (void*)(6 * sizeof(float)));
         glEnableVertexAttribArray(2);
 
-        // Set drawing mode (wireframe or full polygons)
+        /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        /* Creating identity matrix then adding a rotation and scaling
-         * operation to it. Since the rectangle we will draw is 2D, we will
-         * rotate on the Z axis. */
-        mat4 trans;
-        glm_mat4_identity(trans);
-        glm_rotate(trans, glm_rad(90.0f), (vec3) {0.0f, 0.0f, 1.0f});
-        glm_scale(trans, (vec3) {0.5f, 0.5f, 0.5f});
 
         unsigned int transform_location =
             glGetUniformLocation(basic_shader.id, "transform");
-        /* Since we use C, matrix are just float arrays, no need for
-         * conversions like in C++ with value_ptr */
-        glUniformMatrix4fv(transform_location, 1, GL_FALSE, (float*)trans);
 
-        // Main window loop
+        /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
+                /* Creating identity matrix then adding a rotation and
+                 * scaling operation to it. Since the rectangle we will
+                 * draw is 2D, we will rotate on the Z axis. */
+                mat4 trans;
+                glm_mat4_identity(trans);
+                glm_translate(trans, (vec3) {0.5f, -0.5f, 0.0f});
+                /* Rotation will occur over time */
+                glm_rotate(trans, -(float)glfwGetTime(),
+                           (vec3) {0.0f, 0.0f, 1.0f});
+                /* Since we use C, matrix are just float arrays, no need
+                 * for conversions like in C++ with value_ptr */
+                glUniformMatrix4fv(transform_location, 1, GL_FALSE,
+                                   (float*)trans);
+
                 glfwPollEvents();
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
