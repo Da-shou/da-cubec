@@ -5,6 +5,7 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <cglm/cglm.h>
@@ -202,6 +203,18 @@ int main(void) {
                 glBindVertexArray(VAO);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+		/* Resetting our matrix to draw a second rectangle */
+                glm_mat4_identity(trans);
+                glm_translate(trans, (vec3) {-0.5f, 0.5f, 0.0f});
+                float scale_amount = (float)sin(glfwGetTime());
+                glm_scale(trans, (vec3) {scale_amount, scale_amount,
+                                         scale_amount});
+	
+                glUniformMatrix4fv(transform_location, 1, GL_FALSE,
+                                   (float*)trans);
+
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
                 // Unbind VAO for safety.
                 glBindVertexArray(0);
                 glfwSwapBuffers(window);
