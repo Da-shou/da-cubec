@@ -9,6 +9,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <cglm/cglm.h>
+
 #include <shader.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
@@ -70,21 +72,25 @@ int main(void) {
 
         /* Our vertices now have three attributes. One for position, one
          * for color, and one for texture coordinates*/
-	float vertices[] = {
-	    // positions          // colors           // texture coords
-	     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-	     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-	    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-	    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-	};
+        float vertices[] = {
+            // positions          // colors           // texture coords
+            0.5f,  0.5f,  0.0f, 1.0f,
+            0.0f,  0.0f,  1.0f, 1.0f, // top right
+            0.5f,  -0.5f, 0.0f, 0.0f,
+            1.0f,  0.0f,  1.0f, 0.0f, // bottom right
+            -0.5f, -0.5f, 0.0f, 0.0f,
+            0.0f,  1.0f,  0.0f, 0.0f, // bottom left
+            -0.5f, 0.5f,  0.0f, 1.0f,
+            1.0f,  0.0f,  0.0f, 1.0f  // top left
+        };
 
         int width, height, nb_channels;
         unsigned char* image_data =
             stbi_load("img/stone.jpg", &width, &height, &nb_channels, 0);
-	
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+
+        unsigned int texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         if (!image_data) {
                 fprintf(stderr, "%s\n",
@@ -96,8 +102,8 @@ int main(void) {
         }
 
         stbi_image_free(image_data);
-        
-	/* Setting the texture parameters so that the texture repeats and
+
+        /* Setting the texture parameters so that the texture repeats and
          * no linear interpolation is used to smooth out the textures. */
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                         GL_MIRRORED_REPEAT);
@@ -162,18 +168,32 @@ int main(void) {
          * coordinates.*/
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                               (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(2);
 
         // Set drawing mode (wireframe or full polygons)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        /* Creating identity matrix then adding a rotation and scaling
+         * operation to it. Since the rectangle we will draw is 2D, we will
+         * rotate on the Z axis. */
+        mat4 trans;
+        glm_mat4_identity(trans);
+        glm_rotate(trans, glm_rad(90.0f), (vec3) {0.0f, 0.0f, 1.0f});
+        glm_scale(trans, (vec3) {0.5f, 0.5f, 0.5f});
+
+        unsigned int transform_location =
+            glGetUniformLocation(basic_shader.id, "transform");
+        /* Since we use C, matrix are just float arrays, no need for
+         * conversions like in C++ with value_ptr */
+        glUniformMatrix4fv(transform_location, 1, GL_FALSE, (float*)trans);
 
         // Main window loop
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
-	
-		glBindTexture(GL_TEXTURE_2D, texture);
+
+                glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
                 glBindVertexArray(VAO);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
