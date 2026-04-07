@@ -5,11 +5,11 @@ The project must be buildable on all machines. The project will use CMake and Cl
 
 ### Libraries
 - GLFW3
-Used to create a standardized window for the program within the target OS. Works on Windows, Linux and MacOS. 
+  - Used to create a standardized window for the program within the target OS. Works on Windows, Linux and MacOS. 
 - glad
-Well-made and well-documentated framework for working with OpenGL. Has many variants for working with SDL, DirectX etc. I will just be using the core OpenGL features.
+  - Well-made and well-documentated framework for working with OpenGL. Has many variants for working with SDL, DirectX etc. I will just be using the core OpenGL features.
 - cglm
-C version of the glm C++ matrix/vector SIMD-optmized library. Allows for super fast matrix and vector operations which are essential to 3D rendering
+  - C version of the glm C++ matrix/vector SIMD-optmized library. Allows for super fast matrix and vector operations which are essential to 3D rendering
 
 ### Building the project
 To make building the project as easy as possible, all libraries are contained within the project. Building has been tested on Windows 10/11 and Linux. **CMake is required.**
