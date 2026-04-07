@@ -1,3 +1,5 @@
+#include "cglm/mat4.h"
+#include "cglm/util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -178,8 +180,54 @@ int main(void) {
         unsigned int transform_location =
             glGetUniformLocation(basic_shader.id, "transform");
 
+        /* To go 3D, we will first need a model matrix. We will transform
+         * our plane to make it look like it lays on the floor. We will do
+         * this by rotating it 55 degrees on the x axis. */
+        mat4 model;
+        glm_mat4_identity(model);
+        glm_rotate(model, glm_rad(-55.0f), (vec3) {1.0f, 0.0f, 0.0f});
+
+        /* We then need a view matrix. To move around the world, moving the
+         * camera is the same as moving the entire world. Moving backwards
+         * = moving the entire scene forward, etc. */
+        mat4 view;
+        glm_mat4_identity(view);
+        glm_translate(view, (vec3) {0.0f, 0.0f, -3.0f});
+
+        /* Last, we need a projection matrix to make the perspective appear
+         * correctly. Since the calculation are pretty complex, cglm
+         * provides us with the correct and optimized functions*/
+        mat4 projection;
+        glm_mat4_identity(projection);
+        glm_perspective(glm_rad(45.0f), ((float)WIDTH / (float)HEIGHT),
+                        0.1f, 100.0f, projection);
+
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
+                glfwPollEvents();
+                glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT);
+
+                glBindTexture(GL_TEXTURE_2D, texture);
+                shader_use(&basic_shader);
+                glBindVertexArray(VAO);
+
+                /* Sending matrices to the shader every frame */
+                int model_location =
+                    glGetUniformLocation(basic_shader.id, "model");
+                glUniformMatrix4fv(model_location, 1, GL_FALSE,
+                                   (float*)model);
+
+                int view_location =
+                    glGetUniformLocation(basic_shader.id, "view");
+                glUniformMatrix4fv(view_location, 1, GL_FALSE,
+                                   (float*)view);
+
+                int projection_location =
+                    glGetUniformLocation(basic_shader.id, "projection");
+                glUniformMatrix4fv(projection_location, 1, GL_FALSE,
+                                   (float*)projection);
+
                 /* Creating identity matrix then adding a rotation and
                  * scaling operation to it. Since the rectangle we will
                  * draw is 2D, we will rotate on the Z axis. */
@@ -194,27 +242,20 @@ int main(void) {
                 glUniformMatrix4fv(transform_location, 1, GL_FALSE,
                                    (float*)trans);
 
-                glfwPollEvents();
-                glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT);
-
-                glBindTexture(GL_TEXTURE_2D, texture);
-                shader_use(&basic_shader);
-                glBindVertexArray(VAO);
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		/* Resetting our matrix to draw a second rectangle */
+                /* Resetting our matrix to draw a second rectangle */
                 glm_mat4_identity(trans);
                 glm_translate(trans, (vec3) {-0.5f, 0.5f, 0.0f});
                 float scale_amount = (float)sin(glfwGetTime());
                 glm_scale(trans, (vec3) {scale_amount, scale_amount,
                                          scale_amount});
-	
+
                 glUniformMatrix4fv(transform_location, 1, GL_FALSE,
                                    (float*)trans);
 
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		
+
                 // Unbind VAO for safety.
                 glBindVertexArray(0);
                 glfwSwapBuffers(window);
