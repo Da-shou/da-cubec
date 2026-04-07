@@ -16,15 +16,18 @@ To make building the project as easy as possible, all libraries are contained wi
 
 From the root folder, to build the executable located in the `build` folder :
 ```shell
-./build.sh```
+./build.sh
+```
 
 To clean all build files and remake CMake files :
 ```shell
-./build.sh clean```
+./build.sh clean
+```
 
 To build executable and run the project :
 ```shell
-./build.sh run```
+./build.sh run
+```
 
 ### About
 This is a fun project I work on during my free time because I love GPU Programming and the C language. Feel free to use it to learn about OpenGL yourself or to correct anything you'd feel is badly made.
