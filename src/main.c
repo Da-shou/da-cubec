@@ -177,7 +177,7 @@ int main(void) {
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);	
 
-		cube_draw(&cube);
+		//cube_draw(&cube);
 
                 glfwSwapBuffers(window);
         }

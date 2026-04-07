@@ -21,7 +21,7 @@ typedef struct {
         uint64_t index_count;
         unsigned int* indices;
 	unsigned int vao;
-	unsigned int* vbos;
+	unsigned int vbos[2];
 	unsigned int eao;
 } mesh_t;
 
