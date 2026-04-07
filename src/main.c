@@ -13,6 +13,7 @@
 #include <cglm/cglm.h>
 
 #include <shader.h>
+#include <meshes/cube.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
@@ -75,31 +76,6 @@ int main(void) {
         glfwGetFramebufferSize(window, &fb_width, &fb_height);
         glViewport(0, 0, fb_width, fb_height);
 
-        /* These are the vertices for the a textured cube. There are 36
-         * vertices here.*/
-        float vertices[] = {
-            -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
-            0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f,
-            1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  -0.5f, -0.5f,
-            -0.5f, 0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.5f,
-            -0.5f, 0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,
-            1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,
-            1.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 1.0f,  1.0f,  -0.5f, -0.5f,
-            -0.5f, 0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  -0.5f,
-            -0.5f, 0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,
-
-            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,
-            1.0f,  0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  0.5f,  -0.5f, -0.5f,
-            0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  0.5f,  0.5f,
-            0.5f,  1.0f,  0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  0.5f,
-            -0.5f, -0.5f, 1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,
-            0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,
-            0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  -0.5f, 0.5f,  -0.5f,
-            0.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  0.5f,  0.5f,
-            0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  -0.5f,
-            0.5f,  0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f};
-
         int width, height, nb_channels;
         unsigned char* image_data =
             stbi_load("img/stone.png", &width, &height, &nb_channels, 0);
@@ -129,58 +105,13 @@ int main(void) {
                         GL_NEAREST_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        shader basic_shader;
+        shader_t basic_shader;
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
 
-        unsigned int VAO;
-        glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
-
-        /* Generate a vertex buffer and put its ID in VBO. The buffer type
-         * of vertex buffers is GL_ARRAY_BUFFER */
-        unsigned int VBO;
-        glGenBuffers(1, &VBO);
-
-        /* Bind our new vertex buffer so that any change to the OpenGL
-         * buffer are done to the currenlty bound buffer. */
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-        /* Copy some user data into the currenlty bound buffer
-         * We use GL_STATIC_DRAW as the triangle will not move for now. */
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-                     GL_STATIC_DRAW);
-
-        /* Creating an element array buffer to store sets of vertices
-         * to be reused. In this case, to draw two triangles. */
-        unsigned int EBO;
-        glGenBuffers(1, &EBO);
-
-        /* Defining our two triangles (0,1,3) and (1,2,3) */
-        unsigned int indices[] = {2, 3, 1, 0, 1, 3};
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-                     GL_STATIC_DRAW);
-
-        /* This is the important part, we are defining where each
-         * attributes of our vertices are located in the vertices array. We
-         * have a location, defined by three floats and a color, also
-         * defined by three floats. We thus have two parameters, 0 for
-         * position and 1 for color. The position parameter starts with an
-         * offset of 0 and has to skip 6*sizeof(float) to get to the next
-         * parameter. This space is called the stride. The color parameter
-         * starts with an offset of 3*sizeof(float) and has the same stride
-         */
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void*)0);
-        glEnableVertexAttribArray(0);
-        /* Also informing that the vertex has a new attribute, its texture
-         * coordinates.*/
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
+	cube_t cube;	
+	cube_init(&cube);
+	
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -201,7 +132,6 @@ int main(void) {
 
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
-                glBindVertexArray(VAO);
 
                 /* To go 3D, we will first need a model matrix. We will
                  * transform our plane to make it look like it lays on the
@@ -245,20 +175,15 @@ int main(void) {
                 int projection_location =
                     glGetUniformLocation(basic_shader.id, "projection");
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
-                                   (float*)projection);
+                                   (float*)projection);	
 
-                // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
+		cube_draw(&cube);
 
-                // Unbind VAO for safety.
-                glBindVertexArray(0);
                 glfwSwapBuffers(window);
         }
 
         shader_destroy(&basic_shader);
-        glDeleteBuffers(1, &EBO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteVertexArrays(1, &VAO);
+	cube_free(&cube);	
 
         glfwDestroyWindow(window);
         glfwTerminate();
