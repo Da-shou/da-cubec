@@ -1,5 +1,3 @@
-#include "cglm/util.h"
-#include "cglm/vec3.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -20,12 +18,27 @@ const char* const WINDOW_TITLE = "da-cubec";
 const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
 const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
 
+mat4 view;
+mat4 projection;
+
 /**
  * @brief Called every time a key is pressed. */
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
+/** @brief Moves camera with keyboard input */
+void process_inputs(GLFWwindow* window) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        glm_translate(view, (vec3) {0.0f, 0.0f, 0.1f});
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        glm_translate(view, (vec3) {0.0f, 0.0f, -0.1f});
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        glm_translate(view, (vec3) {0.1f, 0.0f, 0.0f});
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        glm_translate(view, (vec3) {-0.1f, 0.0f, 0.0f});
 }
 
 /**
@@ -120,16 +133,13 @@ int main(void) {
          * moving the camera is the same as moving the entire
          * world. Moving backwards = moving the entire scene
          * forward, etc. */
-        mat4 view;
         glm_mat4_identity(view);
         glm_translate(view, (vec3) {0.0f, 0.0f, -10.0f});
-        glm_rotate(view, glm_rad(22.5f), (vec3) {1.0f, 0.0f, 0.0f});
 
         /* Last, we need a projection matrix to make the
          * perspective appear correctly. Since the calculation are
          * pretty complex, cglm provides us with the correct and
          * optimized functions*/
-        mat4 projection;
         glm_mat4_identity(projection);
         glm_perspective(glm_rad(45.0f), ((float)WIDTH / (float)HEIGHT),
                         0.1f, 100.0f, projection);
@@ -154,7 +164,9 @@ int main(void) {
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
+		process_inputs(window);
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
+
 
                 /* When clearing, we need to clear the buffer bit and also
                  * the depth buffer bit so that information does not stack.
@@ -166,8 +178,8 @@ int main(void) {
                 shader_use(&basic_shader);
 
                 /* Make the camera rotate around the staircase */
-                glm_rotate(view, glm_rad((sin(glfwGetTime()))),
-                           (vec3) {0.0f, 1.0f, 0.0f});
+                // glm_rotate(view, glm_rad((sin(glfwGetTime()))),
+                //            (vec3) {0.0f, 1.0f, 0.0f});
 
                 /* Draw all the cubes */
                 for (int i = 0; i < 25; ++i) {
