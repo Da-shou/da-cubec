@@ -1,9 +1,12 @@
+#include "cglm/vec3.h"
 #include <stdint.h>
 #include <cglm/cglm.h>
 #include <meshes/cube.h>
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
+
+#include <shader.h>
 
 // clang-format off
 
@@ -63,22 +66,30 @@ static mesh_t base_cube_mesh = {.vertices = CUBE_VERTICES,
                                 .index_count = CUBE_INDEX_COUNT,
                                 .vao = 0,
                                 .vbos = {0},
-                                .eao = 0};
+                                .eao = 0
+};
+
+static size_t cube_count = 0;
 
 void cube_init(cube_t* c) {
+	++cube_count;
         c->mesh = &base_cube_mesh;
 
+	glm_mat4_identity(c->model);
         glm_vec3_zero(c->position);
-        glm_vec3_zero(c->scale);
+        glm_vec3_one(c->scale);
         glm_vec3_zero(c->rotation);
 
         if (c->mesh->vao == 0) glGenVertexArrays(1, &c->mesh->vao);
         glBindVertexArray(c->mesh->vao);
 
-        glGenBuffers(2, c->mesh->vbos);
+        if (c->mesh->vbos[0] == 0 || c->mesh->vbos[1] == 0)
+                glGenBuffers(2, c->mesh->vbos);
+
         /* Setting position coordinates in first VBO */
         glBindBuffer(GL_ARRAY_BUFFER, c->mesh->vbos[0]);
-        glBufferData(GL_ARRAY_BUFFER, c->mesh->vertex_count * 3 * sizeof(float),
+        glBufferData(GL_ARRAY_BUFFER,
+                     c->mesh->vertex_count * 3 * sizeof(float),
                      c->mesh->vertices, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                               (void*)0);
@@ -86,21 +97,32 @@ void cube_init(cube_t* c) {
 
         /* Setting texture coordinates in second VBO */
         glBindBuffer(GL_ARRAY_BUFFER, c->mesh->vbos[1]);
-        glBufferData(GL_ARRAY_BUFFER, c->mesh->vertex_count * 2 * sizeof(float),
+        glBufferData(GL_ARRAY_BUFFER,
+                     c->mesh->vertex_count * 2 * sizeof(float),
                      c->mesh->texture_coordinates, GL_STATIC_DRAW);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
                               (void*)0);
         glEnableVertexAttribArray(1);
 
         /* Setting up element drawing */
-        glGenBuffers(1, &c->mesh->eao);
+        if (c->mesh->eao == 0) glGenBuffers(1, &c->mesh->eao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, c->mesh->eao);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                      c->mesh->index_count * sizeof(unsigned int),
                      c->mesh->indices, GL_STATIC_DRAW);
 }
 
-void cube_draw(cube_t* c) {
+void cube_update(cube_t *c) {
+	glm_mat4_identity(c->model);
+	glm_translate(c->model, (float*) c->position);
+	glm_rotate(c->model, c->rotation[0], (vec3) {1.0f, 0.0f, 0.0f});
+	glm_rotate(c->model, c->rotation[1], (vec3) {0.0f, 1.0f, 0.0f});
+	glm_rotate(c->model, c->rotation[2], (vec3) {0.0f, 0.0f, 0.0f});
+	glm_scale(c->model, (float*) c->scale);
+}
+
+void cube_draw(cube_t* c, shader_t* s) {		
+	shader_set_mat4(s, "model", c->model);	
         glBindVertexArray(c->mesh->vao);
         glDrawElements(GL_TRIANGLES, c->mesh->index_count, GL_UNSIGNED_INT,
                        0);
@@ -108,7 +130,9 @@ void cube_draw(cube_t* c) {
 }
 
 void cube_free(cube_t* c) {
-        glDeleteVertexArrays(1, &c->mesh->vao);
-        glDeleteBuffers(2, c->mesh->vbos);
-        glDeleteBuffers(1, &c->mesh->eao);
+	--cube_count;
+	if (cube_count) return;
+	glDeleteVertexArrays(1, &c->mesh->vao);
+	glDeleteBuffers(2, c->mesh->vbos);
+	glDeleteBuffers(1, &c->mesh->eao);
 }

@@ -1,5 +1,5 @@
-#include "cglm/mat4.h"
 #include "cglm/util.h"
+#include "cglm/vec3.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -109,15 +109,47 @@ int main(void) {
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
 
-	cube_t cube;	
-	cube_init(&cube);
-	
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         /* Enabling depth-testing so that OpenGL uses its Z-buffer to
         prioritze drawings vertices that are closer to the camera. */
         glEnable(GL_DEPTH_TEST);
+
+        /* We then need a view matrix. To move around the world,
+         * moving the camera is the same as moving the entire
+         * world. Moving backwards = moving the entire scene
+         * forward, etc. */
+        mat4 view;
+        glm_mat4_identity(view);
+        glm_translate(view, (vec3) {0.0f, 0.0f, -10.0f});
+        glm_rotate(view, glm_rad(22.5f), (vec3) {1.0f, 0.0f, 0.0f});
+
+        /* Last, we need a projection matrix to make the
+         * perspective appear correctly. Since the calculation are
+         * pretty complex, cglm provides us with the correct and
+         * optimized functions*/
+        mat4 projection;
+        glm_mat4_identity(projection);
+        glm_perspective(glm_rad(45.0f), ((float)WIDTH / (float)HEIGHT),
+                        0.1f, 100.0f, projection);
+
+        int view_location = glGetUniformLocation(basic_shader.id, "view");
+
+        int projection_location =
+            glGetUniformLocation(basic_shader.id, "projection");
+
+        cube_t cubes[25];
+        int index;
+        for (int i = 0; i < 5; ++i) {
+                for (int j = 0; j < 5; ++j) {
+                        index = i * 5 + j;
+                        cube_init(&cubes[index]);
+                        glm_vec3_copy((vec3) {i - 2, 0.0f, j - 2},
+                                      cubes[index].position);
+                        cube_update(&cubes[index]);
+                }
+        }
 
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
@@ -133,57 +165,34 @@ int main(void) {
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
 
-                /* To go 3D, we will first need a model matrix. We will
-                 * transform our plane to make it look like it lays on the
-                 * floor. We will do this by rotating it 55 degrees on the
-                 * x axis. */
-                mat4 model;
-                glm_mat4_identity(model);
-                glm_rotate(model,
-                           (float)glfwGetTime() * 2.0f * glm_rad(-55.0f),
-                           (vec3) {1.0f, 1.0f, 1.0f});
+                /* Make the camera rotate around the staircase */
+                glm_rotate(view, glm_rad((sin(glfwGetTime()))),
+                           (vec3) {0.0f, 1.0f, 0.0f});
 
-                /* We then need a view matrix. To move around the world,
-                 * moving the camera is the same as moving the entire
-                 * world. Moving backwards = moving the entire scene
-                 * forward, etc. */
-                mat4 view;
-                glm_mat4_identity(view);
-                glm_translate(view, (vec3) {0.0f, 0.0f, -3.0f});
+                /* Draw all the cubes */
+                for (int i = 0; i < 25; ++i) {
+                        glm_vec3_copy(
+                            (vec3) {cubes[i].position[0],
+                                    sin(glfwGetTime() * 0.25f * i),
+                                    cubes[i].position[2]},
+                            cubes[i].position);
+                        cube_update(&cubes[i]);
+                        cube_draw(&cubes[i], &basic_shader);
+                }
 
-                /* Last, we need a projection matrix to make the
-                 * perspective appear correctly. Since the calculation are
-                 * pretty complex, cglm provides us with the correct and
-                 * optimized functions*/
-                mat4 projection;
-                glm_mat4_identity(projection);
-                glm_perspective(glm_rad(45.0f),
-                                ((float)WIDTH / (float)HEIGHT), 0.1f,
-                                100.0f, projection);
-
-                /* Sending matrices to the shader every frame */
-                int model_location =
-                    glGetUniformLocation(basic_shader.id, "model");
-                glUniformMatrix4fv(model_location, 1, GL_FALSE,
-                                   (float*)model);
-
-                int view_location =
-                    glGetUniformLocation(basic_shader.id, "view");
+                /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);
 
-                int projection_location =
-                    glGetUniformLocation(basic_shader.id, "projection");
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
-                                   (float*)projection);	
-
-		cube_draw(&cube);
+                                   (float*)projection);
 
                 glfwSwapBuffers(window);
         }
 
         shader_destroy(&basic_shader);
-	cube_free(&cube);	
+
+        for (int i = 0; i < 25; ++i) { cube_free(&cubes[i]); }
 
         glfwDestroyWindow(window);
         glfwTerminate();

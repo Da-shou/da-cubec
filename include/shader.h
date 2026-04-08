@@ -2,6 +2,7 @@
 #define SHADER_H
 
 #include <stdbool.h>
+#include <cglm/types.h>
 
 /**
  * @brief Structure to represent an OpenGL shader
@@ -48,5 +49,12 @@ void shader_set_int(shader_t* s, const char* name, int value);
  * @param name Name of uniform variable to set.
  * @param value Value to set the uniform variable to. */
 void shader_set_float(shader_t* s, const char* name, float value);
+
+/**
+ * @brief Sets a new 4x4 matrix uniform variable.
+ * @param s Shader to modify.
+ * @param name Name of uniform variable to set.
+ * @param value Value to set the uniform variable to. */
+void shader_set_mat4(shader_t* s, const char* name, mat4 value);
 
 #endif // SHADER_H
