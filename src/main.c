@@ -141,7 +141,7 @@ int main(void) {
                 glm_mat4_identity(model);
                 glm_rotate(model,
                            (float)glfwGetTime() * 2.0f * glm_rad(-55.0f),
-                           (vec3) {1.0f, 0.0f, 1.0f});
+                           (vec3) {1.0f, 1.0f, 1.0f});
 
                 /* We then need a view matrix. To move around the world,
                  * moving the camera is the same as moving the entire
@@ -177,7 +177,7 @@ int main(void) {
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);	
 
-		//cube_draw(&cube);
+		cube_draw(&cube);
 
                 glfwSwapBuffers(window);
         }
