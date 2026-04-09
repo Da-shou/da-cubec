@@ -26,6 +26,8 @@ mat4 projection;
  * @brief Called every time a key is pressed. */
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
+        (void)scancode;
+        (void)mode;
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, GL_TRUE);
 }
@@ -33,6 +35,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
 /**
  * @brief Called every time the window is resized */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+        (void)window;
         glViewport(0, 0, width, height);
 }
 
@@ -150,8 +153,8 @@ int main(void) {
                 }
         }
 
-	camera_t camera;
-	camera_init(&camera);
+        camera_t camera;
+        camera_init(&camera);
 
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
@@ -167,9 +170,9 @@ int main(void) {
 
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
-	
-		camera_process_inputs(window, &camera);
-		camera_update(&camera, view);
+
+                camera_process_inputs(window, &camera);
+                camera_update(&camera, view);
 
                 /* Draw all the cubes */
                 for (int i = 0; i < 25; ++i) {
