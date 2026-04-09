@@ -11,15 +11,12 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Defining compilations flags
-set(GCC_COMPILE_FLAGS "-Wall -O3")
+set(GCC_COMPILE_FLAGS "-Wall -g -O0")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COMPILE_FLAGS}")
 
-add_executable(${PROJECT_NAME}
-	src/main.c
-	src/shader.c
-	src/utils/io_utils.c
-	src/utils/shader_utils.c
-)
+# Adding all .c files in src
+file(GLOB_RECURSE SOURCES "src/*.c")
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Including our own header files to the project
 target_include_directories(${PROJECT_NAME} PRIVATE include)

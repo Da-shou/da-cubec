@@ -1,5 +1,4 @@
-#include "cglm/mat4.h"
-#include "cglm/util.h"
+#include "cglm/cam.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,11 +12,15 @@
 #include <cglm/cglm.h>
 
 #include <shader.h>
+#include <meshes/cube.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
 const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
 const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
+
+mat4 view;
+mat4 projection;
 
 /**
  * @brief Called every time a key is pressed. */
@@ -75,31 +78,6 @@ int main(void) {
         glfwGetFramebufferSize(window, &fb_width, &fb_height);
         glViewport(0, 0, fb_width, fb_height);
 
-        /* These are the vertices for the a textured cube. There are 36
-         * vertices here.*/
-        float vertices[] = {
-            -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.5f,  -0.5f, -0.5f, 1.0f,
-            0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  0.5f,  0.5f,  -0.5f,
-            1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  -0.5f, -0.5f,
-            -0.5f, 0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.5f,
-            -0.5f, 0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  -0.5f, 0.5f,  0.5f,  0.0f,
-            1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,
-            1.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 1.0f,  1.0f,  -0.5f, -0.5f,
-            -0.5f, 0.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  -0.5f,
-            -0.5f, 0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,
-
-            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,
-            1.0f,  0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  0.5f,  -0.5f, -0.5f,
-            0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  0.5f,  0.5f,
-            0.5f,  1.0f,  0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  0.5f,
-            -0.5f, -0.5f, 1.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,
-            0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,
-            0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  -0.5f, 0.5f,  -0.5f,
-            0.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  0.5f,  0.5f,
-            0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  -0.5f,
-            0.5f,  0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f};
-
         int width, height, nb_channels;
         unsigned char* image_data =
             stbi_load("img/stone.png", &width, &height, &nb_channels, 0);
@@ -129,57 +107,9 @@ int main(void) {
                         GL_NEAREST_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        shader basic_shader;
+        shader_t basic_shader;
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
-
-        unsigned int VAO;
-        glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
-
-        /* Generate a vertex buffer and put its ID in VBO. The buffer type
-         * of vertex buffers is GL_ARRAY_BUFFER */
-        unsigned int VBO;
-        glGenBuffers(1, &VBO);
-
-        /* Bind our new vertex buffer so that any change to the OpenGL
-         * buffer are done to the currenlty bound buffer. */
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-        /* Copy some user data into the currenlty bound buffer
-         * We use GL_STATIC_DRAW as the triangle will not move for now. */
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
-                     GL_STATIC_DRAW);
-
-        /* Creating an element array buffer to store sets of vertices
-         * to be reused. In this case, to draw two triangles. */
-        unsigned int EBO;
-        glGenBuffers(1, &EBO);
-
-        /* Defining our two triangles (0,1,3) and (1,2,3) */
-        unsigned int indices[] = {2, 3, 1, 0, 1, 3};
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-                     GL_STATIC_DRAW);
-
-        /* This is the important part, we are defining where each
-         * attributes of our vertices are located in the vertices array. We
-         * have a location, defined by three floats and a color, also
-         * defined by three floats. We thus have two parameters, 0 for
-         * position and 1 for color. The position parameter starts with an
-         * offset of 0 and has to skip 6*sizeof(float) to get to the next
-         * parameter. This space is called the stride. The color parameter
-         * starts with an offset of 3*sizeof(float) and has the same stride
-         */
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void*)0);
-        glEnableVertexAttribArray(0);
-        /* Also informing that the vertex has a new attribute, its texture
-         * coordinates.*/
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                              (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
 
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -188,77 +118,119 @@ int main(void) {
         prioritze drawings vertices that are closer to the camera. */
         glEnable(GL_DEPTH_TEST);
 
+        /* We then need a view matrix. To move around the world,
+         * moving the camera is the same as moving the entire
+         * world. Moving backwards = moving the entire scene
+         * forward, etc. */
+        glm_mat4_identity(view);
+        glm_translate(view, (vec3) {0.0f, 0.0f, -10.0f});
+
+        /* Last, we need a projection matrix to make the
+         * perspective appear correctly. Since the calculation are
+         * pretty complex, cglm provides us with the correct and
+         * optimized functions*/
+        glm_mat4_identity(projection);
+        glm_perspective(glm_rad(45.0f), ((float)WIDTH / (float)HEIGHT),
+                        0.1f, 100.0f, projection);
+
+        int view_location = glGetUniformLocation(basic_shader.id, "view");
+
+        int projection_location =
+            glGetUniformLocation(basic_shader.id, "projection");
+
+        cube_t cubes[25];
+        int index;
+        for (int i = 0; i < 5; ++i) {
+                for (int j = 0; j < 5; ++j) {
+                        index = i * 5 + j;
+                        cube_init(&cubes[index]);
+                        glm_vec3_copy((vec3) {i - 2, 0.0f, j - 2},
+                                      cubes[index].position);
+                        cube_update(&cubes[index]);
+                }
+        }
+
+        /* Setting up the camera. It needs a position, a direction and a
+         * target. The camera_direction vector is the substraction between
+         * our position and the target that the camera needs to point at.
+         * using basic vector math, this gets us the correct orentation.*/
+        vec3 camera_position = {0.0f, 0.0f, 3.0f};
+        vec3 camera_target = {0.0f, 0.0f, 0.0f};
+        vec3 camera_direction;
+        glm_vec3_sub(camera_position, camera_target, camera_direction);
+        glm_normalize(camera_direction);
+
+        /* We then need a right vector that represents the positive x-axis
+         * of the camera. Using a cross product, we can get a perpendicular
+         * vector from the plan made with an up vector and the camera
+         * direction. */
+        vec3 up = {0.0f, 1.0f, 0.0f};
+        vec3 camera_right;
+        glm_cross(up, camera_direction, camera_right);
+        glm_normalize(camera_right);
+
+        /* Finally, we calculate the up vector of the camera in the very
+         * same way. Since both are normalized, no need to normalize again.
+         */
+        vec3 camera_up;
+        glm_cross(camera_direction, camera_right, camera_up);
+
+        /* Now, we can create a "look_at" matrix which will be useful in
+         * Creating a camera. */
+        glm_lookat((vec3) {0.0f, 0.0f, 3.0f}, (vec3) {0.0f, 0.0f, 0.0f},
+                   (vec3) {0.0f, 1.0f, 0.0f}, view);
+
+        const float radius = 10.0f;
+        float cam_z, cam_x;
+
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
 
                 /* When clearing, we need to clear the buffer bit and also
-                 * the depth buffer bit so that information does not stack.
+                 * the depth buffer
+                 * bit so that information does not stack.
                  * We can use a bitwise OR to do both in one call. Very
                  * useful ! */
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
-                glBindVertexArray(VAO);
 
-                /* To go 3D, we will first need a model matrix. We will
-                 * transform our plane to make it look like it lays on the
-                 * floor. We will do this by rotating it 55 degrees on the
-                 * x axis. */
-                mat4 model;
-                glm_mat4_identity(model);
-                glm_rotate(model,
-                           (float)glfwGetTime() * 2.0f * glm_rad(-55.0f),
-                           (vec3) {1.0f, 0.0f, 1.0f});
+                /* Make the camera rotate around the staircase */
+                // glm_rotate(view, glm_rad((sin(glfwGetTime()))),
+                //            (vec3) {0.0f, 1.0f, 0.0f});
 
-                /* We then need a view matrix. To move around the world,
-                 * moving the camera is the same as moving the entire
-                 * world. Moving backwards = moving the entire scene
-                 * forward, etc. */
-                mat4 view;
-                glm_mat4_identity(view);
-                glm_translate(view, (vec3) {0.0f, 0.0f, -3.0f});
+                /* Draw all the cubes */
+                for (int i = 0; i < 25; ++i) {
+                        glm_vec3_copy(
+                            (vec3) {cubes[i].position[0],
+                                    sin(glfwGetTime() * 0.25f * i),
+                                    cubes[i].position[2]},
+                            cubes[i].position);
+                        cube_update(&cubes[i]);
+                        cube_draw(&cubes[i], &basic_shader);
+                }
 
-                /* Last, we need a projection matrix to make the
-                 * perspective appear correctly. Since the calculation are
-                 * pretty complex, cglm provides us with the correct and
-                 * optimized functions*/
-                mat4 projection;
-                glm_mat4_identity(projection);
-                glm_perspective(glm_rad(45.0f),
-                                ((float)WIDTH / (float)HEIGHT), 0.1f,
-                                100.0f, projection);
-
-                /* Sending matrices to the shader every frame */
-                int model_location =
-                    glGetUniformLocation(basic_shader.id, "model");
-                glUniformMatrix4fv(model_location, 1, GL_FALSE,
-                                   (float*)model);
-
-                int view_location =
-                    glGetUniformLocation(basic_shader.id, "view");
+                cam_x = sin(glfwGetTime()) * radius;
+                cam_z = cos(glfwGetTime()) * radius;
+                glm_lookat((vec3) {cam_x, 0.0f, cam_z},
+                           (vec3) {0.0f, 0.0f, 0.0f},
+                           (vec3) {0.0f, 1.0f, 0.0f}, view);
+                /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);
 
-                int projection_location =
-                    glGetUniformLocation(basic_shader.id, "projection");
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);
 
-                // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-
-                // Unbind VAO for safety.
-                glBindVertexArray(0);
                 glfwSwapBuffers(window);
         }
 
         shader_destroy(&basic_shader);
-        glDeleteBuffers(1, &EBO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteVertexArrays(1, &VAO);
+
+        for (int i = 0; i < 25; ++i) { cube_free(&cubes[i]); }
 
         glfwDestroyWindow(window);
         glfwTerminate();
