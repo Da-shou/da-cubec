@@ -60,8 +60,6 @@ static const unsigned int CUBE_INDEX_COUNT = 36;
 
 static mesh_t base_cube_mesh = {.vertices = CUBE_VERTICES,
                                 .indices = CUBE_INDICES,
-                                .texture_coordinates =
-                                    CUBE_TEXTURE_COORDINATES,
                                 .vertex_count = CUBE_VERTEX_COUNT,
                                 .index_count = CUBE_INDEX_COUNT,
                                 .vao = 0,
@@ -71,9 +69,11 @@ static mesh_t base_cube_mesh = {.vertices = CUBE_VERTICES,
 
 static size_t cube_count = 0;
 
-void cube_init(cube_t* c) {
+void cube_init(cube_t* c, material_t* m) {
 	++cube_count;
         c->mesh = &base_cube_mesh;
+	c->texture_coordinates = CUBE_TEXTURE_COORDINATES;
+	c->material = m;
 
 	glm_mat4_identity(c->model);
         glm_vec3_zero(c->position);
@@ -99,7 +99,7 @@ void cube_init(cube_t* c) {
         glBindBuffer(GL_ARRAY_BUFFER, c->mesh->vbos[1]);
         glBufferData(GL_ARRAY_BUFFER,
                      c->mesh->vertex_count * 2 * sizeof(float),
-                     c->mesh->texture_coordinates, GL_STATIC_DRAW);
+                     c->texture_coordinates, GL_STATIC_DRAW);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
                               (void*)0);
         glEnableVertexAttribArray(1);
@@ -122,6 +122,9 @@ void cube_update(cube_t *c) {
 }
 
 void cube_draw(cube_t* c, shader_t* s) {		
+	material_use(c->material, 0);
+	shader_use(s);
+	shader_set_int(s, "current_texture", 0);
 	shader_set_mat4(s, "model", c->model);	
         glBindVertexArray(c->mesh->vao);
         glDrawElements(GL_TRIANGLES, c->mesh->index_count, GL_UNSIGNED_INT,
@@ -129,7 +132,7 @@ void cube_draw(cube_t* c, shader_t* s) {
         glBindVertexArray(0);
 }
 
-void cube_free(cube_t* c) {
+void cube_destroy(cube_t* c) {
 	--cube_count;
 	if (cube_count) return;
 	glDeleteVertexArrays(1, &c->mesh->vao);

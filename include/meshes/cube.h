@@ -4,6 +4,7 @@
 #include <mesh.h>
 #include <cglm/cglm.h>
 #include <shader.h>
+#include <material.h>
 
 /**
  * @brief Helper struct for building cubes quickly
@@ -13,15 +14,19 @@
  * @param scale Scaling factor */
 typedef struct {
         mesh_t* mesh;
-        vec3 position;
+       	float* texture_coordinates; 
+	material_t* material;
+	vec3 position;
         vec3 rotation;
         vec3 scale;
         mat4 model;
 } cube_t;
 
 /**
- * @brief Initialize the cube to make it ready to draw on screen */
-void cube_init(cube_t* c);
+ * @brief Initialize the cube to make it ready to draw on screen 
+ * @param c Pointer to the cube struct to initalize. 
+ * @param m Pointer to the material to bind when the cube is drawn. */
+void cube_init(cube_t* c, material_t* m);
 
 /** @brief Updates the cube's position, scale and rotation based on its
  * attributes. */
@@ -33,6 +38,6 @@ void cube_draw(cube_t* c, shader_t* s);
 
 /** @brief Frees the static mesh's VAO, VBOs and EAO if this is the last
  * cube to be freed. */
-void cube_free(cube_t* c);
+void cube_destroy(cube_t* c);
 
 #endif
