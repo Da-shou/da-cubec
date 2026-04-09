@@ -1,0 +1,123 @@
+#include "cglm/cam.h"
+#include "cglm/vec3.h"
+#include <camera.h>
+
+#include <GLFW/glfw3.h>
+#include <stdbool.h>
+
+static const float CAMERA_YAW = 0.0f;
+static const float CAMERA_PITCH = 0.0f;
+static const float CAMERA_SPEED = 0.05f;
+static const float CAMERA_SENSITIVIY = 0.1f;
+static const float CAMERA_ZOOM = 45.0f;
+
+static float last_mouse_x = 0;
+static float last_mouse_y = 0;
+static bool first_mouse = true;
+
+void camera_init(camera_t* camera) {
+        /* Setting up the camera's intial position.*/
+        glm_vec3_copy((vec3) {0.0f, 0.0f, 3.0f}, camera->position);
+
+        /* The default front vector*/
+        glm_vec3_copy((vec3) {0.0f, 0.0f, -1.0f}, camera->front);
+
+        camera->yaw = CAMERA_YAW;
+        camera->pitch = CAMERA_PITCH;
+        camera->movement_speed = CAMERA_SPEED;
+        camera->mouse_sensitivity = CAMERA_SENSITIVIY;
+        camera->zoom = CAMERA_ZOOM;
+
+        glm_vec3_copy((vec3) {0.0f, 1.0f, 0.0f}, camera->world_up);
+
+        camera_update_vectors(camera);
+}
+
+void camera_update_vectors(camera_t* camera) {
+        /* Calculate the front vector using calculations to take yaw and
+         * pitch into account, which will allow moving the camera with the
+         * mouse. */
+        float front_x =
+            cos(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+        float front_y = sin(glm_rad(camera->pitch));
+        float front_z =
+            sin(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+        glm_vec3_copy((vec3) {front_x, front_y, front_z}, camera->front);
+        glm_normalize(camera->front);
+
+        /* Now that the front vector has been calculated, it's very easy to
+         * calculate the right and up vector from it;*/
+        glm_cross(camera->world_up, camera->front, camera->right);
+        glm_normalize(camera->right);
+        glm_cross(camera->front, camera->right, camera->up);
+        glm_normalize(camera->up);
+}
+
+void camera_update_view(camera_t* camera, mat4 view) {
+        vec3 direction;
+        glm_vec3_add(camera->position, camera->front, direction);
+        glm_lookat(camera->position, direction, camera->up, view);
+}
+
+void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
+                 float delta_time) {
+        const float camera_delta_speed = CAMERA_SPEED * delta_time;
+
+        vec3 temp;
+        switch (direction) {
+        case CAMERA_FORWARD:
+                glm_vec3_scale(camera->front, camera_delta_speed, temp);
+                glm_vec3_add(camera->position, temp, camera->position);
+                break;
+        case CAMERA_BACKWARD:
+                glm_vec3_scale(camera->front, camera_delta_speed, temp);
+                glm_vec3_sub(camera->position, temp, camera->position);
+                break;
+        case CAMERA_LEFT:
+                glm_cross(camera->front, camera->up, temp);
+                glm_normalize(temp);
+                glm_vec3_scale(temp, camera_delta_speed, temp);
+                glm_vec3_sub(camera->position, temp, camera->position);
+                break;
+        case CAMERA_RIGHT:
+                glm_cross(camera->front, camera->up, temp);
+                glm_normalize(temp);
+                glm_vec3_scale(temp, camera_delta_speed, temp);
+                glm_vec3_add(camera->position, temp, camera->position);
+                break;
+        }
+}
+
+void camera_rotate(camera_t* camera, float x_pos, float y_pos,
+                   GLboolean constrain_pitch) {
+        if (first_mouse) {
+                last_mouse_x = x_pos;
+                last_mouse_y = y_pos;
+                first_mouse = false;
+        }
+
+        float x_offset = x_pos - last_mouse_x;
+        float y_offset = y_pos - last_mouse_y;
+
+        x_offset *= camera->mouse_sensitivity;
+        y_offset *= camera->mouse_sensitivity;
+
+        camera->yaw += x_offset;
+        camera->pitch -= y_offset;
+
+        last_mouse_x = x_pos;
+        last_mouse_y = y_pos;
+
+        /* Used to clamp the camera movement to disallow the camera to
+         * completely rotate. */
+        if (constrain_pitch) {
+                if (camera->pitch > 89.0f) camera->pitch = 89.0f;
+                if (camera->pitch < -89.0f) camera->pitch = -89.0f;
+        }
+
+        camera_update_vectors(camera);
+}
+
+void camera_reset_mouse(void) {
+        first_mouse = true;
+}

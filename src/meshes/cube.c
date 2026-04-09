@@ -55,8 +55,8 @@ static float CUBE_TEXTURE_COORDINATES[] = {
 
 // clang-format on
 
-const static unsigned int CUBE_VERTEX_COUNT = 24;
-const static unsigned int CUBE_INDEX_COUNT = 36;
+static const unsigned int CUBE_VERTEX_COUNT = 24;
+static const unsigned int CUBE_INDEX_COUNT = 36;
 
 static mesh_t base_cube_mesh = {.vertices = CUBE_VERTICES,
                                 .indices = CUBE_INDICES,

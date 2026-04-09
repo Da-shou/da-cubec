@@ -1,4 +1,3 @@
-#include "cglm/cam.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -12,6 +11,7 @@
 #include <cglm/cglm.h>
 
 #include <shader.h>
+#include <camera.h>
 #include <meshes/cube.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
@@ -21,18 +21,77 @@ const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
 
 mat4 view;
 mat4 projection;
+camera_t camera;
+
+static bool focused = false;
 
 /**
  * @brief Called every time a key is pressed. */
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        (void)scancode;
+        (void)mode;
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                int current = glfwGetInputMode(window, GLFW_CURSOR);
+                if (current == GLFW_CURSOR_DISABLED) {
+                        focused = false;
+                        glfwSetInputMode(window, GLFW_CURSOR,
+                                         GLFW_CURSOR_NORMAL);
+                        camera_reset_mouse();
+                }
+        } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GL_TRUE);
+        }
+}
+
+/**
+ * @brief Rotates camera if mouse is locked in the window. */
+void mouse_callback(GLFWwindow* window, double x_pos, double y_pos) {
+        (void)window;
+        if (focused) {
+                camera_rotate(&camera, (float)x_pos, (float)y_pos,
+                              GL_TRUE);
+        }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action,
+                           int mods) {
+        (void)mods;
+        if (button != GLFW_MOUSE_BUTTON_LEFT) return;
+        if (!focused && action == GLFW_PRESS) {
+                focused = true;
+                glfwSetInputMode(window, GLFW_CURSOR,
+                                 GLFW_CURSOR_DISABLED);
+        }
+}
+
+/**
+ * @brief Managing inputs for mouse and keyboard. */
+void process_camera_inputs(GLFWwindow* window, camera_t* camera) {
+        float delta_time = 0.0f;
+        float last_frame = 0.0f;
+        float current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_FORWARD, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_BACKWARD, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_LEFT, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_RIGHT, delta_time);
+        }
 }
 
 /**
  * @brief Called every time the window is resized */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+        (void)window;
         glViewport(0, 0, width, height);
 }
 
@@ -58,6 +117,8 @@ int main(void) {
 
         glfwMakeContextCurrent(window);
         glfwSetKeyCallback(window, key_callback);
+        glfwSetCursorPosCallback(window, mouse_callback);
+        glfwSetMouseButtonCallback(window, mouse_button_callback);
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
         /* Printing compilation and runtime infos */
@@ -150,38 +211,7 @@ int main(void) {
                 }
         }
 
-        /* Setting up the camera. It needs a position, a direction and a
-         * target. The camera_direction vector is the substraction between
-         * our position and the target that the camera needs to point at.
-         * using basic vector math, this gets us the correct orentation.*/
-        vec3 camera_position = {0.0f, 0.0f, 3.0f};
-        vec3 camera_target = {0.0f, 0.0f, 0.0f};
-        vec3 camera_direction;
-        glm_vec3_sub(camera_position, camera_target, camera_direction);
-        glm_normalize(camera_direction);
-
-        /* We then need a right vector that represents the positive x-axis
-         * of the camera. Using a cross product, we can get a perpendicular
-         * vector from the plan made with an up vector and the camera
-         * direction. */
-        vec3 up = {0.0f, 1.0f, 0.0f};
-        vec3 camera_right;
-        glm_cross(up, camera_direction, camera_right);
-        glm_normalize(camera_right);
-
-        /* Finally, we calculate the up vector of the camera in the very
-         * same way. Since both are normalized, no need to normalize again.
-         */
-        vec3 camera_up;
-        glm_cross(camera_direction, camera_right, camera_up);
-
-        /* Now, we can create a "look_at" matrix which will be useful in
-         * Creating a camera. */
-        glm_lookat((vec3) {0.0f, 0.0f, 3.0f}, (vec3) {0.0f, 0.0f, 0.0f},
-                   (vec3) {0.0f, 1.0f, 0.0f}, view);
-
-        const float radius = 10.0f;
-        float cam_z, cam_x;
+        camera_init(&camera);
 
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
@@ -198,9 +228,8 @@ int main(void) {
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
 
-                /* Make the camera rotate around the staircase */
-                // glm_rotate(view, glm_rad((sin(glfwGetTime()))),
-                //            (vec3) {0.0f, 1.0f, 0.0f});
+                process_camera_inputs(window, &camera);
+                camera_update_view(&camera, view);
 
                 /* Draw all the cubes */
                 for (int i = 0; i < 25; ++i) {
@@ -213,11 +242,6 @@ int main(void) {
                         cube_draw(&cubes[i], &basic_shader);
                 }
 
-                cam_x = sin(glfwGetTime()) * radius;
-                cam_z = cos(glfwGetTime()) * radius;
-                glm_lookat((vec3) {cam_x, 0.0f, cam_z},
-                           (vec3) {0.0f, 0.0f, 0.0f},
-                           (vec3) {0.0f, 1.0f, 0.0f}, view);
                 /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);

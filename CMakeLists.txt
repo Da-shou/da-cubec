@@ -11,12 +11,14 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Defining compilations flags
-set(GCC_COMPILE_FLAGS "-Wall -g -O0")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COMPILE_FLAGS}")
+set(GCC_COMPILE_FLAGS "-Wall -Wextra -g -O0")
 
 # Adding all .c files in src
 file(GLOB_RECURSE SOURCES "src/*.c")
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Setting the compile flags just for da-cubec executable
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${GCC_COMPILE_FLAGS})
 
 # Including our own header files to the project
 target_include_directories(${PROJECT_NAME} PRIVATE include)

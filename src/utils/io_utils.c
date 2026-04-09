@@ -36,7 +36,7 @@ int read_file(const char* filepath, const char** const out) {
 
         // Read bytes into buffer
         size_t bytes = fread((void*)buffer, 1, fsize, fptr);
-        if (bytes != fsize) {
+        if (bytes != (size_t)fsize) {
                 perror("Error reading file");
                 free((void*)buffer);
                 fclose(fptr);
