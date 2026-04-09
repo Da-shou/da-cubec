@@ -1,3 +1,4 @@
+#include "cglm/cam.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -27,18 +28,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-/** @brief Moves camera with keyboard input */
-void process_inputs(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        glm_translate(view, (vec3) {0.0f, 0.0f, 0.1f});
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        glm_translate(view, (vec3) {0.0f, 0.0f, -0.1f});
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        glm_translate(view, (vec3) {0.1f, 0.0f, 0.0f});
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        glm_translate(view, (vec3) {-0.1f, 0.0f, 0.0f});
 }
 
 /**
@@ -161,15 +150,47 @@ int main(void) {
                 }
         }
 
+        /* Setting up the camera. It needs a position, a direction and a
+         * target. The camera_direction vector is the substraction between
+         * our position and the target that the camera needs to point at.
+         * using basic vector math, this gets us the correct orentation.*/
+        vec3 camera_position = {0.0f, 0.0f, 3.0f};
+        vec3 camera_target = {0.0f, 0.0f, 0.0f};
+        vec3 camera_direction;
+        glm_vec3_sub(camera_position, camera_target, camera_direction);
+        glm_normalize(camera_direction);
+
+        /* We then need a right vector that represents the positive x-axis
+         * of the camera. Using a cross product, we can get a perpendicular
+         * vector from the plan made with an up vector and the camera
+         * direction. */
+        vec3 up = {0.0f, 1.0f, 0.0f};
+        vec3 camera_right;
+        glm_cross(up, camera_direction, camera_right);
+        glm_normalize(camera_right);
+
+        /* Finally, we calculate the up vector of the camera in the very
+         * same way. Since both are normalized, no need to normalize again.
+         */
+        vec3 camera_up;
+        glm_cross(camera_direction, camera_right, camera_up);
+
+        /* Now, we can create a "look_at" matrix which will be useful in
+         * Creating a camera. */
+        glm_lookat((vec3) {0.0f, 0.0f, 3.0f}, (vec3) {0.0f, 0.0f, 0.0f},
+                   (vec3) {0.0f, 1.0f, 0.0f}, view);
+
+        const float radius = 10.0f;
+        float cam_z, cam_x;
+
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
-		process_inputs(window);
                 glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
 
-
                 /* When clearing, we need to clear the buffer bit and also
-                 * the depth buffer bit so that information does not stack.
+                 * the depth buffer
+                 * bit so that information does not stack.
                  * We can use a bitwise OR to do both in one call. Very
                  * useful ! */
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -192,6 +213,11 @@ int main(void) {
                         cube_draw(&cubes[i], &basic_shader);
                 }
 
+                cam_x = sin(glfwGetTime()) * radius;
+                cam_z = cos(glfwGetTime()) * radius;
+                glm_lookat((vec3) {cam_x, 0.0f, cam_z},
+                           (vec3) {0.0f, 0.0f, 0.0f},
+                           (vec3) {0.0f, 1.0f, 0.0f}, view);
                 /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);
