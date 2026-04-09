@@ -1,4 +1,3 @@
-#include "cglm/cam.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -12,6 +11,7 @@
 #include <cglm/cglm.h>
 
 #include <shader.h>
+#include <camera.h>
 #include <meshes/cube.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
@@ -150,38 +150,8 @@ int main(void) {
                 }
         }
 
-        /* Setting up the camera. It needs a position, a direction and a
-         * target. The camera_direction vector is the substraction between
-         * our position and the target that the camera needs to point at.
-         * using basic vector math, this gets us the correct orentation.*/
-        vec3 camera_position = {0.0f, 0.0f, 3.0f};
-        vec3 camera_target = {0.0f, 0.0f, 0.0f};
-        vec3 camera_direction;
-        glm_vec3_sub(camera_position, camera_target, camera_direction);
-        glm_normalize(camera_direction);
-
-        /* We then need a right vector that represents the positive x-axis
-         * of the camera. Using a cross product, we can get a perpendicular
-         * vector from the plan made with an up vector and the camera
-         * direction. */
-        vec3 up = {0.0f, 1.0f, 0.0f};
-        vec3 camera_right;
-        glm_cross(up, camera_direction, camera_right);
-        glm_normalize(camera_right);
-
-        /* Finally, we calculate the up vector of the camera in the very
-         * same way. Since both are normalized, no need to normalize again.
-         */
-        vec3 camera_up;
-        glm_cross(camera_direction, camera_right, camera_up);
-
-        /* Now, we can create a "look_at" matrix which will be useful in
-         * Creating a camera. */
-        glm_lookat((vec3) {0.0f, 0.0f, 3.0f}, (vec3) {0.0f, 0.0f, 0.0f},
-                   (vec3) {0.0f, 1.0f, 0.0f}, view);
-
-        const float radius = 10.0f;
-        float cam_z, cam_x;
+	camera_t camera;
+	camera_init(&camera);
 
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
@@ -197,10 +167,9 @@ int main(void) {
 
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
-
-                /* Make the camera rotate around the staircase */
-                // glm_rotate(view, glm_rad((sin(glfwGetTime()))),
-                //            (vec3) {0.0f, 1.0f, 0.0f});
+	
+		camera_process_inputs(window, &camera);
+		camera_update(&camera, view);
 
                 /* Draw all the cubes */
                 for (int i = 0; i < 25; ++i) {
@@ -213,11 +182,6 @@ int main(void) {
                         cube_draw(&cubes[i], &basic_shader);
                 }
 
-                cam_x = sin(glfwGetTime()) * radius;
-                cam_z = cos(glfwGetTime()) * radius;
-                glm_lookat((vec3) {cam_x, 0.0f, cam_z},
-                           (vec3) {0.0f, 0.0f, 0.0f},
-                           (vec3) {0.0f, 1.0f, 0.0f}, view);
                 /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);
