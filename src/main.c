@@ -21,6 +21,9 @@ const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
 
 mat4 view;
 mat4 projection;
+camera_t camera;
+
+static bool focused = false;
 
 /**
  * @brief Called every time a key is pressed. */
@@ -28,8 +31,61 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode) {
         (void)scancode;
         (void)mode;
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                int current = glfwGetInputMode(window, GLFW_CURSOR);
+                if (current == GLFW_CURSOR_DISABLED) {
+                        focused = false;
+                        glfwSetInputMode(window, GLFW_CURSOR,
+                                         GLFW_CURSOR_NORMAL);
+                        camera_reset_mouse();
+                }
+        } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GL_TRUE);
+        }
+}
+
+/**
+ * @brief Rotates camera if mouse is locked in the window. */
+void mouse_callback(GLFWwindow* window, double x_pos, double y_pos) {
+        (void)window;
+        if (focused) {
+                camera_rotate(&camera, (float)x_pos, (float)y_pos,
+                              GL_TRUE);
+        }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action,
+                           int mods) {
+        (void)mods;
+        if (button != GLFW_MOUSE_BUTTON_LEFT) return;
+        if (!focused && action == GLFW_PRESS) {
+                focused = true;
+                glfwSetInputMode(window, GLFW_CURSOR,
+                                 GLFW_CURSOR_DISABLED);
+        }
+}
+
+/**
+ * @brief Managing inputs for mouse and keyboard. */
+void process_camera_inputs(GLFWwindow* window, camera_t* camera) {
+        float delta_time = 0.0f;
+        float last_frame = 0.0f;
+        float current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_FORWARD, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_BACKWARD, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_LEFT, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_RIGHT, delta_time);
+        }
 }
 
 /**
@@ -61,6 +117,8 @@ int main(void) {
 
         glfwMakeContextCurrent(window);
         glfwSetKeyCallback(window, key_callback);
+        glfwSetCursorPosCallback(window, mouse_callback);
+        glfwSetMouseButtonCallback(window, mouse_button_callback);
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
         /* Printing compilation and runtime infos */
@@ -153,7 +211,6 @@ int main(void) {
                 }
         }
 
-        camera_t camera;
         camera_init(&camera);
 
         /* Main window loop */
@@ -171,8 +228,8 @@ int main(void) {
                 glBindTexture(GL_TEXTURE_2D, texture);
                 shader_use(&basic_shader);
 
-                camera_process_inputs(window, &camera);
-                camera_update(&camera, view);
+                process_camera_inputs(window, &camera);
+                camera_update_view(&camera, view);
 
                 /* Draw all the cubes */
                 for (int i = 0; i < 25; ++i) {
