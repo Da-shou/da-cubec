@@ -13,6 +13,7 @@
 #include <material.h>
 #include <blocks.h>
 #include <chunk.h>
+#include <pointer.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
@@ -23,9 +24,13 @@ const char* const TEXTURE_ATLAS_PATH = "img/atlas.png";
 mat4 view;
 mat4 projection;
 camera_t camera;
+vec3 target;
+chunk_t chunk;
 
 float delta_time = 0.0f;
 float last_frame = 0.0f;
+
+bool first_click = true;
 
 /* If focused is true, the mouse is locked and camera movement is enabled.
  */
@@ -45,8 +50,12 @@ void mouse_callback(GLFWwindow* window, double x_pos, double y_pos);
 void mouse_button_callback(GLFWwindow* window, int button, int action,
                            int mods);
 /**
- * @brief Managing inputs for mouse and keyboard. */
+ * @brief Managing inputs for camera controls. */
 void process_camera_inputs(GLFWwindow* window, camera_t* camera);
+
+/**
+ * @brief Managing inputs for breaking and placing blocks. */
+void process_block_inputs(GLFWwindow* window);
 
 /**
  * @brief Called every time the window is resized */
@@ -110,26 +119,21 @@ int main(void) {
 
         camera_init(&camera, GLM_VEC3_ZERO);
 
-        chunk_t chunk_a;
-        chunk_init(&chunk_a, (vec3) {0.0f, 0.0f, 0.0f});
-        chunk_a.blocks[1][0][0] = BLOCK_COBBLESTONE;
-        chunk_a.blocks[0][1][1] = BLOCK_SAND;
-        chunk_a.blocks[0][2][1] = BLOCK_DIRT;
-        chunk_a.blocks[0][3][1] = BLOCK_GRASS;
-        chunk_a.blocks[3][2][2] = BLOCK_STONE;
-	chunk_a.blocks[5][5][5] = BLOCK_GRASS;
-        chunk_build_mesh(&chunk_a, &chunk_a.mesh);
-	
-        chunk_t chunk_b;
-        chunk_init(&chunk_b, (vec3) {(float) CHUNK_SIZE, 0.0f, 0.0f});
-        chunk_b.blocks[0][0][0] = BLOCK_COBBLESTONE;
-        chunk_b.blocks[0][0][1] = BLOCK_COBBLESTONE;
-        chunk_b.blocks[0][0][2] = BLOCK_COBBLESTONE;
-        chunk_b.blocks[0][3][1] = BLOCK_SAND;
-        chunk_b.blocks[1][2][1] = BLOCK_DIRT;
-        chunk_b.blocks[2][3][1] = BLOCK_STONE;
-        chunk_b.blocks[3][2][2] = BLOCK_STONE;
-        chunk_build_mesh(&chunk_b, &chunk_b.mesh);
+        chunk_init(&chunk, (vec3) {0.0f, 0.0f, 0.0f});
+        chunk.blocks[1][0][0] = BLOCK_COBBLESTONE;
+        chunk.blocks[0][1][1] = BLOCK_SAND;
+        chunk.blocks[4][2][1] = BLOCK_DIRT;
+        chunk.blocks[0][3][1] = BLOCK_GRASS;
+        chunk.blocks[3][2][2] = BLOCK_STONE;
+        chunk.blocks[5][5][5] = BLOCK_GRASS;
+        chunk.blocks[7][0][0] = BLOCK_COBBLESTONE;
+        chunk.blocks[8][5][1] = BLOCK_COBBLESTONE;
+        chunk.blocks[2][6][2] = BLOCK_COBBLESTONE;
+        chunk.blocks[4][3][1] = BLOCK_SAND;
+        chunk.blocks[1][2][1] = BLOCK_DIRT;
+        chunk.blocks[2][9][1] = BLOCK_STONE;
+        chunk.blocks[3][2][2] = BLOCK_STONE;
+        chunk_build_mesh(&chunk, &chunk.mesh);
 
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -178,14 +182,20 @@ int main(void) {
                 process_camera_inputs(window, &camera);
                 camera_update_view(&camera, view);
 
+                if (focused) {
+                        block_type_t block = get_pointed_block(
+                            &chunk, &camera, 10.0f, &target);
+                }
+
+                process_block_inputs(window);
+
                 /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);
 
-                chunk_draw(&chunk_a, &basic_shader, &atlas);
-                chunk_draw(&chunk_b, &basic_shader, &atlas);
+                chunk_draw(&chunk, &basic_shader, &atlas);
 
                 /* Swapping the buffers is a necessary step and I forgot
                  * why. */
@@ -193,9 +203,8 @@ int main(void) {
         }
 
         shader_destroy(&basic_shader);
-	material_destroy(&atlas);
-        chunk_destroy(&chunk_a);
-        chunk_destroy(&chunk_b);
+        material_destroy(&atlas);
+        chunk_destroy(&chunk);
 
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -263,6 +272,19 @@ void process_camera_inputs(GLFWwindow* window, camera_t* camera) {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
                 camera_move(camera, CAMERA_RIGHT, delta_time);
         }
+}
+
+void process_block_inputs(GLFWwindow* window) {
+        int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+       if (state == GLFW_PRESS && first_click) {
+                /** Destroying the block that is being looked at **/
+                chunk.blocks[(int)target[0]][(int)target[1]]
+                            [(int)target[2]] = BLOCK_AIR;
+                chunk_build_mesh(&chunk, &chunk.mesh);
+		first_click = false;
+       } else if (state == GLFW_RELEASE) {
+	       first_click = true;
+       }
 }
 
 /**

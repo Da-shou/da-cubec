@@ -4,8 +4,9 @@
 
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
+#include <stdio.h>
 
-static const float CAMERA_YAW = 0.0f;
+static const float CAMERA_YAW = -90.0f;
 static const float CAMERA_PITCH = 0.0f;
 static const float CAMERA_SPEED = 5.0f;
 static const float CAMERA_SENSITIVIY = 0.05f;
@@ -62,7 +63,8 @@ void camera_update_view(camera_t* camera, mat4 view) {
 
 void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
                  float delta_time) {
-        const float camera_delta_speed = camera->movement_speed * delta_time;
+        const float camera_delta_speed =
+            camera->movement_speed * delta_time;
 
         vec3 temp;
         switch (direction) {

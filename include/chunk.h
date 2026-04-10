@@ -89,7 +89,7 @@ void chunk_mesh_draw(chunk_mesh_t* mesh);
  * @brief Sets the shader and material containing the texture atlas and calls the drawing of the chunk mesh.
  * @param chunk Pointer to the chunk to be rendered.
  * */
-void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* material);
+void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* material); 
 
 /**
  * @brief Destroys the allocated memory used for a chunk mesh.
