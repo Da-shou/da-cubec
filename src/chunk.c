@@ -1,13 +1,12 @@
-#include "cglm/mat4.h"
-#include "glad/gl.h"
-#include <GL/gl.h>
+#define GLAD_GL_IMPLEMENTATION 
+#include <glad/gl.h>
+#include <cglm/cglm.h>
 #include <chunk.h>
 #include <blocks.h>
 #include <shader.h>
 #include <material.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <string.h>
 
 /* These are all the different vertices for a face that are needed. */
@@ -28,14 +27,15 @@ static float FACE_TOP[4][3] = {{0, 1, 1}, {1, 1, 1}, {1, 1, 0}, {0, 1, 0}};
 static float FACE_BOTTOM[4][3] = {
     {0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}};
 
-void chunk_init(chunk_t* chunk) {
+void chunk_init(chunk_t* chunk, vec3 position) {
+	glm_vec3_copy(position, chunk->position);
         memset(chunk->blocks, 0, sizeof(chunk->blocks));
         chunk_mesh_init(&chunk->mesh);
 }
 
 void chunk_mesh_init(chunk_mesh_t* mesh) {
         mesh->vertex_capacity = STARTING_CHUNK_CAPACITY;
-        mesh->index_count = STARTING_CHUNK_CAPACITY;
+        mesh->index_capacity = STARTING_CHUNK_CAPACITY;
         mesh->vertex_count = 0;
         mesh->index_count = 0;
         mesh->vertices = (chunk_vertex_t*)malloc(mesh->vertex_capacity *
@@ -189,7 +189,10 @@ void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas) {
         material_use(atlas, 0);
         shader_use(shader);
         shader_set_int(shader, "current_texture", 0);
-	shader_set_mat4(shader, "model", GLM_MAT4_IDENTITY);
+	mat4 model; 
+	glm_mat4_copy(GLM_MAT4_IDENTITY, model);
+	glm_translate(model, chunk->position);
+	shader_set_mat4(shader, "model", model);
         chunk_mesh_draw(&chunk->mesh);
 }
 

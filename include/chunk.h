@@ -39,12 +39,13 @@ typedef struct {
 typedef struct {
     block_type_t blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     chunk_mesh_t mesh;
+    vec3 position;
 } chunk_t;
 
 /** 
  * @brief Initializes a chunk to be full of air.
  * @param chunk Pointer to the chunk that will be initalized. */
-void chunk_init(chunk_t* chunk);
+void chunk_init(chunk_t* chunk, vec3 position);
 
 /**
  * @brief Initalizes the chunk with a base size and allocates memory for

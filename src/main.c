@@ -111,17 +111,26 @@ int main(void) {
 
         camera_init(&camera, GLM_VEC3_ZERO);
 
-        chunk_t chunk;
-        chunk_init(&chunk);
-
-        chunk.blocks[0][0][0] = BLOCK_COBBLESTONE;
-        chunk.blocks[0][1][1] = BLOCK_SAND;
-        chunk.blocks[0][2][1] = BLOCK_DIRT;
-        chunk.blocks[0][3][1] = BLOCK_DIRT;
-        chunk.blocks[3][2][2] = BLOCK_STONE;
-
-        chunk_build_mesh(&chunk, &chunk.mesh);
+        chunk_t chunk_a;
+        chunk_init(&chunk_a, (vec3) {0.0f, 0.0f, 0.0f});
+        chunk_a.blocks[0][0][0] = BLOCK_COBBLESTONE;
+        chunk_a.blocks[0][1][1] = BLOCK_SAND;
+        chunk_a.blocks[0][2][1] = BLOCK_DIRT;
+        chunk_a.blocks[0][3][1] = BLOCK_DIRT;
+        chunk_a.blocks[3][2][2] = BLOCK_STONE;
+        chunk_build_mesh(&chunk_a, &chunk_a.mesh);
 	
+        chunk_t chunk_b;
+        chunk_init(&chunk_b, (vec3) {(float) CHUNK_SIZE, 0.0f, 0.0f});
+        chunk_b.blocks[0][0][0] = BLOCK_COBBLESTONE;
+        chunk_b.blocks[0][0][1] = BLOCK_COBBLESTONE;
+        chunk_b.blocks[0][0][2] = BLOCK_COBBLESTONE;
+        chunk_b.blocks[0][3][1] = BLOCK_SAND;
+        chunk_b.blocks[1][2][1] = BLOCK_DIRT;
+        chunk_b.blocks[2][3][1] = BLOCK_STONE;
+        chunk_b.blocks[3][2][2] = BLOCK_STONE;
+        chunk_build_mesh(&chunk_b, &chunk_b.mesh);
+
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -175,7 +184,8 @@ int main(void) {
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);
 
-                chunk_draw(&chunk, &basic_shader, &atlas);
+                chunk_draw(&chunk_a, &basic_shader, &atlas);
+                chunk_draw(&chunk_b, &basic_shader, &atlas);
 
                 /* Swapping the buffers is a necessary step and I forgot
                  * why. */
@@ -183,7 +193,8 @@ int main(void) {
         }
 
         shader_destroy(&basic_shader);
-        chunk_destroy(&chunk);
+        chunk_destroy(&chunk_a);
+        chunk_destroy(&chunk_b);
 
         glfwDestroyWindow(window);
         glfwTerminate();
