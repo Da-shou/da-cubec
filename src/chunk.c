@@ -1,34 +1,40 @@
-#define GLAD_GL_IMPLEMENTATION 
+#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
+
 #include <cglm/cglm.h>
+
 #include <chunk.h>
 #include <blocks.h>
 #include <shader.h>
 #include <material.h>
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 
+// clang-format off
 /* These are all the different vertices for a face that are needed. */
 static float FACE_FRONT[4][3] = {
-    {0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}};
+	{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}};
 
 static float FACE_BACK[4][3] = {
-    {1, 0, 0}, {0, 0, 0}, {0, 1, 0}, {1, 1, 0}};
+	{1, 0, 0}, {0, 0, 0}, {0, 1, 0}, {1, 1, 0}};
 
 static float FACE_LEFT[4][3] = {
-    {0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}};
+	{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}};
 
 static float FACE_RIGHT[4][3] = {
-    {1, 0, 1}, {1, 0, 0}, {1, 1, 0}, {1, 1, 1}};
+	{1, 0, 1}, {1, 0, 0}, {1, 1, 0}, {1, 1, 1}};
 
-static float FACE_TOP[4][3] = {{0, 1, 1}, {1, 1, 1}, {1, 1, 0}, {0, 1, 0}};
+static float FACE_TOP[4][3] = {
+	{0, 1, 1}, {1, 1, 1}, {1, 1, 0}, {0, 1, 0}};
 
 static float FACE_BOTTOM[4][3] = {
-    {0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}};
+	{0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}};
+//clang-format on
 
 void chunk_init(chunk_t* chunk, vec3 position) {
-	glm_vec3_copy(position, chunk->position);
+        glm_vec3_copy(position, chunk->position);
         memset(chunk->blocks, 0, sizeof(chunk->blocks));
         chunk_mesh_init(&chunk->mesh);
 }
@@ -69,10 +75,10 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, float x, float y, float z,
 
         /* Storing the UV corners for this atlas tile */
         float uvs[4][2] = {
-            {uv_offset_x, uv_offset_y},
-            {uv_offset_x + uv_size, uv_offset_y},
-            {uv_offset_x + uv_size, uv_offset_y + uv_size},
             {uv_offset_x, uv_offset_y + uv_size},
+            {uv_offset_x + uv_size, uv_offset_y + uv_size},
+            {uv_offset_x + uv_size, uv_offset_y},
+            {uv_offset_x, uv_offset_y},
         };
 
         unsigned int base = mesh->vertex_count;
@@ -102,9 +108,9 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, float x, float y, float z,
 }
 
 void chunk_build_mesh(chunk_t* chunk, chunk_mesh_t* mesh) {
-        mesh->vertex_count = 0;
-        mesh->index_count = 0;
-        // clang-format off
+    // clang-format off
+    mesh->vertex_count = 0;
+    mesh->index_count = 0;
     /* Big ass check on ALL cubes and sending each facing that face
      * BLOCK_AIR to the chunk mesh to be built. */
     for (uint8_t x = 0; x < CHUNK_SIZE; ++x) {
@@ -119,34 +125,32 @@ void chunk_build_mesh(chunk_t* chunk, chunk_mesh_t* mesh) {
                  * and behind.*/
                 if (z == CHUNK_SIZE - 1 ||
                     chunk->blocks[x][y][z + 1] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT, uv.u,
-                                         uv.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT,
+				    uv.front.u, uv.front.v, TILE_OFFSET);
                 if (z == 0 || chunk->blocks[x][y][z - 1] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_BACK, uv.u,
-                                         uv.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_BACK, 
+				    uv.back.u, uv.back.v, TILE_OFFSET);
 
                 if (y == CHUNK_SIZE - 1 ||
                     chunk->blocks[x][y + 1][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_TOP, uv.u,
-                                         uv.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_TOP,
+				    uv.top.u, uv.top.v, TILE_OFFSET);
                 if (y == 0 || chunk->blocks[x][y - 1][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_BOTTOM, uv.u,
-                                         uv.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_BOTTOM, 
+				    uv.bottom.u, uv.bottom.v, TILE_OFFSET);
 
                 if (x == CHUNK_SIZE - 1 ||
                     chunk->blocks[x + 1][y][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT, uv.u,
-                                         uv.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT,
+				    uv.right.u, uv.right.v, TILE_OFFSET);
                 if (x == 0 || chunk->blocks[x - 1][y][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT, uv.u,
-                                         uv.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT,
+				    uv.left.u, uv.left.v, TILE_OFFSET);
             }
         }
     }
-
     chunk_mesh_upload(mesh);
 }
-
 // clang-format on
 
 void chunk_mesh_upload(chunk_mesh_t* mesh) {
@@ -189,10 +193,10 @@ void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas) {
         material_use(atlas, 0);
         shader_use(shader);
         shader_set_int(shader, "current_texture", 0);
-	mat4 model; 
-	glm_mat4_copy(GLM_MAT4_IDENTITY, model);
-	glm_translate(model, chunk->position);
-	shader_set_mat4(shader, "model", model);
+        mat4 model;
+        glm_mat4_copy(GLM_MAT4_IDENTITY, model);
+        glm_translate(model, chunk->position);
+        shader_set_mat4(shader, "model", model);
         chunk_mesh_draw(&chunk->mesh);
 }
 

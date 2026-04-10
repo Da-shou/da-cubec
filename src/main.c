@@ -4,10 +4,8 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
 #include <shader.h>
@@ -20,6 +18,7 @@ const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
 const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
 const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
+const char* const TEXTURE_ATLAS_PATH = "img/atlas.png";
 
 mat4 view;
 mat4 projection;
@@ -102,7 +101,7 @@ int main(void) {
 
         /* Creating our texture atlas */
         material_t atlas;
-        material_create(&atlas, "img/atlas.png");
+        material_create(&atlas, TEXTURE_ATLAS_PATH);
 
         /* Initalizing our shader */
         shader_t basic_shader;
@@ -113,11 +112,12 @@ int main(void) {
 
         chunk_t chunk_a;
         chunk_init(&chunk_a, (vec3) {0.0f, 0.0f, 0.0f});
-        chunk_a.blocks[0][0][0] = BLOCK_COBBLESTONE;
+        chunk_a.blocks[1][0][0] = BLOCK_COBBLESTONE;
         chunk_a.blocks[0][1][1] = BLOCK_SAND;
         chunk_a.blocks[0][2][1] = BLOCK_DIRT;
-        chunk_a.blocks[0][3][1] = BLOCK_DIRT;
+        chunk_a.blocks[0][3][1] = BLOCK_GRASS;
         chunk_a.blocks[3][2][2] = BLOCK_STONE;
+	chunk_a.blocks[5][5][5] = BLOCK_GRASS;
         chunk_build_mesh(&chunk_a, &chunk_a.mesh);
 	
         chunk_t chunk_b;
