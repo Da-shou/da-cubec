@@ -193,6 +193,7 @@ int main(void) {
         }
 
         shader_destroy(&basic_shader);
+	material_destroy(&atlas);
         chunk_destroy(&chunk_a);
         chunk_destroy(&chunk_b);
 
