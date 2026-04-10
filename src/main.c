@@ -4,25 +4,36 @@
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
 #include <shader.h>
 #include <camera.h>
 #include <material.h>
-#include <meshes/cube.h>
+#include <blocks.h>
+#include <chunk.h>
+#include <pointer.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
 const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
 const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
+const char* const TEXTURE_ATLAS_PATH = "img/atlas.png";
 
 mat4 view;
 mat4 projection;
 camera_t camera;
+
+/* target is the block currently being pointed at by the player and the one
+ * that will be destroyed if left click is pressed. */
+vec3 target;
+
+/* neighbour contains the coordinates of the block that will be placed if
+ * right click is pressed. */
+vec3 neighbour;
+
+chunk_t chunk;
 
 float delta_time = 0.0f;
 float last_frame = 0.0f;
@@ -45,8 +56,12 @@ void mouse_callback(GLFWwindow* window, double x_pos, double y_pos);
 void mouse_button_callback(GLFWwindow* window, int button, int action,
                            int mods);
 /**
- * @brief Managing inputs for mouse and keyboard. */
+ * @brief Managing inputs for camera controls. */
 void process_camera_inputs(GLFWwindow* window, camera_t* camera);
+
+/**
+ * @brief Managing inputs for breaking and placing blocks. */
+void process_block_inputs(GLFWwindow* window);
 
 /**
  * @brief Called every time the window is resized */
@@ -99,17 +114,29 @@ int main(void) {
         glfwGetFramebufferSize(window, &fb_width, &fb_height);
         glViewport(0, 0, fb_width, fb_height);
 
-        /* Initalizing our textures */
-        material_t cobblestone;
-        material_create(&cobblestone, "img/stone.png");
-
-        material_t stone;
-        material_create(&stone, "img/cobblestone.png");
+        /* Creating our texture atlas */
+        material_t atlas;
+        material_create(&atlas, TEXTURE_ATLAS_PATH);
 
         /* Initalizing our shader */
         shader_t basic_shader;
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
+
+        camera_init(&camera, (vec3) {0.0f, 5.0f, 0.0f});
+
+        chunk_init(&chunk, (vec3) {0.0f, 0.0f, 0.0f});
+        chunk.blocks[15][15][0] = BLOCK_STONE;
+        chunk.blocks[15][15][15] = BLOCK_STONE;
+	chunk.blocks[0][15][15] = BLOCK_STONE;
+	chunk.blocks[0][15][0] = BLOCK_STONE;
+
+	for (uint8_t i = 0; i < CHUNK_SIZE; ++i) {	
+		for (uint8_t j = 0; j < CHUNK_SIZE; ++j) 
+		chunk.blocks[i][0][j] = BLOCK_GRASS;	
+	}
+
+        chunk_build_mesh(&chunk, &chunk.mesh);
 
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -123,14 +150,14 @@ int main(void) {
          * world. Moving backwards = moving the entire scene
          * forward, etc. */
         glm_mat4_identity(view);
-        glm_translate(view, (vec3) {0.0f, 0.0f, -10.0f});
+        glm_translate(view, (vec3) {0.0f, 0.0f, 0.0f});
 
         /* Then, we need a projection matrix to make the
          * perspective appear correctly. Since the calculation are
          * pretty complex, cglm provides us with the correct and
          * optimized functions*/
         glm_mat4_identity(projection);
-        glm_perspective(glm_rad(45.0f), ((float)WIDTH / (float)HEIGHT),
+        glm_perspective(glm_rad(70.0f), ((float)WIDTH / (float)HEIGHT),
                         0.1f, 100.0f, projection);
 
         /* Getting the location of our uniform view and projection matrices
@@ -139,24 +166,6 @@ int main(void) {
         int view_location = glGetUniformLocation(basic_shader.id, "view");
         int projection_location =
             glGetUniformLocation(basic_shader.id, "projection");
-
-        cube_t cubes[25];
-        int index;
-        for (int i = 0; i < 5; ++i) {
-                for (int j = 0; j < 5; ++j) {
-                        index = i * 5 + j;
-                        if (index & 1) {
-                                cube_init(&cubes[index], &cobblestone);
-                        } else {
-                                cube_init(&cubes[index], &stone);
-                        }
-                        glm_vec3_copy((vec3) {i - 2, 0.0f, j - 2},
-                                      cubes[index].position);
-                        cube_update(&cubes[index]);
-                }
-        }
-
-        camera_init(&camera);
 
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
@@ -176,9 +185,12 @@ int main(void) {
                 process_camera_inputs(window, &camera);
                 camera_update_view(&camera, view);
 
-                /* Draw all the cubes */
-                for (int i = 0; i < 25; ++i) {
-                        cube_draw(&cubes[i], &basic_shader);
+                if (focused) {
+                        block_type_t block = get_pointed_block(
+                            &chunk, &camera, 10.0f, &target, &neighbour);
+                        if (block != BLOCK_AIR) {
+                                process_block_inputs(window);
+                        }
                 }
 
                 /* Apply the view and projection matrices */
@@ -187,16 +199,16 @@ int main(void) {
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);
 
+                chunk_draw(&chunk, &basic_shader, &atlas);
+
                 /* Swapping the buffers is a necessary step and I forgot
                  * why. */
                 glfwSwapBuffers(window);
         }
 
         shader_destroy(&basic_shader);
-	material_destroy(&cobblestone);
-	material_destroy(&stone);
-
-        for (int i = 0; i < 25; ++i) { cube_destroy(&cubes[i]); }
+        material_destroy(&atlas);
+        chunk_destroy(&chunk);
 
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -264,6 +276,42 @@ void process_camera_inputs(GLFWwindow* window, camera_t* camera) {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
                 camera_move(camera, CAMERA_RIGHT, delta_time);
         }
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		camera_move(camera, CAMERA_UP, delta_time);
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		camera_move(camera, CAMERA_DOWN, delta_time);
+	}
+}
+
+void process_block_inputs(GLFWwindow* window) {
+        static int last_lc_state = GLFW_RELEASE;
+        static int last_rc_state = GLFW_RELEASE;
+
+        int lc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+        int rc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+
+        if (lc_state == GLFW_PRESS && last_lc_state == GLFW_RELEASE) {
+                int cx, cy, cz;
+                cx = (int)target[0];
+                cy = (int)target[1];
+                cz = (int)target[2];
+                /** Destroying the block that is being looked at **/
+                chunk.blocks[cx][cy][cz] = BLOCK_AIR;
+                chunk_build_mesh(&chunk, &chunk.mesh);
+        }
+
+        if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
+                int nx, ny, nz;
+                nx = (int)neighbour[0];
+                ny = (int)neighbour[1];
+                nz = (int)neighbour[2];
+                chunk.blocks[nx][ny][nz] = BLOCK_COBBLESTONE;
+                chunk_build_mesh(&chunk, &chunk.mesh);
+        }
+
+	last_lc_state = lc_state;
+	last_rc_state = rc_state;
 }
 
 /**

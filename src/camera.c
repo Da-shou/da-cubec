@@ -7,7 +7,7 @@
 
 static const float CAMERA_YAW = 0.0f;
 static const float CAMERA_PITCH = 0.0f;
-static const float CAMERA_SPEED = 3.5f;
+static const float CAMERA_SPEED = 5.0f;
 static const float CAMERA_SENSITIVIY = 0.05f;
 static const float CAMERA_ZOOM = 45.0f;
 
@@ -15,9 +15,9 @@ static float last_mouse_x = 0;
 static float last_mouse_y = 0;
 static bool first_mouse = true;
 
-void camera_init(camera_t* camera) {
+void camera_init(camera_t* camera, vec3 position) {
         /* Setting up the camera's intial position.*/
-        glm_vec3_copy(GLM_VEC3_ZERO, camera->position);
+        glm_vec3_copy(position, camera->position);
 
         /* The default front vector*/
         glm_vec3_copy((vec3) {0.0f, 0.0f, -1.0f}, camera->front);
@@ -62,7 +62,8 @@ void camera_update_view(camera_t* camera, mat4 view) {
 
 void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
                  float delta_time) {
-        const float camera_delta_speed = camera->movement_speed * delta_time;
+        const float camera_delta_speed =
+            camera->movement_speed * delta_time;
 
         vec3 temp;
         switch (direction) {
@@ -74,6 +75,14 @@ void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
                 glm_vec3_scale(camera->front, camera_delta_speed, temp);
                 glm_vec3_sub(camera->position, temp, camera->position);
                 break;
+	case CAMERA_UP:
+		glm_vec3_scale(camera->world_up, camera_delta_speed, temp);
+		glm_vec3_add(camera->position, temp, camera->position);
+		break;
+	case CAMERA_DOWN:
+		glm_vec3_scale(camera->world_up, camera_delta_speed, temp);
+		glm_vec3_sub(camera->position, temp, camera->position);
+		break;
         case CAMERA_LEFT:
                 glm_cross(camera->front, camera->up, temp);
                 glm_normalize(temp);

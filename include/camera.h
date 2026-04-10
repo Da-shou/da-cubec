@@ -10,7 +10,9 @@ typedef enum {
         CAMERA_FORWARD,
         CAMERA_BACKWARD,
         CAMERA_LEFT,
-        CAMERA_RIGHT
+        CAMERA_RIGHT,
+	CAMERA_UP,
+	CAMERA_DOWN
 } CAMERA_DIRECTION;
 
 /**
@@ -46,7 +48,7 @@ typedef struct {
  * @brief Initializes the camera vectors and puts it at the
  * orgin of the world.
  * @param camera Camera struct to be initalized. */
-void camera_init(camera_t* camera);
+void camera_init(camera_t* camera, vec3 position);
 
 /**
  * @brief Updates the right, front and up vectors of the camera. Has to be
