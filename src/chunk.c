@@ -151,6 +151,7 @@ void chunk_build_mesh(chunk_t* chunk, chunk_mesh_t* mesh) {
     }
     chunk_mesh_upload(mesh);
 }
+
 // clang-format on
 
 void chunk_mesh_upload(chunk_mesh_t* mesh) {
@@ -199,6 +200,8 @@ void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas) {
         shader_set_mat4(shader, "model", model);
         chunk_mesh_draw(&chunk->mesh);
 }
+
+
 
 void chunk_mesh_destroy(chunk_mesh_t* mesh) {
         free(mesh->vertices);

@@ -10,7 +10,9 @@ typedef enum {
         CAMERA_FORWARD,
         CAMERA_BACKWARD,
         CAMERA_LEFT,
-        CAMERA_RIGHT
+        CAMERA_RIGHT,
+	CAMERA_UP,
+	CAMERA_DOWN
 } CAMERA_DIRECTION;
 
 /**

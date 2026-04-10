@@ -4,9 +4,8 @@
 
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
-#include <stdio.h>
 
-static const float CAMERA_YAW = -90.0f;
+static const float CAMERA_YAW = 0.0f;
 static const float CAMERA_PITCH = 0.0f;
 static const float CAMERA_SPEED = 5.0f;
 static const float CAMERA_SENSITIVIY = 0.05f;
@@ -76,6 +75,14 @@ void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
                 glm_vec3_scale(camera->front, camera_delta_speed, temp);
                 glm_vec3_sub(camera->position, temp, camera->position);
                 break;
+	case CAMERA_UP:
+		glm_vec3_scale(camera->world_up, camera_delta_speed, temp);
+		glm_vec3_add(camera->position, temp, camera->position);
+		break;
+	case CAMERA_DOWN:
+		glm_vec3_scale(camera->world_up, camera_delta_speed, temp);
+		glm_vec3_sub(camera->position, temp, camera->position);
+		break;
         case CAMERA_LEFT:
                 glm_cross(camera->front, camera->up, temp);
                 glm_normalize(temp);

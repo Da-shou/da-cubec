@@ -24,13 +24,19 @@ const char* const TEXTURE_ATLAS_PATH = "img/atlas.png";
 mat4 view;
 mat4 projection;
 camera_t camera;
+
+/* target is the block currently being pointed at by the player and the one
+ * that will be destroyed if left click is pressed. */
 vec3 target;
+
+/* neighbour contains the coordinates of the block that will be placed if
+ * right click is pressed. */
+vec3 neighbour;
+
 chunk_t chunk;
 
 float delta_time = 0.0f;
 float last_frame = 0.0f;
-
-bool first_click = true;
 
 /* If focused is true, the mouse is locked and camera movement is enabled.
  */
@@ -117,22 +123,19 @@ int main(void) {
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
 
-        camera_init(&camera, GLM_VEC3_ZERO);
+        camera_init(&camera, (vec3) {0.0f, 5.0f, 0.0f});
 
         chunk_init(&chunk, (vec3) {0.0f, 0.0f, 0.0f});
-        chunk.blocks[1][0][0] = BLOCK_COBBLESTONE;
-        chunk.blocks[0][1][1] = BLOCK_SAND;
-        chunk.blocks[4][2][1] = BLOCK_DIRT;
-        chunk.blocks[0][3][1] = BLOCK_GRASS;
-        chunk.blocks[3][2][2] = BLOCK_STONE;
-        chunk.blocks[5][5][5] = BLOCK_GRASS;
-        chunk.blocks[7][0][0] = BLOCK_COBBLESTONE;
-        chunk.blocks[8][5][1] = BLOCK_COBBLESTONE;
-        chunk.blocks[2][6][2] = BLOCK_COBBLESTONE;
-        chunk.blocks[4][3][1] = BLOCK_SAND;
-        chunk.blocks[1][2][1] = BLOCK_DIRT;
-        chunk.blocks[2][9][1] = BLOCK_STONE;
-        chunk.blocks[3][2][2] = BLOCK_STONE;
+        chunk.blocks[15][15][0] = BLOCK_STONE;
+        chunk.blocks[15][15][15] = BLOCK_STONE;
+	chunk.blocks[0][15][15] = BLOCK_STONE;
+	chunk.blocks[0][15][0] = BLOCK_STONE;
+
+	for (uint8_t i = 0; i < CHUNK_SIZE; ++i) {	
+		for (uint8_t j = 0; j < CHUNK_SIZE; ++j) 
+		chunk.blocks[i][0][j] = BLOCK_GRASS;	
+	}
+
         chunk_build_mesh(&chunk, &chunk.mesh);
 
         /* Set drawing mode (wireframe or full polygons) */
@@ -147,14 +150,14 @@ int main(void) {
          * world. Moving backwards = moving the entire scene
          * forward, etc. */
         glm_mat4_identity(view);
-        glm_translate(view, (vec3) {0.0f, 0.0f, -10.0f});
+        glm_translate(view, (vec3) {0.0f, 0.0f, 0.0f});
 
         /* Then, we need a projection matrix to make the
          * perspective appear correctly. Since the calculation are
          * pretty complex, cglm provides us with the correct and
          * optimized functions*/
         glm_mat4_identity(projection);
-        glm_perspective(glm_rad(45.0f), ((float)WIDTH / (float)HEIGHT),
+        glm_perspective(glm_rad(70.0f), ((float)WIDTH / (float)HEIGHT),
                         0.1f, 100.0f, projection);
 
         /* Getting the location of our uniform view and projection matrices
@@ -184,10 +187,11 @@ int main(void) {
 
                 if (focused) {
                         block_type_t block = get_pointed_block(
-                            &chunk, &camera, 10.0f, &target);
+                            &chunk, &camera, 10.0f, &target, &neighbour);
+                        if (block != BLOCK_AIR) {
+                                process_block_inputs(window);
+                        }
                 }
-
-                process_block_inputs(window);
 
                 /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
@@ -272,19 +276,42 @@ void process_camera_inputs(GLFWwindow* window, camera_t* camera) {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
                 camera_move(camera, CAMERA_RIGHT, delta_time);
         }
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		camera_move(camera, CAMERA_UP, delta_time);
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		camera_move(camera, CAMERA_DOWN, delta_time);
+	}
 }
 
 void process_block_inputs(GLFWwindow* window) {
-        int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-       if (state == GLFW_PRESS && first_click) {
+        static int last_lc_state = GLFW_RELEASE;
+        static int last_rc_state = GLFW_RELEASE;
+
+        int lc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+        int rc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+
+        if (lc_state == GLFW_PRESS && last_lc_state == GLFW_RELEASE) {
+                int cx, cy, cz;
+                cx = (int)target[0];
+                cy = (int)target[1];
+                cz = (int)target[2];
                 /** Destroying the block that is being looked at **/
-                chunk.blocks[(int)target[0]][(int)target[1]]
-                            [(int)target[2]] = BLOCK_AIR;
+                chunk.blocks[cx][cy][cz] = BLOCK_AIR;
                 chunk_build_mesh(&chunk, &chunk.mesh);
-		first_click = false;
-       } else if (state == GLFW_RELEASE) {
-	       first_click = true;
-       }
+        }
+
+        if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
+                int nx, ny, nz;
+                nx = (int)neighbour[0];
+                ny = (int)neighbour[1];
+                nz = (int)neighbour[2];
+                chunk.blocks[nx][ny][nz] = BLOCK_COBBLESTONE;
+                chunk_build_mesh(&chunk, &chunk.mesh);
+        }
+
+	last_lc_state = lc_state;
+	last_rc_state = rc_state;
 }
 
 /**

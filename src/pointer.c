@@ -2,10 +2,13 @@
 #include <math.h>
 
 block_type_t get_pointed_block(chunk_t* chunk, camera_t* camera,
-                               float max_distance, vec3* pointed_block) {
+                               float max_distance, vec3* pointed_block,
+                               vec3* neighbour_block) {
         vec3 pos, dir;
         glm_vec3_copy(camera->position, pos);
         glm_vec3_copy(camera->front, dir);
+
+        axis_t last_pointed_to = X;
 
         /* Storing the camera position */
         int x, y, z;
@@ -39,15 +42,18 @@ block_type_t get_pointed_block(chunk_t* chunk, camera_t* camera,
                               : (pos[1] - y) * delta_y;
         side_z = (step_z > 0) ? (z + 1.0f - pos[2]) * delta_z
                               : (pos[2] - z) * delta_z;
-
         float distance = 0.0f;
         while (distance < max_distance) {
-                if (x >= 0 && x < CHUNK_SIZE && y >= 0 && y < CHUNK_SIZE &&
-                    z >= 0 && z < CHUNK_SIZE) {
+                bool boundary_check = x >= 0 && x < CHUNK_SIZE && y >= 0 &&
+                                      y < CHUNK_SIZE && z >= 0 &&
+                                      z < CHUNK_SIZE;
+                if (boundary_check) {
                         block_type_t block = chunk->blocks[x][y][z];
                         if (block != BLOCK_AIR) {
-                                glm_vec3_copy((vec3) {x, y, z},
-                                              *pointed_block);
+                                process_block(
+                                    (vec3) {x, y, z}, last_pointed_to,
+                                    pointed_block, neighbour_block, step_x,
+                                    step_y, step_z);
 				return block;
                         }
                 }
@@ -57,23 +63,39 @@ block_type_t get_pointed_block(chunk_t* chunk, camera_t* camera,
                                 side_x += delta_x;
                                 x += step_x;
                                 distance = side_x;
+				last_pointed_to = X;
                         } else {
                                 side_z += delta_z;
                                 z += step_z;
                                 distance = side_z;
+				last_pointed_to = Z;
                         }
                 } else {
                         if (side_y < side_z) {
                                 side_y += delta_y;
                                 y += step_y;
                                 distance = side_y;
+				last_pointed_to = Y;
                         } else {
                                 side_z += delta_z;
                                 z += step_z;
                                 distance = side_z;
+				last_pointed_to = Z;
                         }
                 }
         }
-	
-	return BLOCK_AIR;
+
+        return BLOCK_AIR;
+}
+
+void process_block(vec3 block_position, axis_t last, vec3* pointed_block,
+                   vec3* neighbour_block, int step_x, int step_y,
+                   int step_z) {
+        glm_vec3_copy(block_position, *pointed_block);
+        glm_vec3_copy(*pointed_block, *neighbour_block);
+        switch (last) {
+        case X: (*neighbour_block)[0] -= step_x; break;
+        case Y: (*neighbour_block)[1] -= step_y; break;
+        case Z: (*neighbour_block)[2] -= step_z; break;
+        }
 }
