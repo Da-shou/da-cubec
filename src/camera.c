@@ -7,7 +7,7 @@
 
 static const float CAMERA_YAW = 0.0f;
 static const float CAMERA_PITCH = 0.0f;
-static const float CAMERA_SPEED = 3.5f;
+static const float CAMERA_SPEED = 5.0f;
 static const float CAMERA_SENSITIVIY = 0.05f;
 static const float CAMERA_ZOOM = 45.0f;
 
@@ -15,9 +15,9 @@ static float last_mouse_x = 0;
 static float last_mouse_y = 0;
 static bool first_mouse = true;
 
-void camera_init(camera_t* camera) {
+void camera_init(camera_t* camera, vec3 position) {
         /* Setting up the camera's intial position.*/
-        glm_vec3_copy(GLM_VEC3_ZERO, camera->position);
+        glm_vec3_copy(position, camera->position);
 
         /* The default front vector*/
         glm_vec3_copy((vec3) {0.0f, 0.0f, -1.0f}, camera->front);

@@ -13,7 +13,8 @@
 #include <shader.h>
 #include <camera.h>
 #include <material.h>
-#include <meshes/cube.h>
+#include <blocks.h>
+#include <chunk.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
@@ -99,18 +100,28 @@ int main(void) {
         glfwGetFramebufferSize(window, &fb_width, &fb_height);
         glViewport(0, 0, fb_width, fb_height);
 
-        /* Initalizing our textures */
-        material_t cobblestone;
-        material_create(&cobblestone, "img/stone.png");
-
-        material_t stone;
-        material_create(&stone, "img/cobblestone.png");
+        /* Creating our texture atlas */
+        material_t atlas;
+        material_create(&atlas, "img/atlas.png");
 
         /* Initalizing our shader */
         shader_t basic_shader;
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
 
+        camera_init(&camera, GLM_VEC3_ZERO);
+
+        chunk_t chunk;
+        chunk_init(&chunk);
+
+        chunk.blocks[0][0][0] = BLOCK_COBBLESTONE;
+        chunk.blocks[0][1][1] = BLOCK_SAND;
+        chunk.blocks[0][2][1] = BLOCK_DIRT;
+        chunk.blocks[0][3][1] = BLOCK_DIRT;
+        chunk.blocks[3][2][2] = BLOCK_STONE;
+
+        chunk_build_mesh(&chunk, &chunk.mesh);
+	
         /* Set drawing mode (wireframe or full polygons) */
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -140,24 +151,6 @@ int main(void) {
         int projection_location =
             glGetUniformLocation(basic_shader.id, "projection");
 
-        cube_t cubes[25];
-        int index;
-        for (int i = 0; i < 5; ++i) {
-                for (int j = 0; j < 5; ++j) {
-                        index = i * 5 + j;
-                        if (index & 1) {
-                                cube_init(&cubes[index], &cobblestone);
-                        } else {
-                                cube_init(&cubes[index], &stone);
-                        }
-                        glm_vec3_copy((vec3) {i - 2, 0.0f, j - 2},
-                                      cubes[index].position);
-                        cube_update(&cubes[index]);
-                }
-        }
-
-        camera_init(&camera);
-
         /* Main window loop */
         while (!glfwWindowShouldClose(window)) {
                 /* Calling this function allows us to gather all inputs
@@ -176,16 +169,13 @@ int main(void) {
                 process_camera_inputs(window, &camera);
                 camera_update_view(&camera, view);
 
-                /* Draw all the cubes */
-                for (int i = 0; i < 25; ++i) {
-                        cube_draw(&cubes[i], &basic_shader);
-                }
-
                 /* Apply the view and projection matrices */
                 glUniformMatrix4fv(view_location, 1, GL_FALSE,
                                    (float*)view);
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);
+
+                chunk_draw(&chunk, &basic_shader, &atlas);
 
                 /* Swapping the buffers is a necessary step and I forgot
                  * why. */
@@ -193,10 +183,7 @@ int main(void) {
         }
 
         shader_destroy(&basic_shader);
-	material_destroy(&cobblestone);
-	material_destroy(&stone);
-
-        for (int i = 0; i < 25; ++i) { cube_destroy(&cubes[i]); }
+        chunk_destroy(&chunk);
 
         glfwDestroyWindow(window);
         glfwTerminate();
