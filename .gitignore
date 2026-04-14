@@ -11,7 +11,10 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 .idea
+*.dll
+cmake-build*
 
 # Executable
 build
+da-cubec*
 .cache

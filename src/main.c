@@ -20,6 +20,7 @@ const char* const WINDOW_TITLE = "da-cubec";
 const char* const VERTEX_SHADER_PATH = "src/shaders/basic.vert.glsl";
 const char* const FRAGMENT_SHADER_PATH = "src/shaders/basic.frag.glsl";
 const char* const TEXTURE_ATLAS_PATH = "img/atlas.png";
+const float_t MAX_REACH = 6.0f;
 
 mat4 view;
 mat4 projection;
@@ -181,7 +182,8 @@ int main(void) {
                 process_camera_inputs(window, &main_camera);
                 camera_update_view(&main_camera, view);
                 if (focused) {
-                        const block_type_t block = get_pointed_block(&world, &main_camera, 5.0f,
+                        const block_type_t block = get_pointed_block(
+                                &world, &main_camera, MAX_REACH,
                                 &target_block, &neighbour, &target_chunk);
                         if (block != BLOCK_AIR) {
                                 process_block_inputs(window);

@@ -22,5 +22,5 @@ fi
 
 # Run program if successfully compiled
 if [[ -f "./$BUILD/$EXECUTABLE" ]] && [[ $1 == "run" ]]; then
-	"./$BUILD/$EXECUTABLE"
+	"./$EXECUTABLE"
 fi

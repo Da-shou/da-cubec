@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 4.1.1)
 # Project info
 project("da-cubec" VERSION 1.0)
 
+# Set the executable and library output to root
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+
 # Requiring C99
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
