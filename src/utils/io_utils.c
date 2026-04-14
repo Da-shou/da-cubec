@@ -27,7 +27,7 @@ int read_file(const char* filepath, const char** const out) {
         rewind(fptr);
 
         // Allocate memory for file reading
-        char* const buffer = malloc(fsize + 1);
+        char* const buffer = malloc((size_t)fsize + 1);
         if (!buffer) {
                 perror("Error allocating memory");
                 fclose(fptr);
@@ -35,7 +35,7 @@ int read_file(const char* filepath, const char** const out) {
         }
 
         // Read bytes into buffer
-        size_t bytes = fread((void*)buffer, 1, fsize, fptr);
+        const size_t bytes = fread((void*)buffer, 1, (size_t)fsize, fptr);
         if (bytes != (size_t)fsize) {
                 perror("Error reading file");
                 free((void*)buffer);

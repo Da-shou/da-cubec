@@ -90,7 +90,7 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t x, const uint16_t y,
             {uv_offset_x, uv_offset_y},
         };
 
-        const unsigned int base = mesh->vertex_count;
+        const size_t base = mesh->vertex_count;
 
         /* Adding the 4 vertices needed to draw a face to the mesh.
          * The values added to x, y and z are given from static arrays
@@ -108,12 +108,12 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t x, const uint16_t y,
 
         /* Here we push 6 indices, which will draw two triangles, which in
          * turn will draw a single face of the chunk. */
-        mesh->indices[mesh->index_count++] = base + 0;
-        mesh->indices[mesh->index_count++] = base + 1;
-        mesh->indices[mesh->index_count++] = base + 2;
-        mesh->indices[mesh->index_count++] = base + 2;
-        mesh->indices[mesh->index_count++] = base + 3;
-        mesh->indices[mesh->index_count++] = base + 0;
+        mesh->indices[mesh->index_count++] = (unsigned int)(base + 0);
+        mesh->indices[mesh->index_count++] = (unsigned int)(base + 1);
+        mesh->indices[mesh->index_count++] = (unsigned int)(base + 2);
+        mesh->indices[mesh->index_count++] = (unsigned int)(base + 2);
+        mesh->indices[mesh->index_count++] = (unsigned int)(base + 3);
+        mesh->indices[mesh->index_count++] = (unsigned int)(base + 0);
 }
 
 void chunk_build_mesh(const chunk_t* chunk,
@@ -126,7 +126,7 @@ void chunk_build_mesh(const chunk_t* chunk,
     for (uint8_t x = 0; x < CHUNK_SIZE_XZ; ++x) {
         for (uint16_t y = 0; y < CHUNK_SIZE_Y; ++y) {
             for (uint8_t z = 0; z < CHUNK_SIZE_XZ; ++z) {
-                const uint8_t block = chunk->blocks[x][y][z];
+                const block_type_t block = chunk->blocks[x][y][z];
                 if (block == BLOCK_AIR) continue;
 
                 const block_uv_t uv = BLOCK_UVS[block];
@@ -221,7 +221,7 @@ void chunk_mesh_draw(const chunk_mesh_t* mesh) {
         glBindVertexArray(0);
 }
 
-void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas) {
+void chunk_draw(chunk_t* chunk, const shader_t* shader, material_t* atlas) {
         glActiveTexture(GL_TEXTURE0);
         material_use(atlas, 0);
         shader_use(shader);

@@ -38,7 +38,7 @@ void material_create(material_t* material, const char* filename) {
 }
 
 void material_use(material_t* material, int unit) {
-        glActiveTexture(GL_TEXTURE0 + unit);
+        glActiveTexture(GL_TEXTURE0 + (GLenum)unit);
         glBindTexture(GL_TEXTURE_2D, material->texture);
 }
 

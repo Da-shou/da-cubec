@@ -114,7 +114,7 @@ void chunk_mesh_draw(const chunk_mesh_t* mesh);
  * @param shader Pointer to the shader program used.
  * @param atlas Pointer to the texture atlas used.
  * */
-void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas);
+void chunk_draw(chunk_t* chunk, const shader_t* shader, material_t* atlas);
 
 /**
  * @brief Destroys the allocated memory used for a chunk mesh.
