@@ -5,7 +5,7 @@
  * @brief Structure storing the important info about a material. For now,
  * this is simply a texture. */
 typedef struct {
-        unsigned int texture;
+    unsigned int texture;
 } material_t;
 
 /**

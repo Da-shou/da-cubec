@@ -8,7 +8,7 @@
  * @brief Structure to represent an OpenGL shader
  * @param ID unsigned integer locating the shader. */
 typedef struct {
-        unsigned int id;
+    unsigned int id;
 } shader_t;
 
 /**

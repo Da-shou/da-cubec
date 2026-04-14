@@ -24,13 +24,13 @@ typedef uint32_t chunk_vertex_t;
  * @brief Represents the mesh of a chunk. This is then rendered by OpenGL
  * in a single call to draw all elements. */
 typedef struct {
-        chunk_vertex_t* vertices;
-        unsigned int* indices;
-        size_t vertex_count;
-        size_t index_count;
-        size_t vertex_capacity;
-        size_t index_capacity;
-        unsigned int vao, vbo, eao;
+    chunk_vertex_t* vertices;
+    unsigned int* indices;
+    size_t vertex_count;
+    size_t index_count;
+    size_t vertex_capacity;
+    size_t index_capacity;
+    unsigned int vao, vbo, eao;
 } chunk_mesh_t;
 
 /**
@@ -38,9 +38,9 @@ typedef struct {
  * allows us to create a big mesh made out of these blocks and render it
  * with one call instead of multiple calls. */
 typedef struct {
-        block_type_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
-        chunk_mesh_t mesh;
-        vec3 position;
+    block_type_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
+    chunk_mesh_t mesh;
+    vec3 position;
 } chunk_t;
 
 /**
@@ -49,10 +49,10 @@ typedef struct {
  * on different chunks.
  */
 typedef struct {
-        const chunk_t* west;  // x-1
-        const chunk_t* east;  // x+1
-        const chunk_t* south; // z-1
-        const chunk_t* north; // z+1
+    const chunk_t* west;  // x-1
+    const chunk_t* east;  // x+1
+    const chunk_t* south; // z-1
+    const chunk_t* north; // z+1
 } chunk_neighbours_t;
 
 /**

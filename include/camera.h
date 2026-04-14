@@ -8,12 +8,12 @@
 /**
  * @brief Helper enum to make the moving of the camera more readable. */
 typedef enum {
-        CAMERA_FORWARD,
-        CAMERA_BACKWARD,
-        CAMERA_LEFT,
-        CAMERA_RIGHT,
-        CAMERA_UP,
-        CAMERA_DOWN
+    CAMERA_FORWARD,
+    CAMERA_BACKWARD,
+    CAMERA_LEFT,
+    CAMERA_RIGHT,
+    CAMERA_UP,
+    CAMERA_DOWN
 } CAMERA_DIRECTION;
 
 /**
@@ -33,16 +33,16 @@ typedef enum {
  * movement.
  * @param zoom Zoom to apply to the camera if needed. */
 typedef struct {
-        vec3 up;
-        vec3 world_up;
-        vec3 right;
-        vec3 front;
-        vec3 position;
-        float yaw;
-        float pitch;
-        float movement_speed;
-        float mouse_sensitivity;
-        float zoom;
+    vec3 up;
+    vec3 world_up;
+    vec3 right;
+    vec3 front;
+    vec3 position;
+    float yaw;
+    float pitch;
+    float movement_speed;
+    float mouse_sensitivity;
+    float zoom;
 } camera_t;
 
 /**
