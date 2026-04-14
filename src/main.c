@@ -315,7 +315,7 @@ void process_block_inputs(GLFWwindow* window) {
 
 /**
  * @brief Called every time the window is resized */
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
         (void)window;
         glViewport(0, 0, width, height);
 }
