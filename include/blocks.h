@@ -6,30 +6,30 @@ static const float TILE_OFFSET = 0.25f;
 /**
  * @brief Stores two texture coordinates. */
 typedef struct {
-        float u, v;
+    float u, v;
 } uv_t;
 
 /**
  * @brief Stores the top-left coordinates of a block UV on the texture
  * Atlas.*/
 typedef struct {
-        uv_t top;
-        uv_t bottom;
-        uv_t front;
-        uv_t back;
-        uv_t left;
-        uv_t right;
+    uv_t top;
+    uv_t bottom;
+    uv_t front;
+    uv_t back;
+    uv_t left;
+    uv_t right;
 } block_uv_t;
 
 /**
  * @brief Assigns an id to each block type.*/
 typedef enum {
-        BLOCK_AIR = 0,
-        BLOCK_STONE = 1,
-        BLOCK_COBBLESTONE = 2,
-        BLOCK_DIRT = 3,
-        BLOCK_GRASS = 4,
-        BLOCK_SAND = 5
+    BLOCK_AIR = 0,
+    BLOCK_STONE = 1,
+    BLOCK_COBBLESTONE = 2,
+    BLOCK_DIRT = 3,
+    BLOCK_GRASS = 4,
+    BLOCK_SAND = 5
 } block_type_t;
 
 /**

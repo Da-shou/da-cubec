@@ -66,207 +66,198 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void glfw_gl_init();
 
 int main(void) {
-        config = game_config_default();
+    config = game_config_default();
 
-        glfw_gl_init();
+    glfw_gl_init();
 
-        /* Creating our texture atlas */
-        material_t atlas;
-        material_create(&atlas, config.texture_atlas_path);
+    /* Creating our texture atlas */
+    material_t atlas;
+    material_create(&atlas, config.texture_atlas_path);
 
-        /* Initalizing our shader */
-        shader_t basic_shader;
-        shader_init(&basic_shader, config.vertex_shader_path,
-                    config.fragment_shader_path);
+    /* Initalizing our shader */
+    shader_t basic_shader;
+    shader_init(&basic_shader, config.vertex_shader_path,
+                config.fragment_shader_path);
 
-        camera_init(&config, &main_camera,
-                    (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f,
-                            20.f,
-                            (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f});
+    camera_init(&config, &main_camera,
+                (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f, 20.f,
+                        (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f});
 
-        world_init(&world);
-        world_fill_superflat(&world);
-        world_build(&world);
+    world_init(&world);
+    world_fill_superflat(&world);
+    world_build(&world);
 
-        /* We need a view matrix. To move around the world,
-         * moving the camera is the same as moving the entire
-         * world. Moving backwards = moving the entire scene
-         * forward, etc. */
-        glm_mat4_identity(view);
-        glm_translate(view, (vec3) {0.0f, 0.0f, 0.0f});
+    /* We need a view matrix. To move around the world,
+     * moving the camera is the same as moving the entire
+     * world. Moving backwards = moving the entire scene
+     * forward, etc. */
+    glm_mat4_identity(view);
+    glm_translate(view, (vec3) {0.0f, 0.0f, 0.0f});
 
-        /* Then, we need a projection matrix to make the
-         * perspective appear correctly. Since the calculation are
-         * pretty complex, cglm provides us with the correct and
-         * optimized functions*/
-        glm_mat4_identity(projection);
-        glm_perspective(glm_rad(70.0f),
-                        ((float)config.width / (float)config.height), 0.1f,
-                        16.0f * CHUNK_SIZE_XZ, projection);
+    /* Then, we need a projection matrix to make the
+     * perspective appear correctly. Since the calculation are
+     * pretty complex, cglm provides us with the correct and
+     * optimized functions*/
+    glm_mat4_identity(projection);
+    glm_perspective(glm_rad(70.0f),
+                    ((float)config.width / (float)config.height), 0.1f,
+                    16.0f * CHUNK_SIZE_XZ, projection);
 
-        /* Getting the location of our uniform view and projection matrices
-         * so that we can acces them in the render loop so we don't ask
-         * OpenGL to give us the location each time. */
-        const int view_location =
-            glGetUniformLocation(basic_shader.id, "view");
-        const int projection_location =
-            glGetUniformLocation(basic_shader.id, "projection");
+    /* Getting the location of our uniform view and projection matrices
+     * so that we can acces them in the render loop so we don't ask
+     * OpenGL to give us the location each time. */
+    const int view_location =
+        glGetUniformLocation(basic_shader.id, "view");
+    const int projection_location =
+        glGetUniformLocation(basic_shader.id, "projection");
 
-        /* Main window loop */
-        while (!glfwWindowShouldClose(window)) {
-                /* Calling this function allows us to gather all inputs
-                 * from the user such as mouse or keyboard. */
-                glfwPollEvents();
+    /* Main window loop */
+    while (!glfwWindowShouldClose(window)) {
+        /* Calling this function allows us to gather all inputs
+         * from the user such as mouse or keyboard. */
+        glfwPollEvents();
 
-                /* Background color */
-                glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
+        /* Background color */
+        glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
 
-                /* When clearing, we need to clear the buffer bit and also
-                 * the depth buffer bit so that information does not stack.
-                 * We can use a bitwise OR to do both in one call. Very
-                 * useful ! */
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        /* When clearing, we need to clear the buffer bit and also
+         * the depth buffer bit so that information does not stack.
+         * We can use a bitwise OR to do both in one call. Very
+         * useful ! */
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-                handle_camera_mouse(window, &config, &main_camera);
-                camera_update_view(&main_camera, view);
-                if (focused) {
-                        const block_type_t block = get_pointed_block(
-                            &world, &main_camera, config.max_reach,
-                            &target_block, &neighbour, &target_chunk,
-                            &neighbour_chunk);
-                        if (block != BLOCK_AIR) {
-                                handle_clicks(
-                                    window, &world, target_block,
-                                    neighbour, target_chunk,
-                                    neighbour_chunk);
-                        }
-                }
-
-                /* Apply the view and projection matrices */
-                glUniformMatrix4fv(view_location, 1, GL_FALSE,
-                                   (float*)view);
-                glUniformMatrix4fv(projection_location, 1, GL_FALSE,
-                                   (float*)projection);
-
-                /* Calculating the planes that make up the frustum of
-                 * the camera then culling everything that is outside the
-                 * frustum of the camera. Fortunately the CGLM libraries
-                 * has useful functions for this. */
-                mat4 vp;
-                glm_mat4_mul(projection, view, vp);
-                vec4 frustum_planes[6];
-                glm_frustum_planes(vp, frustum_planes);
-                world_draw(&world, &basic_shader, &atlas, frustum_planes);
-
-                /* Swapping the buffers is a necessary step and I forgot
-                 * why. */
-                glfwSwapBuffers(window);
+        handle_camera_mouse(window, &config, &main_camera);
+        camera_update_view(&main_camera, view);
+        if (focused) {
+            const block_type_t block = get_pointed_block(
+                &world, &main_camera, config.max_reach, &target_block,
+                &neighbour, &target_chunk, &neighbour_chunk);
+            if (block != BLOCK_AIR) {
+                handle_clicks(window, &world, target_block, neighbour,
+                              target_chunk, neighbour_chunk);
+            }
         }
 
-        shader_destroy(&basic_shader);
-        material_destroy(&atlas);
-        world_destroy(&world);
+        /* Apply the view and projection matrices */
+        glUniformMatrix4fv(view_location, 1, GL_FALSE, (float*)view);
+        glUniformMatrix4fv(projection_location, 1, GL_FALSE,
+                           (float*)projection);
 
-        glfwDestroyWindow(window);
-        glfwTerminate();
+        /* Calculating the planes that make up the frustum of
+         * the camera then culling everything that is outside the
+         * frustum of the camera. Fortunately the CGLM libraries
+         * has useful functions for this. */
+        mat4 vp;
+        glm_mat4_mul(projection, view, vp);
+        vec4 frustum_planes[6];
+        glm_frustum_planes(vp, frustum_planes);
+        world_draw(&world, &basic_shader, &atlas, frustum_planes);
 
-        printf("%s\n", "Exiting now...");
-        return EXIT_SUCCESS;
+        /* Swapping the buffers is a necessary step and I forgot
+         * why. */
+        glfwSwapBuffers(window);
+    }
+
+    shader_destroy(&basic_shader);
+    material_destroy(&atlas);
+    world_destroy(&world);
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+
+    printf("%s\n", "Exiting now...");
+    return EXIT_SUCCESS;
 }
 
 void glfw_gl_init() {
-        /* Creating window */
-        if (!glfwInit()) {
-                fprintf(stderr, "%s\n",
-                        "GLFW could not initialize. Exiting...");
-                exit(EXIT_FAILURE);
-        }
+    /* Creating window */
+    if (!glfwInit()) {
+        fprintf(stderr, "%s\n", "GLFW could not initialize. Exiting...");
+        exit(EXIT_FAILURE);
+    }
 
-        window = glfwCreateWindow(config.width, config.height,
-                                  config.title, NULL, NULL);
-        if (window == NULL) {
-                fprintf(stderr, "%s\n", "Failed to create GLFW window.");
-                glfwTerminate();
-                exit(EXIT_FAILURE);
-        }
+    window = glfwCreateWindow(config.width, config.height, config.title,
+                              NULL, NULL);
+    if (window == NULL) {
+        fprintf(stderr, "%s\n", "Failed to create GLFW window.");
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
 
-        glfwMakeContextCurrent(window);
-        /* Setting all of our callbacks for various events such as moving
-         * the cursor, clicking on the window, or resizing the window.*/
-        glfwSetKeyCallback(window, key_callback);
-        glfwSetCursorPosCallback(window, mouse_callback);
-        glfwSetMouseButtonCallback(window, mouse_button_callback);
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwMakeContextCurrent(window);
+    /* Setting all of our callbacks for various events such as moving
+     * the cursor, clicking on the window, or resizing the window.*/
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        /* Printing compilation and runtime infos */
-        const int version = gladLoadGL(glfwGetProcAddress);
-        printf("\nNow launching application...\n");
-        printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
-               GLAD_VERSION_MINOR(version));
-        printf("Compiled against GLFW %i.%i.%i\n", GLFW_VERSION_MAJOR,
-               GLFW_VERSION_MINOR, GLFW_VERSION_REVISION);
-        int major, minor, revision;
-        glfwGetVersion(&major, &minor, &revision);
-        printf("Running against GLFW %i.%i.%i\n", major, minor, revision);
-        printf("Platform ID %d\n", glfwGetPlatform());
+    /* Printing compilation and runtime infos */
+    const int version = gladLoadGL(glfwGetProcAddress);
+    printf("\nNow launching application...\n");
+    printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
+           GLAD_VERSION_MINOR(version));
+    printf("Compiled against GLFW %i.%i.%i\n", GLFW_VERSION_MAJOR,
+           GLFW_VERSION_MINOR, GLFW_VERSION_REVISION);
+    int major, minor, revision;
+    glfwGetVersion(&major, &minor, &revision);
+    printf("Running against GLFW %i.%i.%i\n", major, minor, revision);
+    printf("Platform ID %d\n", glfwGetPlatform());
 
-        /* Fix initial viewport using actual framebuffer size (may differ
-         * from window size on HiDPI/Wayland displays) */
-        int fb_width, fb_height;
-        glfwGetFramebufferSize(window, &fb_width, &fb_height);
-        glViewport(0, 0, fb_width, fb_height);
+    /* Fix initial viewport using actual framebuffer size (may differ
+     * from window size on HiDPI/Wayland displays) */
+    int fb_width, fb_height;
+    glfwGetFramebufferSize(window, &fb_width, &fb_height);
+    glViewport(0, 0, fb_width, fb_height);
 
-        /* Set drawing mode (wireframe or full polygons) */
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    /* Set drawing mode (wireframe or full polygons) */
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        /* Enabling depth-testing so that OpenGL uses its Z-buffer to
-        prioritze drawings vertices that are closer to the camera. */
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
+    /* Enabling depth-testing so that OpenGL uses its Z-buffer to
+    prioritze drawings vertices that are closer to the camera. */
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 }
 
 void key_callback(GLFWwindow* window, const int key, const int scancode,
                   const int action, const int mode) {
-        (void)scancode;
-        (void)mode;
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-                const int current = glfwGetInputMode(window, GLFW_CURSOR);
-                if (current == GLFW_CURSOR_DISABLED) {
-                        focused = false;
-                        glfwSetInputMode(window, GLFW_CURSOR,
-                                         GLFW_CURSOR_NORMAL);
-                        camera_reset_mouse();
-                }
-        } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-                glfwSetWindowShouldClose(window, GL_TRUE);
+    (void)scancode;
+    (void)mode;
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        const int current = glfwGetInputMode(window, GLFW_CURSOR);
+        if (current == GLFW_CURSOR_DISABLED) {
+            focused = false;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            camera_reset_mouse();
         }
+    } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    }
 }
 
 void mouse_callback(GLFWwindow* window, const double x_pos,
                     const double y_pos) {
-        (void)window;
-        if (focused) {
-                camera_rotate(&main_camera, (float)x_pos, (float)y_pos,
-                              GL_TRUE);
-        }
+    (void)window;
+    if (focused) {
+        camera_rotate(&main_camera, (float)x_pos, (float)y_pos, GL_TRUE);
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, const int button,
                            const int action, const int mods) {
-        (void)mods;
-        if (button != GLFW_MOUSE_BUTTON_LEFT) return;
-        if (!focused && action == GLFW_PRESS) {
-                focused = true;
-                glfwSetInputMode(window, GLFW_CURSOR,
-                                 GLFW_CURSOR_DISABLED);
-        }
+    (void)mods;
+    if (button != GLFW_MOUSE_BUTTON_LEFT) return;
+    if (!focused && action == GLFW_PRESS) {
+        focused = true;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow* window, const int width,
                                const int height) {
-        (void)window;
-        glViewport(0, 0, width, height);
+    (void)window;
+    glViewport(0, 0, width, height);
 }

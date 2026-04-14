@@ -9,7 +9,7 @@
 /** @brief Struct containing all the data needed to draw the entire world.
  */
 typedef struct {
-        chunk_t chunks[WORLD_SIZE_X][WORLD_SIZE_Z];
+    chunk_t chunks[WORLD_SIZE_X][WORLD_SIZE_Z];
 } world_t;
 
 /**
