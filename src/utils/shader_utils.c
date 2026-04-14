@@ -5,7 +5,8 @@
 #include <utils/shader_utils.h>
 #include <utils/io_utils.h>
 
-unsigned int make_module(const char* filepath, const unsigned int module_type) {
+unsigned int make_module(const char* filepath,
+                         const unsigned int module_type) {
         const char* source = NULL;
         const int read_status = read_file(filepath, &source);
         if (read_status == -1) {

@@ -83,8 +83,8 @@ int main(void) {
         const game_config_t config = game_config_default();
 
         /* Creating window */
-        GLFWwindow* window =
-            glfwCreateWindow(config.width, config.height, config.title, NULL, NULL);
+        GLFWwindow* window = glfwCreateWindow(config.width, config.height,
+                                              config.title, NULL, NULL);
         if (window == NULL) {
                 fprintf(stderr, "%s\n", "Failed to create GLFW window.");
                 glfwTerminate();
@@ -127,11 +127,10 @@ int main(void) {
         shader_init(&basic_shader, config.vertex_shader_path,
                     config.fragment_shader_path);
 
-        camera_init(&config, &main_camera, (vec3) {
-                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f,
-                20.f,
-                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f
-        });
+        camera_init(&config, &main_camera,
+                    (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f,
+                            20.f,
+                            (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f});
 
         world_init(&world);
         world_fill_superflat(&world);
@@ -163,7 +162,8 @@ int main(void) {
         /* Getting the location of our uniform view and projection matrices
          * so that we can acces them in the render loop so we don't ask
          * OpenGL to give us the location each time. */
-        const int view_location = glGetUniformLocation(basic_shader.id, "view");
+        const int view_location =
+            glGetUniformLocation(basic_shader.id, "view");
         const int projection_location =
             glGetUniformLocation(basic_shader.id, "projection");
 
@@ -186,8 +186,8 @@ int main(void) {
                 camera_update_view(&main_camera, view);
                 if (focused) {
                         const block_type_t block = get_pointed_block(
-                                &world, &main_camera, MAX_REACH,
-                                &target_block, &neighbour, &target_chunk);
+                            &world, &main_camera, MAX_REACH, &target_block,
+                            &neighbour, &target_chunk);
                         if (block != BLOCK_AIR) {
                                 process_block_inputs(window);
                         }
@@ -219,8 +219,8 @@ int main(void) {
 
 /**
  * @brief Called every time a key is pressed. */
-void key_callback(GLFWwindow* window, const int key, const int scancode, const int action,
-                  const int mode) {
+void key_callback(GLFWwindow* window, const int key, const int scancode,
+                  const int action, const int mode) {
         (void)scancode;
         (void)mode;
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -247,8 +247,8 @@ void mouse_callback(GLFWwindow* window, const double x_pos,
         }
 }
 
-void mouse_button_callback(GLFWwindow* window, const int button, const int action,
-                           const int mods) {
+void mouse_button_callback(GLFWwindow* window, const int button,
+                           const int action, const int mods) {
         (void)mods;
         if (button != GLFW_MOUSE_BUTTON_LEFT) return;
         if (!focused && action == GLFW_PRESS) {
@@ -277,20 +277,22 @@ void process_camera_inputs(GLFWwindow* window, camera_t* camera) {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
                 camera_move(camera, CAMERA_RIGHT, delta_time);
         }
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		camera_move(camera, CAMERA_UP, delta_time);
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		camera_move(camera, CAMERA_DOWN, delta_time);
-	}
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_UP, delta_time);
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+                camera_move(camera, CAMERA_DOWN, delta_time);
+        }
 }
 
 void process_block_inputs(GLFWwindow* window) {
         static int last_lc_state = GLFW_RELEASE;
         static int last_rc_state = GLFW_RELEASE;
 
-        const int lc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-        const int rc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+        const int lc_state =
+            glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+        const int rc_state =
+            glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
         /* Left-click -> The block gets destroyed (replaced with air) */
         if (lc_state == GLFW_PRESS && last_lc_state == GLFW_RELEASE) {
@@ -305,7 +307,8 @@ void process_block_inputs(GLFWwindow* window) {
                 world_rebuild_after_change(&world, cx, cz, lx, lz);
         }
 
-        /* Right-click -> A block is placed at the neighbour coordinates. */
+        /* Right-click -> A block is placed at the neighbour coordinates.
+         */
         if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
                 if (!world_valid_position(neighbour)) return;
                 const int lx = (int)neighbour[0] % CHUNK_SIZE_XZ;
@@ -318,13 +321,14 @@ void process_block_inputs(GLFWwindow* window) {
                 world_rebuild_after_change(&world, cx, cz, lx, lz);
         }
 
-	last_lc_state = lc_state;
-	last_rc_state = rc_state;
+        last_lc_state = lc_state;
+        last_rc_state = rc_state;
 }
 
 /**
  * @brief Called every time the window is resized */
-void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
+void framebuffer_size_callback(GLFWwindow* window, const int width,
+                               const int height) {
         (void)window;
         glViewport(0, 0, width, height);
 }

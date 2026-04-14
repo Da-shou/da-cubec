@@ -17,7 +17,8 @@ void shader_destroy(const shader_t* s) {
         glDeleteProgram(s->id);
 }
 
-void shader_set_bool(const shader_t* s, const char* name, const bool value) {
+void shader_set_bool(const shader_t* s, const char* name,
+                     const bool value) {
         glUniform1i(glGetUniformLocation(s->id, name), (int)value);
 }
 
@@ -25,7 +26,8 @@ void shader_set_int(const shader_t* s, const char* name, const int value) {
         glUniform1i(glGetUniformLocation(s->id, name), value);
 }
 
-void shader_set_float(const shader_t* s, const char* name, const float value) {
+void shader_set_float(const shader_t* s, const char* name,
+                      const float value) {
         glUniform1f(glGetUniformLocation(s->id, name), value);
 }
 

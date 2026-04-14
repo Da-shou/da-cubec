@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-void material_create(material_t *material, const char *filename) {
+void material_create(material_t* material, const char* filename) {
         int width, height, nb_channels;
         unsigned char* image_data =
             stbi_load(filename, &width, &height, &nb_channels, 0);
@@ -32,16 +32,16 @@ void material_create(material_t *material, const char *filename) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                         GL_NEAREST_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		/* Generating mipmap levels for LOD. No need for now. */
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+        /* Generating mipmap levels for LOD. No need for now. */
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 }
 
-void material_use(material_t *material, int unit) {
-	glActiveTexture(GL_TEXTURE0 + unit);
-	glBindTexture(GL_TEXTURE_2D, material->texture);
+void material_use(material_t* material, int unit) {
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(GL_TEXTURE_2D, material->texture);
 }
 
-void material_destroy(material_t *material) {
-	glDeleteTextures(1, &material->texture);
+void material_destroy(material_t* material) {
+        glDeleteTextures(1, &material->texture);
 }

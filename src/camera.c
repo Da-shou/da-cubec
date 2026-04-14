@@ -13,7 +13,8 @@ static float last_mouse_x = 0;
 static float last_mouse_y = 0;
 static bool first_mouse = true;
 
-void camera_init(const game_config_t* config, camera_t* camera, vec3 position) {
+void camera_init(const game_config_t* config, camera_t* camera,
+                 vec3 position) {
         /* Setting up the camera's intial position.*/
         glm_vec3_copy(position, camera->position);
 
