@@ -48,8 +48,10 @@ typedef struct {
 /**
  * @brief Initializes the camera vectors and puts it at the
  * orgin of the world.
- * @param camera Camera struct to be initalized. */
-void camera_init(game_config_t* config, camera_t* camera, vec3 position);
+ * @param config Settings to be applied to the camera
+ * @param camera Camera struct to be initalized.
+ * @param position Initial position of the camera in 3D space. */
+void camera_init(const game_config_t* config, camera_t* camera, vec3 position);
 
 /**
  * @brief Updates the right, front and up vectors of the camera. Has to be

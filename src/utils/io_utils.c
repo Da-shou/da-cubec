@@ -18,7 +18,7 @@ int read_file(const char* filepath, const char** const out) {
                 return -1;
         }
 
-        long fsize = ftell(fptr);
+        const long fsize = ftell(fptr);
         if (fsize == -1) {
                 perror("Error getting file size");
                 fclose(fptr);

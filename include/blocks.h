@@ -48,7 +48,7 @@ static const block_uv_t BLOCK_UVS[] = {
 	    .front = {0.25f, 0.00f},
 	    .back = {0.25f, 0.00f},
 	    .left = {0.25f, 0.00f},
-	    .right = {0.25, 0.00f},
+	    .right = {0.25f, 0.00f},
     },
     [BLOCK_DIRT] = {
 	    .top = {0.5f, 0.00f},

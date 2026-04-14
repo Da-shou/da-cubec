@@ -80,7 +80,7 @@ int main(void) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        game_config_t config = game_config_default();
+        const game_config_t config = game_config_default();
 
         /* Creating window */
         GLFWwindow* window =

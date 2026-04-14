@@ -57,7 +57,6 @@ void world_draw(world_t* world, shader_t* shader, material_t* atlas);
 void world_destroy(world_t* world);
 
 /** @brief Checks if that position exists in the world
- * @param world Pointer to the world to be checked.
  * @param position Vec3 containing the position to check.
  */
 bool world_valid_position(const vec3 position);

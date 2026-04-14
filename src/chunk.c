@@ -13,22 +13,22 @@
 
 // clang-format off
 /* These are all the different vertices for a face that are needed. */
-static float FACE_FRONT[4][3] = {
+static bool FACE_FRONT[4][3] = {
 	{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}};
 
-static float FACE_BACK[4][3] = {
+static bool FACE_BACK[4][3] = {
 	{1, 0, 0}, {0, 0, 0}, {0, 1, 0}, {1, 1, 0}};
 
-static float FACE_LEFT[4][3] = {
+static bool FACE_LEFT[4][3] = {
 	{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}};
 
-static float FACE_RIGHT[4][3] = {
+static bool FACE_RIGHT[4][3] = {
 	{1, 0, 1}, {1, 0, 0}, {1, 1, 0}, {1, 1, 1}};
 
-static float FACE_TOP[4][3] = {
+static bool FACE_TOP[4][3] = {
 	{0, 1, 1}, {1, 1, 1}, {1, 1, 0}, {0, 1, 0}};
 
-static float FACE_BOTTOM[4][3] = {
+static bool FACE_BOTTOM[4][3] = {
 	{0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}};
 //clang-format on
 
@@ -53,7 +53,7 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
 }
 
 void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t x, const uint16_t y, const uint8_t z,
-                          float face_vertices[4][3], const float uv_offset_x,
+                          bool face_vertices[4][3], const float uv_offset_x,
                           const float uv_offset_y, const float uv_size) {
         /* Checking if vertices and indices array need to be reallocated.
          * To add a face, we need 4 new vertices. And for each face added,
@@ -117,7 +117,7 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t x, const uint16_t y,
 }
 
 void chunk_build_mesh(const chunk_t* chunk,
-    chunk_mesh_t* mesh, chunk_neighbours_t neighbors) {
+    chunk_mesh_t* mesh, const chunk_neighbours_t neighbors) {
     // clang-format off
     mesh->vertex_count = 0;
     mesh->index_count = 0;
@@ -197,7 +197,7 @@ void chunk_mesh_upload(const chunk_mesh_t* mesh) {
 
         glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
         glBufferData(GL_ARRAY_BUFFER,
-                     mesh->vertex_count * sizeof(chunk_vertex_t),
+                     (GLsizeiptr)(mesh->vertex_count * sizeof(chunk_vertex_t)),
                      mesh->vertices, GL_DYNAMIC_DRAW);
 
         /** Since all of our data is packed into an uint32_t, no need to to pass
@@ -207,13 +207,13 @@ void chunk_mesh_upload(const chunk_mesh_t* mesh) {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->eao);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     mesh->index_count * sizeof(unsigned int),
+                     (GLsizeiptr)(mesh->index_count * sizeof(unsigned int)),
                      mesh->indices, GL_DYNAMIC_DRAW);
 }
 
 void chunk_mesh_draw(const chunk_mesh_t* mesh) {
         glBindVertexArray(mesh->vao);
-        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT,
+        glDrawElements(GL_TRIANGLES, (int)mesh->index_count, GL_UNSIGNED_INT,
                        0);
         glBindVertexArray(0);
 }
