@@ -1,21 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glad/gl.h>
-#include <GLFW/glfw3.h>
 
 #include <utils/shader_utils.h>
 #include <utils/io_utils.h>
 
-unsigned int make_module(const char* filepath, unsigned int module_type) {
+unsigned int make_module(const char* filepath, const unsigned int module_type) {
         const char* source = NULL;
-        int read_status = read_file(filepath, &source);
+        const int read_status = read_file(filepath, &source);
         if (read_status == -1) {
                 fprintf(stderr, "%s\n",
                         "Shader source file could not be read.");
         }
 
         // Assigning shader and source code to module
-        unsigned int shader_module = glCreateShader(module_type);
+        const unsigned int shader_module = glCreateShader(module_type);
         glShaderSource(shader_module, 1, &source, NULL);
         glCompileShader(shader_module);
 
@@ -36,13 +35,13 @@ unsigned int make_module(const char* filepath, unsigned int module_type) {
 
 unsigned int make_shader(const char* vertex_filepath,
                          const char* fragment_filepath) {
-        unsigned int vertex_module =
+        const unsigned int vertex_module =
             make_module(vertex_filepath, GL_VERTEX_SHADER);
-        unsigned int fragment_module =
+        const unsigned int fragment_module =
             make_module(fragment_filepath, GL_FRAGMENT_SHADER);
 
         // Create the shader program with both our modules
-        unsigned int shader = glCreateProgram();
+        const unsigned int shader = glCreateProgram();
         glAttachShader(shader, vertex_module);
         glAttachShader(shader, fragment_module);
 

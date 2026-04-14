@@ -7,15 +7,13 @@
 
 static const float CAMERA_YAW = -90.0f;
 static const float CAMERA_PITCH = 0.0f;
-static const float CAMERA_SPEED = 5.0f;
-static const float CAMERA_SENSITIVIY = 0.05f;
 static const float CAMERA_ZOOM = 45.0f;
 
 static float last_mouse_x = 0;
 static float last_mouse_y = 0;
 static bool first_mouse = true;
 
-void camera_init(camera_t* camera, vec3 position) {
+void camera_init(const game_config_t* config, camera_t* camera, vec3 position) {
         /* Setting up the camera's intial position.*/
         glm_vec3_copy(position, camera->position);
 
@@ -25,8 +23,8 @@ void camera_init(camera_t* camera, vec3 position) {
         /* Setting the default parameter of the camera */
         camera->yaw = CAMERA_YAW;
         camera->pitch = CAMERA_PITCH;
-        camera->movement_speed = CAMERA_SPEED;
-        camera->mouse_sensitivity = CAMERA_SENSITIVIY;
+        camera->movement_speed = config->speed;
+        camera->mouse_sensitivity = config->sensitivity;
         camera->zoom = CAMERA_ZOOM;
 
         glm_vec3_copy((vec3) {0.0f, 1.0f, 0.0f}, camera->world_up);

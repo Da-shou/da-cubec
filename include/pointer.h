@@ -31,8 +31,10 @@ block_type_t get_pointed_block(world_t* world, camera_t* camera,
  * at.
  * @param last Last axis hit by the ray-cast. Allows us to know which face
  * of the block is being pointed at.
+ * @param pointed_block The pointer to the vector that will be filled with the coordinates
+ * of the currently targeted block.
  * @param neighbour_block The pointer to the vector that will be filled
- * with information about the neighbouring block once found.
+ * with the coordinates of the neighbouring block once found.
  * @param step_x, step_y, step_z Distances to travel to get to the
  * neighbour block.*/
 void process_block(vec3 block_position, axis_t last, vec3* pointed_block,
