@@ -47,7 +47,8 @@ void world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z,
  * @param shader Pointer to shader program to be used.
  * @param atlas Pointer to atlas texture material to be used.
  */
-void world_draw(world_t* world, shader_t* shader, material_t* atlas);
+void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
+                vec4 frustum[6]);
 
 /**
  * Frees all chunks in the world.

@@ -4,6 +4,7 @@
 
 #include "../include/world.h"
 
+#include <cglm/cglm.h>
 #include <math.h>
 
 void world_init(world_t* world) {
@@ -54,10 +55,30 @@ void world_rebuild_after_change(world_t* world, const int chunk_x,
                 world_build_chunk(world, chunk_x, chunk_z + 1);
 }
 
-void world_draw(world_t* world, shader_t* shader, material_t* atlas) {
-        for (int x = 0; x < WORLD_SIZE_X; x++)
-                for (int z = 0; z < WORLD_SIZE_Z; z++)
-                        chunk_draw(&world->chunks[x][z], shader, atlas);
+void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
+                vec4 frustum[6]) {
+        for (int x = 0; x < WORLD_SIZE_X; x++) {
+                for (int z = 0; z < WORLD_SIZE_Z; z++) {
+                        chunk_t* chunk = &world->chunks[x][z];
+
+                        /* Making a cube out of the chunk's
+                         * position and size. */
+                        vec3 chunk_aabb[2] = {
+                            {chunk->position[0], chunk->position[1],
+                             chunk->position[2]},
+                            {chunk->position[0] + CHUNK_SIZE_XZ,
+                             chunk->position[1] + CHUNK_SIZE_Y,
+                             chunk->position[2] + CHUNK_SIZE_XZ},
+                        };
+
+                        /* Checks if the cube is in the frustum of the
+                         * camera. If yes, draw the chunk. If not,
+                         * skip the chunk rendering.
+                         */
+                        if (glm_aabb_frustum(chunk_aabb, frustum))
+                                chunk_draw(chunk, shader, atlas);
+                }
+        }
 }
 
 void world_destroy(world_t* world) {

@@ -199,7 +199,15 @@ int main(void) {
                 glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                                    (float*)projection);
 
-                world_draw(&world, &basic_shader, &atlas);
+                /* Calculating the planes that make up the frustum of
+                 * the camera then culling everything that is outside the
+                 * frustum of the camera. Fortunately the CGLM libraries
+                 * has useful functions for this. */
+                mat4 vp;
+                glm_mat4_mul(projection, view, vp);
+                vec4 frustum_planes[6];
+                glm_frustum_planes(vp, frustum_planes);
+                world_draw(&world, &basic_shader, &atlas, frustum_planes);
 
                 /* Swapping the buffers is a necessary step and I forgot
                  * why. */
