@@ -77,12 +77,12 @@ void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
  * @brief Makes the camera rotate following its yaw and pitch attributes
  * based on the x and y offset provided by GLFW mouse support.
  * @param camera Camera to be rotated
- * @param x_offset X Offset to apply to the yaw
- * @param y_offset Y Offset to apply to the pitch
+ * @param x_pos X Offset to apply to the yaw
+ * @param y_pos Y Offset to apply to the pitch
  * @param constrain_pitch If the pitch needs to be contrained or not. This
  * is very much recommanded to be set as true to forbid the camera to
  * rotate vertically.*/
-void camera_rotate(camera_t* camera, float x_offset, float y_offset,
+void camera_rotate(camera_t* camera, float x_pos, float y_pos,
                    GLboolean constrain_pitch);
 
 /**
