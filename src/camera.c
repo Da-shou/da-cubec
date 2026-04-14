@@ -129,7 +129,7 @@ void camera_rotate(camera_t* camera, const float x_pos, const float y_pos,
         }
 
         /* When the camera rotates, its front, right and up vector change
-         * so ththey need to be recalculated.*/
+         * so they need to be recalculated.*/
         camera_update_vectors(camera);
 }
 

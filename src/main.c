@@ -124,7 +124,11 @@ int main(void) {
         shader_init(&basic_shader, VERTEX_SHADER_PATH,
                     FRAGMENT_SHADER_PATH);
 
-        camera_init(&main_camera, (vec3) {0.0f, 5.0f, 0.0f});
+        camera_init(&main_camera, (vec3) {
+                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2,
+                (float)CHUNK_SIZE_Y / 2,
+                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2
+        });
 
         world_init(&world);
         world_fill_superflat(&world);
