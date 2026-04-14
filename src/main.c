@@ -128,9 +128,9 @@ int main(void) {
                     config.fragment_shader_path);
 
         camera_init(&config, &main_camera, (vec3) {
-                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2,
-                (float)CHUNK_SIZE_Y / 2,
-                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2
+                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f,
+                20.f,
+                (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f
         });
 
         world_init(&world);
@@ -313,6 +313,7 @@ void process_block_inputs(GLFWwindow* window) {
                 const int lz = (int)neighbour[2] % CHUNK_SIZE_XZ;
                 const int cx = (int)neighbour[0] / CHUNK_SIZE_XZ;
                 const int cz = (int)neighbour[2] / CHUNK_SIZE_XZ;
+                if (target_chunk->blocks[lx][ly][lz] != BLOCK_AIR) return;
                 target_chunk->blocks[lx][ly][lz] = BLOCK_COBBLESTONE;
                 world_rebuild_after_change(&world, cx, cz, lx, lz);
         }

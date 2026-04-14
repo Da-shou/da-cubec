@@ -52,7 +52,7 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
         glGenBuffers(1, &mesh->eao);
 }
 
-void chunk_mesh_push_face(chunk_mesh_t* mesh, const float x, const float y, const float z,
+void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t x, const uint16_t y, const uint8_t z,
                           float face_vertices[4][3], const float uv_offset_x,
                           const float uv_offset_y, const float uv_size) {
         /* Checking if vertices and indices array need to be reallocated.
@@ -97,13 +97,13 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const float x, const float y, cons
          * allowing a quick access to the necessary offset for each
          * vertex.*/
         for (uint8_t i = 0; i < 4; ++i) {
-                mesh->vertices[mesh->vertex_count++] = (chunk_vertex_t) {
-                    .x = x + face_vertices[i][0],
-                    .y = y + face_vertices[i][1],
-                    .z = z + face_vertices[i][2],
-                    .u = uvs[i][0],
-                    .v = uvs[i][1],
-                };
+                mesh->vertices[mesh->vertex_count++] = chunk_vertex_pack(
+                        x + face_vertices[i][0],
+                        y + face_vertices[i][1],
+                        z + face_vertices[i][2],
+                        uvs[i][0],
+                        uvs[i][1]
+                );
         }
 
         /* Here we push 6 indices, which will draw two triangles, which in
@@ -124,7 +124,7 @@ void chunk_build_mesh(const chunk_t* chunk,
     /* Big ass check on ALL cubes and sending each facing that face
      * BLOCK_AIR to the chunk mesh to be built. */
     for (uint8_t x = 0; x < CHUNK_SIZE_XZ; ++x) {
-        for (uint8_t y = 0; y < CHUNK_SIZE_Y; ++y) {
+        for (uint16_t y = 0; y < CHUNK_SIZE_Y; ++y) {
             for (uint8_t z = 0; z < CHUNK_SIZE_XZ; ++z) {
                 const uint8_t block = chunk->blocks[x][y][z];
                 if (block == BLOCK_AIR) continue;
@@ -179,6 +179,17 @@ void chunk_build_mesh(const chunk_t* chunk,
     chunk_mesh_upload(mesh);
 }
 
+uint32_t chunk_vertex_pack(const uint8_t x, const uint16_t y,
+    const uint8_t z, const float u, const float v) {
+    const uint32_t u_idx = (uint32_t)roundf(u / TILE_OFFSET);
+    const uint32_t v_idx = (uint32_t)roundf(v / TILE_OFFSET);
+    return  (x & 0x1Fu)
+          | ((z & 0x1Fu) << 5u)
+          | ((y & 0x3FFu) << 10u)
+          | (u_idx << 20u)
+          | (v_idx << 23u);
+}
+
 // clang-format on
 
 void chunk_mesh_upload(const chunk_mesh_t* mesh) {
@@ -189,19 +200,10 @@ void chunk_mesh_upload(const chunk_mesh_t* mesh) {
                      mesh->vertex_count * sizeof(chunk_vertex_t),
                      mesh->vertices, GL_DYNAMIC_DRAW);
 
-        /* offsetof is a function giving the byte offset of a member in a
-         * struct. Very useful in our case here. x is the start of the
-         * first attribute and is 3 floats (x, y and z.). Then we tell
-         * OpenGL that our second attribute starts at the u and will be u
-         * and v (the texture coordinates on the atlas.) */
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(chunk_vertex_t),
-                              (void*)offsetof(chunk_vertex_t, x));
+        /** Since all of our data is packed into an uint32_t, no need to to pass
+         * multiple attributes. The unpacking will be done in the vertex shader. */
+        glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
-                              sizeof(chunk_vertex_t),
-                              (void*)offsetof(chunk_vertex_t, u));
-        glEnableVertexAttribArray(1);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->eao);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER,

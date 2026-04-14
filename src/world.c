@@ -23,7 +23,7 @@ void world_build(world_t* world) {
         }
 }
 
-static void world_build_chunk(world_t* world, int cx, int cz) {
+void world_build_chunk(world_t* world, int cx, int cz) {
         chunk_neighbours_t neighbors = {
                 .west  = (cx > 0)                ? &world->chunks[cx - 1][cz] : NULL,
                 .east  = (cx < WORLD_SIZE_X - 1) ? &world->chunks[cx + 1][cz] : NULL,

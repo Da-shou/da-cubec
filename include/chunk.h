@@ -8,17 +8,16 @@
 #include <material.h>
 
 #define CHUNK_SIZE_XZ 16
-#define CHUNK_SIZE_Y 32
+#define CHUNK_SIZE_Y 512
 
 static const size_t STARTING_CHUNK_CAPACITY = 1024;
 
 /**
  * @brief Each chunk will be made of a certain amount of vertices. The
- * total amount depends on the number of blocks in the chunk. */
-typedef struct {
-    float x, y, z;
-    float u, v;
-} chunk_vertex_t;
+ * total amount depends on the number of blocks in the chunk. The values are packed into a
+ * signle uint32_t and are then unpacked in the vertex shader to lighten the
+ * rendering process by lightening the buffer data sent to the GPU. */
+typedef uint32_t chunk_vertex_t;
 
 /**
  * @brief Represents the mesh of a chunk. This is then rendered by OpenGL
@@ -75,7 +74,7 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
  * @param uv_size Size of one tile in the atlas.*/
-void chunk_mesh_push_face(chunk_mesh_t* mesh, float x, float y, float z,
+void chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t x, uint16_t y, uint8_t z,
                           float face_vertices[4][3], float uv_offset_x,
                           float uv_offset_y, float uv_size);
 /**
@@ -111,6 +110,18 @@ void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas);
  * @brief Destroys the allocated memory used for a chunk mesh.
  * @param mesh Pointer to the chunk mesh struct to be freed. */
 void chunk_mesh_destroy(chunk_mesh_t* mesh);
+
+/**
+ * Packs the 5 values (that in total make 20 bytes of data) we need for each vertex into
+ * a uint32_t to lighten the buffer data.
+ * @param x X coordinate of the vertex in 3D space. (5 bits [0-16])
+ * @param y Y coordinate of the vertex in 3D space. (5 bits [0-16])
+ * @param z Z coordinate of the vertex in 3D space. (10 bits [0-512])
+ * @param u Texture coordinate U. (3 bits (0, 1, 2, or 3 divided by 4.))
+ * @param v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
+ * @return Packed vertex data for efficient storage and transmission.
+ */
+uint32_t chunk_vertex_pack(uint8_t x, uint16_t y, uint8_t z, float u, float v);
 
 /**
  * @brief Destroys the chunk struct storing the cubes infos.

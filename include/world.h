@@ -26,7 +26,7 @@ void world_init(world_t* world);
 void world_build(world_t* world);
 
 /** @brief Rebuilds a sigle chunk of the world. */
-static void world_build_chunk(world_t* world, int cx, int cz);
+void world_build_chunk(world_t* world, int cx, int cz);
 
 /**
  * Rebuilds the mesh of a chunk and any neighbors whose visible geometry
