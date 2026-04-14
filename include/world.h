@@ -3,8 +3,8 @@
 
 #include <chunk.h>
 
-#define WORLD_SIZE_X 4
-#define WORLD_SIZE_Z 4
+#define WORLD_SIZE_X 32
+#define WORLD_SIZE_Z 32
 
 /** @brief Struct containing all the data needed to draw the entire world.
  */

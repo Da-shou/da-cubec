@@ -118,7 +118,6 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t x, const uint16_t y,
 
 void chunk_build_mesh(const chunk_t* chunk,
     chunk_mesh_t* mesh, const chunk_neighbours_t neighbors) {
-    // clang-format off
     mesh->vertex_count = 0;
     mesh->index_count = 0;
     /* Big ass check on ALL cubes and sending each facing that face
@@ -164,8 +163,8 @@ void chunk_build_mesh(const chunk_t* chunk,
                         chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT, uv.right.u, uv.right.v, TILE_OFFSET);
                 } else if (chunk->blocks[x + 1][y][z] == BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT, uv.right.u, uv.right.v, TILE_OFFSET);
-                }
-
+                }	
+		
                 if (x == 0) {
                     // Left-checking
                     if (!neighbors.west || neighbors.west->blocks[CHUNK_SIZE_XZ - 1][y][z] == BLOCK_AIR)
@@ -189,8 +188,6 @@ uint32_t chunk_vertex_pack(const uint8_t x, const uint16_t y,
           | (u_idx << 20u)
           | (v_idx << 23u);
 }
-
-// clang-format on
 
 void chunk_mesh_upload(const chunk_mesh_t* mesh) {
         glBindVertexArray(mesh->vao);
@@ -221,7 +218,8 @@ void chunk_mesh_draw(const chunk_mesh_t* mesh) {
         glBindVertexArray(0);
 }
 
-void chunk_draw(chunk_t* chunk, const shader_t* shader, material_t* atlas) {
+void chunk_draw(chunk_t* chunk, const shader_t* shader,
+                material_t* atlas) {
         glActiveTexture(GL_TEXTURE0);
         material_use(atlas, 0);
         shader_use(shader);

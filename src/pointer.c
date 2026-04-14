@@ -6,7 +6,8 @@
 block_type_t get_pointed_block(world_t* world, camera_t* camera,
                                const float max_distance,
                                vec3* pointed_block, vec3* neighbour_block,
-                               chunk_t** out_chunk) {
+                               chunk_t** pointed_chunk,
+                               chunk_t** neighbour_chunk) {
         vec3 pos, dir;
         glm_vec3_copy(camera->position, pos);
         glm_vec3_copy(camera->front, dir);
@@ -65,7 +66,24 @@ block_type_t get_pointed_block(world_t* world, camera_t* camera,
                                     last_pointed_to, pointed_block,
                                     neighbour_block, step_x, step_y,
                                     step_z);
-                                *out_chunk = chunk;
+
+                                *pointed_chunk = chunk;
+                                const int nb_chunk_x = (int)floorf(
+                                    (*neighbour_block)[0] / CHUNK_SIZE_XZ);
+                                const int nb_chunk_z = (int)floorf(
+                                    (*neighbour_block)[2] / CHUNK_SIZE_XZ);
+
+                                const bool nb_in_world =
+                                    nb_chunk_x >= 0 &&
+                                    nb_chunk_x < WORLD_SIZE_X &&
+                                    nb_chunk_z >= 0 &&
+                                    nb_chunk_z < WORLD_SIZE_Z;
+
+                                *neighbour_chunk =
+                                    nb_in_world
+                                        ? &world->chunks[nb_chunk_x]
+                                                        [nb_chunk_z]
+                                        : NULL;
                                 return block;
                         }
                 }

@@ -23,7 +23,9 @@ typedef enum { X, Y, Z } axis_t;
  * virtual coordinate of the block that could be place. of the block. */
 block_type_t get_pointed_block(world_t* world, camera_t* camera,
                                float max_distance, vec3* pointed_block,
-                               vec3* neighbour_block, chunk_t** out_chunk);
+                               vec3* neighbour_block,
+                               chunk_t** pointed_chunk,
+                               chunk_t** neighbour_chunk);
 
 /**
  * @brief Processes the block pointed to if it's not air.
