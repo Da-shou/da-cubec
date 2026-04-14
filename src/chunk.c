@@ -116,7 +116,8 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const float x, const float y, cons
         mesh->indices[mesh->index_count++] = base + 0;
 }
 
-void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh) {
+void chunk_build_mesh(const chunk_t* chunk,
+    chunk_mesh_t* mesh, chunk_neighbours_t neighbors) {
     // clang-format off
     mesh->vertex_count = 0;
     mesh->index_count = 0;
@@ -130,31 +131,48 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh) {
 
                 const block_uv_t uv = BLOCK_UVS[block];
 
-                /* Checking the X,Y,Z coordinates of each block, in front
-                 * and behind.*/
-                if (z == CHUNK_SIZE_XZ - 1 ||
-                    chunk->blocks[x][y][z + 1] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT,
-				    uv.front.u, uv.front.v, TILE_OFFSET);
-                if (z == 0 || chunk->blocks[x][y][z - 1] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_BACK, 
-				    uv.back.u, uv.back.v, TILE_OFFSET);
+                /* To determine if the face of a block in a chunk will be rendered, we check
+                 * the 4 potentials neighbors (front, back, left and right). The top and
+                 * bottom chunks do not exist. If a block is found in the neighbouring
+                 * chunk, then the face is not rendered. If the chunk is at the edge
+                 * of the world, then the face is rendered. */
+                if (z == CHUNK_SIZE_XZ - 1) {
+                    // Front-checking
+                    if (!neighbors.north || neighbors.north->blocks[x][y][0] == BLOCK_AIR)
+                        chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT, uv.front.u, uv.front.v, TILE_OFFSET);
+                } else if (chunk->blocks[x][y][z + 1] == BLOCK_AIR) {
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT, uv.front.u, uv.front.v, TILE_OFFSET);
+                }
 
-                if (y == CHUNK_SIZE_XZ - 1 ||
-                    chunk->blocks[x][y + 1][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_TOP,
-				    uv.top.u, uv.top.v, TILE_OFFSET);
+                if (z == 0) {
+                    // Back-checking
+                    if (!neighbors.south || neighbors.south->blocks[x][y][CHUNK_SIZE_XZ - 1] == BLOCK_AIR)
+                        chunk_mesh_push_face(mesh, x, y, z, FACE_BACK, uv.back.u, uv.back.v, TILE_OFFSET);
+                } else if (chunk->blocks[x][y][z - 1] == BLOCK_AIR) {
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_BACK, uv.back.u, uv.back.v, TILE_OFFSET);
+                }
+
+                if (y == CHUNK_SIZE_Y - 1 || chunk->blocks[x][y + 1][z] == BLOCK_AIR)
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_TOP, uv.top.u, uv.top.v, TILE_OFFSET);
+
                 if (y == 0 || chunk->blocks[x][y - 1][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_BOTTOM, 
-				    uv.bottom.u, uv.bottom.v, TILE_OFFSET);
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_BOTTOM, uv.bottom.u, uv.bottom.v, TILE_OFFSET);
 
-                if (x == CHUNK_SIZE_XZ - 1 ||
-                    chunk->blocks[x + 1][y][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT,
-				    uv.right.u, uv.right.v, TILE_OFFSET);
-                if (x == 0 || chunk->blocks[x - 1][y][z] == BLOCK_AIR)
-                    chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT,
-				    uv.left.u, uv.left.v, TILE_OFFSET);
+                if (x == CHUNK_SIZE_XZ - 1) {
+                    // Right-checking
+                    if (!neighbors.east || neighbors.east->blocks[0][y][z] == BLOCK_AIR)
+                        chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT, uv.right.u, uv.right.v, TILE_OFFSET);
+                } else if (chunk->blocks[x + 1][y][z] == BLOCK_AIR) {
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT, uv.right.u, uv.right.v, TILE_OFFSET);
+                }
+
+                if (x == 0) {
+                    // Left-checking
+                    if (!neighbors.west || neighbors.west->blocks[CHUNK_SIZE_XZ - 1][y][z] == BLOCK_AIR)
+                        chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT, uv.left.u, uv.left.v, TILE_OFFSET);
+                } else if (chunk->blocks[x - 1][y][z] == BLOCK_AIR) {
+                    chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT, uv.left.u, uv.left.v, TILE_OFFSET);
+                }
             }
         }
     }

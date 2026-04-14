@@ -14,6 +14,7 @@
 #include <blocks.h>
 #include <chunk.h>
 #include <pointer.h>
+#include <game_config.h>
 
 const uint16_t WIDTH = 800, HEIGHT = 600;
 const char* const WINDOW_TITLE = "da-cubec";
@@ -48,7 +49,6 @@ static bool focused = false;
  * @brief Called every time a key is pressed. */
 void key_callback(GLFWwindow* window, int key, int scancode, int action,
                   int mode);
-
 /**
  * @brief Rotates camera if mouse is locked in the window. */
 void mouse_callback(GLFWwindow* window, double x_pos, double y_pos);
@@ -80,9 +80,11 @@ int main(void) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+        game_config_t config = game_config_default();
+
         /* Creating window */
         GLFWwindow* window =
-            glfwCreateWindow(WIDTH, HEIGHT, WINDOW_TITLE, NULL, NULL);
+            glfwCreateWindow(config.width, config.height, config.title, NULL, NULL);
         if (window == NULL) {
                 fprintf(stderr, "%s\n", "Failed to create GLFW window.");
                 glfwTerminate();
@@ -118,14 +120,14 @@ int main(void) {
 
         /* Creating our texture atlas */
         material_t atlas;
-        material_create(&atlas, TEXTURE_ATLAS_PATH);
+        material_create(&atlas, config.texture_atlas_path);
 
         /* Initalizing our shader */
         shader_t basic_shader;
-        shader_init(&basic_shader, VERTEX_SHADER_PATH,
-                    FRAGMENT_SHADER_PATH);
+        shader_init(&basic_shader, config.vertex_shader_path,
+                    config.fragment_shader_path);
 
-        camera_init(&main_camera, (vec3) {
+        camera_init(&config, &main_camera, (vec3) {
                 (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2,
                 (float)CHUNK_SIZE_Y / 2,
                 (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2
@@ -141,6 +143,7 @@ int main(void) {
         /* Enabling depth-testing so that OpenGL uses its Z-buffer to
         prioritze drawings vertices that are closer to the camera. */
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         /* We need a view matrix. To move around the world,
          * moving the camera is the same as moving the entire
@@ -291,22 +294,27 @@ void process_block_inputs(GLFWwindow* window) {
 
         /* Left-click -> The block gets destroyed (replaced with air) */
         if (lc_state == GLFW_PRESS && last_lc_state == GLFW_RELEASE) {
-                const int cx = (int)target_block[0] % CHUNK_SIZE_XZ;
-                const int cy = (int)target_block[1];
-                const int cz = (int)target_block[2] % CHUNK_SIZE_XZ;
+                const int lx = (int)target_block[0] % CHUNK_SIZE_XZ;
+                const int ly = (int)target_block[1];
+                const int lz = (int)target_block[2] % CHUNK_SIZE_XZ;
+                const int cx = (int)target_block[0] / CHUNK_SIZE_XZ;
+                const int cz = (int)target_block[2] / CHUNK_SIZE_XZ;
+
                 /** Destroying the block that is being looked at **/
-                target_chunk->blocks[cx][cy][cz] = BLOCK_AIR;
-                chunk_build_mesh(target_chunk, &target_chunk->mesh);
+                target_chunk->blocks[lx][ly][lz] = BLOCK_AIR;
+                world_rebuild_after_change(&world, cx, cz, lx, lz);
         }
 
         /* Right-click -> A block is placed at the neighbour coordinates. */
         if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
                 if (!world_valid_position(neighbour)) return;
-                const int nx = (int)neighbour[0] % CHUNK_SIZE_XZ;
-                const int ny = (int)neighbour[1];
-                const int nz = (int)neighbour[2] % CHUNK_SIZE_XZ;
-                target_chunk->blocks[nx][ny][nz] = BLOCK_COBBLESTONE;
-                chunk_build_mesh(target_chunk, &target_chunk->mesh);
+                const int lx = (int)neighbour[0] % CHUNK_SIZE_XZ;
+                const int ly = (int)neighbour[1];
+                const int lz = (int)neighbour[2] % CHUNK_SIZE_XZ;
+                const int cx = (int)neighbour[0] / CHUNK_SIZE_XZ;
+                const int cz = (int)neighbour[2] / CHUNK_SIZE_XZ;
+                target_chunk->blocks[lx][ly][lz] = BLOCK_COBBLESTONE;
+                world_rebuild_after_change(&world, cx, cz, lx, lz);
         }
 
 	last_lc_state = lc_state;

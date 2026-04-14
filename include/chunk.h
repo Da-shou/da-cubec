@@ -42,6 +42,18 @@ typedef struct {
     vec3 position;
 } chunk_t;
 
+/**
+ * @brief Represents the neighbouring chunks of a chunk. This is used
+ * to not render the face of blocks that face each other while being
+ * on different chunks.
+ */
+typedef struct {
+    const chunk_t* west;   // x-1
+    const chunk_t* east;   // x+1
+    const chunk_t* south;  // z-1
+    const chunk_t* north;  // z+1
+} chunk_neighbours_t;
+
 /** 
  * @brief Initializes a chunk to be full of air.
  * @param chunk Pointer to the chunk that will be initalized.
@@ -73,7 +85,7 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, float x, float y, float z,
  * @param chunk Data of all the blocks in the chunk that will be analyzed.
  * @param mesh Pointer to the mesh struct that will be filled with all
  * necesarry faces and sent to the GPU. */
-void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh);
+void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, chunk_neighbours_t neighbors);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside

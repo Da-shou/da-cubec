@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include <GLFW/glfw3.h>
+#include <game_config.h>
 #include "cglm/types.h"
 
 /**
@@ -48,7 +49,7 @@ typedef struct {
  * @brief Initializes the camera vectors and puts it at the
  * orgin of the world.
  * @param camera Camera struct to be initalized. */
-void camera_init(camera_t* camera, vec3 position);
+void camera_init(game_config_t* config, camera_t* camera, vec3 position);
 
 /**
  * @brief Updates the right, front and up vectors of the camera. Has to be

@@ -25,6 +25,22 @@ void world_init(world_t* world);
  */
 void world_build(world_t* world);
 
+/** @brief Rebuilds a sigle chunk of the world. */
+static void world_build_chunk(world_t* world, int cx, int cz);
+
+/**
+ * Rebuilds the mesh of a chunk and any neighbors whose visible geometry
+ * changed because a border block was modified.
+ * @param world Pointer to the world that will be modified
+ * @param chunk_x Chunk grid X of the modified chunk.
+ * @param chunk_z Chunk grid Z of the modified chunk.
+ * @param local_x Block's local X within the chunk.
+ * @param local_z Block's local Z within the chunk.
+ */
+void world_rebuild_after_change(world_t* world,
+                                      int chunk_x, int chunk_z,
+                                      int local_x, int local_z);
+
 /**
  * Uses a world, a shader and a texture atlas to draw all the chunks
  * on screen.
