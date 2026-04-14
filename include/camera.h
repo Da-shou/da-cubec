@@ -12,8 +12,8 @@ typedef enum {
         CAMERA_BACKWARD,
         CAMERA_LEFT,
         CAMERA_RIGHT,
-	CAMERA_UP,
-	CAMERA_DOWN
+        CAMERA_UP,
+        CAMERA_DOWN
 } CAMERA_DIRECTION;
 
 /**
@@ -51,7 +51,8 @@ typedef struct {
  * @param config Settings to be applied to the camera
  * @param camera Camera struct to be initalized.
  * @param position Initial position of the camera in 3D space. */
-void camera_init(const game_config_t* config, camera_t* camera, vec3 position);
+void camera_init(const game_config_t* config, camera_t* camera,
+                 vec3 position);
 
 /**
  * @brief Updates the right, front and up vectors of the camera. Has to be
@@ -89,7 +90,8 @@ void camera_rotate(camera_t* camera, float x_pos, float y_pos,
                    GLboolean constrain_pitch);
 
 /**
- * @brief Used to tell the camera that the mouse went out of the window so that
- * it can prevent jumping whenever the mouse comes back on the window. */
+ * @brief Used to tell the camera that the mouse went out of the window so
+ * that it can prevent jumping whenever the mouse comes back on the window.
+ */
 void camera_reset_mouse(void);
 #endif

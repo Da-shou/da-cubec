@@ -196,25 +196,28 @@ void chunk_mesh_upload(const chunk_mesh_t* mesh) {
         glBindVertexArray(mesh->vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     (GLsizeiptr)(mesh->vertex_count * sizeof(chunk_vertex_t)),
-                     mesh->vertices, GL_DYNAMIC_DRAW);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            (GLsizeiptr)(mesh->vertex_count * sizeof(chunk_vertex_t)),
+            mesh->vertices, GL_DYNAMIC_DRAW);
 
-        /** Since all of our data is packed into an uint32_t, no need to to pass
-         * multiple attributes. The unpacking will be done in the vertex shader. */
+        /** Since all of our data is packed into an uint32_t, no need to to
+         * pass multiple attributes. The unpacking will be done in the
+         * vertex shader. */
         glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(uint32_t), 0);
         glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->eao);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     (GLsizeiptr)(mesh->index_count * sizeof(unsigned int)),
-                     mesh->indices, GL_DYNAMIC_DRAW);
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            (GLsizeiptr)(mesh->index_count * sizeof(unsigned int)),
+            mesh->indices, GL_DYNAMIC_DRAW);
 }
 
 void chunk_mesh_draw(const chunk_mesh_t* mesh) {
         glBindVertexArray(mesh->vao);
-        glDrawElements(GL_TRIANGLES, (int)mesh->index_count, GL_UNSIGNED_INT,
-                       0);
+        glDrawElements(GL_TRIANGLES, (int)mesh->index_count,
+                       GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 }
 

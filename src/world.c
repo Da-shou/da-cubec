@@ -18,30 +18,32 @@ void world_init(world_t* world) {
 
 void world_build(world_t* world) {
         for (int x = 0; x < WORLD_SIZE_X; x++)
-        for (int z = 0; z < WORLD_SIZE_Z; z++) {
-                world_build_chunk(world, x, z);
-        }
+                for (int z = 0; z < WORLD_SIZE_Z; z++) {
+                        world_build_chunk(world, x, z);
+                }
 }
 
 void world_build_chunk(world_t* world, const int cx, const int cz) {
         const chunk_neighbours_t neighbors = {
-                .west  = (cx > 0)                ? &world->chunks[cx - 1][cz] : NULL,
-                .east  = (cx < WORLD_SIZE_X - 1) ? &world->chunks[cx + 1][cz] : NULL,
-                .south = (cz > 0)                ? &world->chunks[cx][cz - 1] : NULL,
-                .north = (cz < WORLD_SIZE_Z - 1) ? &world->chunks[cx][cz + 1] : NULL,
-            };
+            .west = (cx > 0) ? &world->chunks[cx - 1][cz] : NULL,
+            .east = (cx < WORLD_SIZE_X - 1) ? &world->chunks[cx + 1][cz]
+                                            : NULL,
+            .south = (cz > 0) ? &world->chunks[cx][cz - 1] : NULL,
+            .north = (cz < WORLD_SIZE_Z - 1) ? &world->chunks[cx][cz + 1]
+                                             : NULL,
+        };
         chunk_t* chunk = &world->chunks[cx][cz];
         chunk_build_mesh(chunk, &chunk->mesh, neighbors);
 }
 
-void world_rebuild_after_change(world_t* world,
-        const int chunk_x, const int chunk_z,
-        const int local_x, const int local_z) {
+void world_rebuild_after_change(world_t* world, const int chunk_x,
+                                const int chunk_z, const int local_x,
+                                const int local_z) {
         /* Building the centre chunk, where the camera is */
         world_build_chunk(world, chunk_x, chunk_z);
 
-        /* Rebuilding the correct chunk depending on which edge the camera is
-         * located at (If it is at an edge) */
+        /* Rebuilding the correct chunk depending on which edge the camera
+         * is located at (If it is at an edge) */
         if (local_x == 0 && chunk_x > 0)
                 world_build_chunk(world, chunk_x - 1, chunk_z);
         if (local_x == CHUNK_SIZE_XZ - 1 && chunk_x < WORLD_SIZE_X - 1)
