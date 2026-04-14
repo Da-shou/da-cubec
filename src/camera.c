@@ -38,11 +38,11 @@ void camera_update_vectors(camera_t* camera) {
         /* Calculate the front vector using calculations to take yaw and
          * pitch into account, which will allow moving the camera with the
          * mouse. */
-        float front_x =
-            cos(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
-        float front_y = sin(glm_rad(camera->pitch));
-        float front_z =
-            sin(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+        const float front_x =
+            cosf(glm_rad(camera->yaw)) * cosf(glm_rad(camera->pitch));
+        const float front_y = sinf(glm_rad(camera->pitch));
+        const float front_z =
+            sinf(glm_rad(camera->yaw)) * cosf(glm_rad(camera->pitch));
         glm_vec3_copy((vec3) {front_x, front_y, front_z}, camera->front);
         glm_normalize(camera->front);
 
@@ -60,8 +60,8 @@ void camera_update_view(camera_t* camera, mat4 view) {
         glm_lookat(camera->position, direction, camera->up, view);
 }
 
-void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
-                 float delta_time) {
+void camera_move(camera_t* camera, const CAMERA_DIRECTION direction,
+                 const float delta_time) {
         const float camera_delta_speed =
             camera->movement_speed * delta_time;
 
@@ -98,8 +98,8 @@ void camera_move(camera_t* camera, CAMERA_DIRECTION direction,
         }
 }
 
-void camera_rotate(camera_t* camera, float x_pos, float y_pos,
-                   GLboolean constrain_pitch) {
+void camera_rotate(camera_t* camera, const float x_pos, const float y_pos,
+                   const GLboolean constrain_pitch) {
         /* Checking if the this is the first input of the mouse. If yes,
          * replace the last_mouse_positions with the new positions to avoid
          * jumping when clicking on the widow again. */
@@ -129,7 +129,7 @@ void camera_rotate(camera_t* camera, float x_pos, float y_pos,
         }
 
         /* When the camera rotates, its front, right and up vector change
-         * so ththey need to be recalculated.*/
+         * so they need to be recalculated.*/
         camera_update_vectors(camera);
 }
 

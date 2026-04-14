@@ -7,7 +7,8 @@
 #include <shader.h>
 #include <material.h>
 
-#define CHUNK_SIZE 16
+#define CHUNK_SIZE_XZ 16
+#define CHUNK_SIZE_Y 32
 
 static const size_t STARTING_CHUNK_CAPACITY = 1024;
 
@@ -33,18 +34,18 @@ typedef struct {
 } chunk_mesh_t;
 
 /**
- * @brief A chunk stores 16x16x16 blocks. This allows us to create a big
- * mesh made out of these 4096 blocks and render it with one call instead f
- * 4096 calls. */
+ * @brief A chunk stores CHUNK_SIZE_XZ * 2 * CHUNK_SIZE_Y blocks. This allows us to create a big
+ * mesh made out of these blocks and render it with one call instead of multiple calls. */
 typedef struct {
-    block_type_t blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+    block_type_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
     chunk_mesh_t mesh;
     vec3 position;
 } chunk_t;
 
 /** 
  * @brief Initializes a chunk to be full of air.
- * @param chunk Pointer to the chunk that will be initalized. */
+ * @param chunk Pointer to the chunk that will be initalized.
+ * @param position Where the chunk will be positioned. */
 void chunk_init(chunk_t* chunk, vec3 position);
 
 /**
@@ -57,6 +58,7 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * @brief Pushes a face into a chunk mesh. We iterate through every cube in
  * the mesh. Everytime a face faces air, that face is added to the chunk
  * mesh to get rendered.
+ * @param mesh Pointer to the mesh of the chunk.
  * @param x,y,z Location of the face within the chunk.
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
@@ -71,25 +73,27 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, float x, float y, float z,
  * @param chunk Data of all the blocks in the chunk that will be analyzed.
  * @param mesh Pointer to the mesh struct that will be filled with all
  * necesarry faces and sent to the GPU. */
-void chunk_build_mesh(chunk_t* chunk, chunk_mesh_t* mesh);
+void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside
  * chunk_build_mesh. Do not use individually.
  * @param mesh Pointer to the mesh that will be sent to GPU. */
-void chunk_mesh_upload(chunk_mesh_t* mesh);
+void chunk_mesh_upload(const chunk_mesh_t* mesh);
 
 /**
  * @brief Draws the mesh using the vertices and elements contained in the
  * mesh structure. 
  * @param mesh Pointer to the mesh to be drawn. */
-void chunk_mesh_draw(chunk_mesh_t* mesh);
+void chunk_mesh_draw(const chunk_mesh_t* mesh);
 
 /**
  * @brief Sets the shader and material containing the texture atlas and calls the drawing of the chunk mesh.
  * @param chunk Pointer to the chunk to be rendered.
+ * @param shader Pointer to the shader program used.
+ * @param atlas Pointer to the texture atlas used.
  * */
-void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* material); 
+void chunk_draw(chunk_t* chunk, shader_t* shader, material_t* atlas);
 
 /**
  * @brief Destroys the allocated memory used for a chunk mesh.
