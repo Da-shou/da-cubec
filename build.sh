@@ -1,7 +1,7 @@
 export BUILD="build"
 export EXECUTABLE="da-cubec"
 
-if [[ $2 == tidy ]]; then
+if [[ $2 == tidy ]] || [[ $1 == tidy ]]; then
 	clang-tidy src/*.c --header-filter='src/.*'
 fi
 
