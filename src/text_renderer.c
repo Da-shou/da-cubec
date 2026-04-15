@@ -133,8 +133,7 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text, const
     glDisable(GL_CULL_FACE);
 
     shader_use(&renderer->shader);
-    glUniform3f(glGetUniformLocation(renderer->shader.id, "text_color"), text_color_r, text_color_g,
-                text_color_b);
+	shader_set_vec3(&renderer->shader, "text_color", (vec3) {text_color_r, text_color_g, text_color_b});
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, renderer->texture_id);

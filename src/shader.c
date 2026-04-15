@@ -33,3 +33,7 @@ void shader_set_float(const shader_t* shader, const char* name, const float valu
 void shader_set_mat4(const shader_t* shader, const char* name, mat4 value) {
     glUniformMatrix4fv(glGetUniformLocation(shader->id, name), 1, GL_FALSE, (float*)value);
 }
+
+void shader_set_vec3(const shader_t* shader, const char* name, vec3 value) {
+    glUniform3fv(glGetUniformLocation(shader->id, name), 1, value);
+}

@@ -75,8 +75,8 @@ int main(void) {
     shader_init(&basic_shader, config.basic_vertex_shader_path, config.basic_fragment_shader_path);
 
     /* Text renderer for the HUD overlay */
-    text_renderer_t title_renderer;
-    text_renderer_init(&title_renderer, config.font_path, config.text_vertex_shader_path,
+    text_renderer_t text_renderer;
+    text_renderer_init(&text_renderer, config.font_path, config.text_vertex_shader_path,
                        config.text_fragment_shader_path, 24.0F, config.width, config.height);
 
     camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
@@ -107,6 +107,8 @@ int main(void) {
      * OpenGL to give us the location each time. */
     const int view_location = glGetUniformLocation(basic_shader.id, "view");
     const int projection_location = glGetUniformLocation(basic_shader.id, "projection");
+
+    const int version = gladLoadGL(glfwGetProcAddress);
 
     /* Main window loop */
     while (!glfwWindowShouldClose(app_window)) {
@@ -154,9 +156,16 @@ int main(void) {
         world_draw(&world, &basic_shader, &atlas, frustum_planes);
 
         /* Draw game title in the bottom-left corner */
-		char title_text[64];
+        char title_text[64];
         (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title, config.version);
-        text_renderer_draw(&title_renderer, title_text, 10.0F, (float)config.height - 10.0F, 1.0F,
+        char opengl_info[64];
+        (void)snprintf(opengl_info, sizeof(opengl_info),
+                       "GLFW %d.%d.%d OpenGL %d.%d", GLFW_VERSION_MAJOR,
+                       GLFW_VERSION_MINOR, GLFW_VERSION_REVISION, GLAD_VERSION_MAJOR(version),
+                       GLAD_VERSION_MINOR(version));
+        text_renderer_draw(&text_renderer, title_text, 10.0F, (float)config.height - 40.0F, 1.0F,
+                           1.0F, 1.0F);
+        text_renderer_draw(&text_renderer, opengl_info, 10.0F, (float)config.height - 10.0F, 1.0F,
                            1.0F, 1.0F);
 
         /* Swapping the buffers is a necessary step and I forgot
@@ -165,7 +174,7 @@ int main(void) {
     }
 
     shader_destroy(&basic_shader);
-    text_renderer_destroy(&title_renderer);
+    text_renderer_destroy(&text_renderer);
     material_destroy(&atlas);
     world_destroy(&world);
 

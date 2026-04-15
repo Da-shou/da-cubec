@@ -57,4 +57,11 @@ void shader_set_float(const shader_t* shader, const char* name, float value);
  * @param value Value to set the uniform variable to. */
 void shader_set_mat4(const shader_t* shader, const char* name, mat4 value);
 
+/**
+ * @brief Sets a new vec3 uniform variable.
+ * @param shader Shader to modify.
+ * @param name Name of uniform variable to set.
+ * @param value Value to set the uniform variable to. */
+void shader_set_vec3(const shader_t* shader, const char* name, vec3 value);
+
 #endif // SHADER_H
