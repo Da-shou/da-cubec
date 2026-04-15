@@ -1,7 +1,7 @@
-#include <world.h>
-
 #include <cglm/cglm.h>
 #include <math.h>
+
+#include "world.h"
 
 void world_init(world_t* world) {
     for (int x = 0; x < WORLD_SIZE_X; x++) {

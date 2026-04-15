@@ -1,15 +1,13 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
-
 #include <cglm/cglm.h>
-
-#include <chunk.h>
-#include <blocks.h>
-#include <shader.h>
-#include <material.h>
-
 #include <stdint.h>
 #include <string.h>
+
+#include "chunk.h"
+#include "blocks.h"
+#include "shader.h"
+#include "material.h"
 
 /* These are all the different vertices for a face that are needed. */
 // clang-format off

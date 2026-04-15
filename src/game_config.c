@@ -1,4 +1,4 @@
-#include <game_config.h>
+#include "game_config.h"
 
 game_config_t game_config_default(void) {
     return (game_config_t) {

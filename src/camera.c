@@ -1,9 +1,9 @@
-#include "cglm/cam.h"
-#include "cglm/vec3.h"
-#include <camera.h>
-
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
+#include <cglm/cam.h>
+#include <cglm/vec3.h>
+
+#include "camera.h"
 
 static const float CAMERA_YAW = -90.0f;
 static const float CAMERA_PITCH = 0.0f;

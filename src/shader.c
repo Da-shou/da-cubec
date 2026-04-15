@@ -1,8 +1,10 @@
 #include <stdbool.h>
+
+#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
-#include <shader.h>
-#include <utils/shader_utils.h>
+#include "shader.h"
+#include "utils/shader_utils.h"
 
 void shader_init(shader_t* s, const char* vertex_filepath,
                  const char* fragment_filepath) {

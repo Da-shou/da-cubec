@@ -1,22 +1,23 @@
-#include "world.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 
+/* gl has to be included before GLFW */
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
-#include <shader.h>
-#include <camera.h>
-#include <material.h>
-#include <blocks.h>
-#include <chunk.h>
-#include <pointer.h>
-#include <game_config.h>
-#include <input_process.h>
+#include "shader.h"
+#include "camera.h"
+#include "material.h"
+#include "blocks.h"
+#include "chunk.h"
+#include "pointer.h"
+#include "world.h"
+#include "game_config.h"
+#include "input_process.h"
 
 /* Defining the view and projection matrices. */
 mat4 view;

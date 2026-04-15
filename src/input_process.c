@@ -1,15 +1,16 @@
-#include "game_config.h"
 #include <GLFW/glfw3.h>
-#include <camera.h>
-#include <chunk.h>
-#include <world.h>
+
+#include "camera.h"
+#include "chunk.h"
+#include "world.h"
+#include "game_config.h"
 
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 
 /**
  * @brief Managing inputs for mouse and keyboard. */
-void handle_camera_mouse(GLFWwindow* window, game_config_t* config,
+void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
                          camera_t* camera) {
     const float current_frame = (float)glfwGetTime();
     delta_time = current_frame - last_frame;
@@ -40,9 +41,9 @@ void handle_camera_mouse(GLFWwindow* window, game_config_t* config,
     else camera->movement_speed = config->speed;
 }
 
-void handle_clicks(GLFWwindow* window, world_t* world, vec3 target_block,
-                   vec3 neighbour, chunk_t* target_chunk,
-                   chunk_t* neighbour_chunk) {
+void handle_clicks(GLFWwindow* window, world_t* world,
+                   const vec3 target_block, const vec3 neighbour,
+                   chunk_t* target_chunk, chunk_t* neighbour_chunk) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
 
