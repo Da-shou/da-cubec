@@ -8,6 +8,16 @@
 
 #include "game_config.h"
 
+/**
+ * @brief Gets the correct slot index for a chunk coordinate.
+ * @param coord The chunk coordinate to translate to slot.
+ * @param N The corrent max loaded chunk size (render distance * 2 + 1)
+ * @return The slot index for this chunk coordinate.
+ */
+static int chunk_to_slot(const int coord, int N) {
+    return ((coord % N) + N) % N;
+}
+
 void world_init(world_t* world, game_config_t* config) {
     world->last_player_cx = INT_MIN;
     world->last_player_cz = INT_MIN;
@@ -23,12 +33,13 @@ void world_init(world_t* world, game_config_t* config) {
             world->slot_cz[sx][sz] = INT_MIN;
         }
     }
+    chunk_store_init(&world->chunk_store);
 }
 
 chunk_t* world_get_chunk(world_t* world, const int cx, const int cz) {
     const int N = world->render_distance * 2 + 1;
-    const int sx = ((cx % N) + N) % N;
-    const int sz = ((cz % N) + N) % N;
+    const int sx = chunk_to_slot(cx, N);
+    const int sz = chunk_to_slot(cz, N);
     if (world->slot_cx[sx][sz] == cx && world->slot_cz[sx][sz] == cz)
         return &world->chunks[sx][sz];
     return NULL;
@@ -68,11 +79,11 @@ void world_update(world_t* world, const vec3 player_pos) {
              * Same logic for the z coordinate.
              */
             const int base_cx   = pcx - R;
-            const int base_sx   = ((base_cx % N) + N) % N;
+            const int base_sx   = chunk_to_slot(base_cx, N);
             const int target_cx = base_cx + ((sx - base_sx + N) % N);
 
             const int base_cz   = pcz - R;
-            const int base_sz   = ((base_cz % N) + N) % N;
+            const int base_sz   = chunk_to_slot(base_cz, N);
             const int target_cz = base_cz + ((sz - base_sz + N) % N);
 
             /* If the target chunk for this slot is already loaded, skip. */
@@ -80,11 +91,20 @@ void world_update(world_t* world, const vec3 player_pos) {
                 world->slot_cz[sx][sz] == target_cz)
                 continue;
 
-            /* Clear blocks and reset mesh counters. */
             chunk_t* slot = &world->chunks[sx][sz];
+
+            /* Persist modified chunks before evicting. */
+            if (slot->modified && world->slot_cx[sx][sz] != INT_MIN)
+                chunk_store_save(&world->chunk_store,
+                                 world->slot_cx[sx][sz],
+                                 world->slot_cz[sx][sz],
+                                 slot->blocks);
+
+            /* Clear blocks and reset mesh counters. */
             memset(slot->blocks, 0, sizeof(slot->blocks));
             slot->mesh.vertex_count = 0;
             slot->mesh.index_count  = 0;
+            slot->modified = false;
 
             /* Update the world-space position used by chunk_draw. */
             slot->position[0] = (float)(target_cx * CHUNK_SIZE_XZ);
@@ -94,9 +114,11 @@ void world_update(world_t* world, const vec3 player_pos) {
             world->slot_cx[sx][sz] = target_cx;
             world->slot_cz[sx][sz] = target_cz;
 
-            if (world->generate)
-                world->generate(slot, target_cx, target_cz,
-                                world->generator_data);
+            if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
+                                  slot->blocks))
+                if (world->generate)
+                    world->generate(slot, target_cx, target_cz,
+                                    world->generator_data);
 
             dirty[sx][sz] = true;
         }
@@ -129,10 +151,16 @@ void world_build_chunk(world_t* world, const int sx, const int sz) {
     chunk_build_mesh(chunk, &chunk->mesh, neighbors);
 }
 
+/**
+ * @brief Checks if a chunk is loaded and rebuilds it if it is.
+ * @param world World to check the chunks in
+ * @param cx X coordinate of the chunk in the chunk grid
+ * @param cz Z coordinate of the chunk in the chunk grid
+ */
 static void rebuild_if_loaded(world_t* world, const int cx, const int cz) {
     const int N = world->render_distance * 2 + 1;
-    const int sx = ((cx % N) + N) % N;
-    const int sz = ((cz % N) + N) % N;
+    const int sx = chunk_to_slot(cx, N);
+    const int sz = chunk_to_slot(cz, N);
     if (world->slot_cx[sx][sz] == cx && world->slot_cz[sx][sz] == cz)
         world_build_chunk(world, sx, sz);
 }
@@ -184,6 +212,7 @@ void world_destroy(world_t* world) {
     for (int sx = 0; sx < N; sx++)
         for (int sz = 0; sz < N; sz++)
             chunk_destroy(&world->chunks[sx][sz]);
+    chunk_store_destroy(&world->chunk_store);
 }
 
 bool world_valid_position(const world_t* world, const vec3 position) {

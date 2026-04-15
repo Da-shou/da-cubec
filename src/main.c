@@ -81,8 +81,7 @@ int main(void) {
                 config.fragment_shader_path);
 
     camera_init(&config, &main_camera,
-                (vec3) {(float)CHUNK_SIZE_XZ / 2.0f, 128.0f,
-                        (float)CHUNK_SIZE_XZ / 2.0f});
+                (vec3) {0.0f, 127.0f, 0.0f});
 
     static perlin_params_t terrain = {0.01f, 64, 32};
 
@@ -120,9 +119,6 @@ int main(void) {
          * from the user such as mouse or keyboard. */
         glfwPollEvents();
 
-        /* Stream in/out chunks based on player position. */
-        world_update(&world, main_camera.position);
-
         /* Background color */
         glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
 
@@ -149,6 +145,8 @@ int main(void) {
         glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                            (float*)projection);
 
+        /* Stream in/out chunks based on player position. */
+        world_update(&world, main_camera.position);
         /* Calculating the planes that make up the frustum of
          * the camera then culling everything that is outside the
          * frustum of the camera. Fortunately the CGLM libraries

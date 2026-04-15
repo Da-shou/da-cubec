@@ -2,9 +2,10 @@
 #define WORLD_H
 
 #include "chunk.h"
+#include "chunk_store.h"
 #include "game_config.h"
 
-#define MAX_RENDER_DISTANCE 32
+#define MAX_RENDER_DISTANCE 60
 #define MAX_LOADED_CHUNKS_SIZE (2 * MAX_RENDER_DISTANCE + 1)
 
 /**
@@ -31,6 +32,7 @@ typedef struct {
     uint8_t render_distance;
     chunk_generator_t generate;
     void* generator_data;
+    chunk_store_t chunk_store;
 } world_t;
 
 /**

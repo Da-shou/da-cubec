@@ -41,6 +41,7 @@ typedef struct {
     uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
     chunk_mesh_t mesh;
     vec3 position;
+    bool modified;
 } chunk_t;
 
 /**
