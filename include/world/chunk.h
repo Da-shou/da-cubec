@@ -1,11 +1,10 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
-#include <stdlib.h>
 #include <stdint.h>
-#include <blocks.h>
-#include <shader.h>
-#include <material.h>
+
+#include "shader.h"
+#include "material.h"
 
 #define CHUNK_SIZE_XZ 16
 #define CHUNK_SIZE_Y 512
@@ -41,6 +40,7 @@ typedef struct {
     uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
     chunk_mesh_t mesh;
     vec3 position;
+    bool modified;
 } chunk_t;
 
 /**

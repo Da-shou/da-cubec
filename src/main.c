@@ -12,10 +12,10 @@
 #include "shader.h"
 #include "camera.h"
 #include "material.h"
-#include "blocks.h"
-#include "chunk.h"
-#include "pointer.h"
-#include "world.h"
+#include "world/blocks.h"
+#include "world/chunk.h"
+#include "world/pointer.h"
+#include "world/world.h"
 #include "game_config.h"
 #include "input_process.h"
 
@@ -80,13 +80,13 @@ int main(void) {
     shader_init(&basic_shader, config.vertex_shader_path,
                 config.fragment_shader_path);
 
-    camera_init(&config, &main_camera,
-                (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f, 128.0f,
-                        (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f});
+    camera_init(&config, &main_camera, (vec3) {0.0f, 127.0f, 0.0f});
 
-    world_init(&world);
-    world_fill_perlin(&world, 0.01f, 64, 32);
-    world_build(&world);
+    static perlin_params_t terrain = {0.01f, 64, 32};
+
+    world_init(&world, &config);
+    world.generate = world_generator_perlin;
+    world.generator_data = &terrain;
 
     /* We need a view matrix. To move around the world,
      * moving the camera is the same as moving the entire
@@ -100,9 +100,10 @@ int main(void) {
      * pretty complex, cglm provides us with the correct and
      * optimized functions*/
     glm_mat4_identity(projection);
-    glm_perspective(glm_rad(70.0f),
+    glm_perspective(glm_rad(config.fov),
                     ((float)config.width / (float)config.height), 0.1f,
-                    config.render_distance * CHUNK_SIZE_XZ, projection);
+                    (float)(config.render_distance + 1) * CHUNK_SIZE_XZ,
+                    projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask
@@ -130,10 +131,10 @@ int main(void) {
         handle_camera_mouse(app_window, &config, &main_camera);
         camera_update_view(&main_camera, view);
         if (focused) {
-            const block_type_t block = get_pointed_block(
+            const uint8_t block = get_pointed_block(
                 &world, &main_camera, config.max_reach, &target_block,
                 &neighbour, &target_chunk, &neighbour_chunk);
-            if (block != BLOCK_AIR) {
+            if (block != (uint8_t)BLOCK_AIR) {
                 handle_clicks(app_window, &world, target_block, neighbour,
                               target_chunk, neighbour_chunk);
             }
@@ -144,6 +145,8 @@ int main(void) {
         glUniformMatrix4fv(projection_location, 1, GL_FALSE,
                            (float*)projection);
 
+        /* Stream in/out chunks based on player position. */
+        world_update(&world, main_camera.position);
         /* Calculating the planes that make up the frustum of
          * the camera then culling everything that is outside the
          * frustum of the camera. Fortunately the CGLM libraries
@@ -177,8 +180,8 @@ void glfw_gl_init() {
         exit(EXIT_FAILURE);
     }
 
-    app_window = glfwCreateWindow(config.width, config.height, config.title,
-                              NULL, NULL);
+    app_window = glfwCreateWindow(config.width, config.height,
+                                  config.title, NULL, NULL);
     if (app_window == NULL) {
         fprintf(stderr, "%s\n", "Failed to create GLFW window.");
         glfwTerminate();

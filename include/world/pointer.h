@@ -1,12 +1,9 @@
 #ifndef POINTER_H
 #define POINTER_H
 
-#include <cglm/cglm.h>
-
-#include <camera.h>
-#include <world.h>
-#include <chunk.h>
-#include <blocks.h>
+#include "camera.h"
+#include "world.h"
+#include "chunk.h"
 
 typedef enum { X, Y, Z } axis_t;
 
@@ -18,17 +15,19 @@ typedef enum { X, Y, Z } axis_t;
  * @param max_distance Max length of the raycast
  * @param pointed_block Pointer to a vec3 that will be filled with the
  * coordinates
- * @param out_chunk Pointer of chunk that the block is in.
+ * @param pointed_chunk Pointer of chunk that the block is in.
+ * @param neighbour_chunk Pointer of the chunk that the neighbour is in.
  * @param neighbour_block Pointer to a vec3 that will be filled with the
- * virtual coordinate of the block that could be place. of the block. */
-block_type_t get_pointed_block(world_t* world, camera_t* camera,
-                               float max_distance, vec3* pointed_block,
-                               vec3* neighbour_block,
-                               chunk_t** pointed_chunk,
-                               chunk_t** neighbour_chunk);
+ * virtual coordinate of the block that could be place. of the block.
+ * @returns ID of the block from the block_type_t enum. */
+uint8_t get_pointed_block(world_t* world, camera_t* camera,
+                          float max_distance, vec3* pointed_block,
+                          vec3* neighbour_block, chunk_t** pointed_chunk,
+                          chunk_t** neighbour_chunk);
 
 /**
- * @brief Processes the block pointed to if it's not air.
+ * @brief Takes XYZ coordinates of a block through block_position and an
+ * axis and finds its neighbour following the given axis.
  * @param block_position vec3 containing the position of the block pointed
  * at.
  * @param last Last axis hit by the ray-cast. Allows us to know which face
@@ -38,7 +37,8 @@ block_type_t get_pointed_block(world_t* world, camera_t* camera,
  * @param neighbour_block The pointer to the vector that will be filled
  * with the coordinates of the neighbouring block once found.
  * @param step_x, step_y, step_z Distances to travel to get to the
- * neighbour block.*/
+ * neighbour block.
+ * @returns void */
 void process_block(vec3 block_position, axis_t last, vec3* pointed_block,
                    vec3* neighbour_block, int step_x, int step_y,
                    int step_z);

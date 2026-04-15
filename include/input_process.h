@@ -2,10 +2,11 @@
 #define INPUT_PROCESS_H
 
 #include <GLFW/glfw3.h>
-#include <game_config.h>
-#include <chunk.h>
-#include <camera.h>
-#include <world.h>
+
+#include "game_config.h"
+#include "camera.h"
+#include "world/chunk.h"
+#include "world/world.h"
 
 /**
  * @brief managing inputs for camera controls. */

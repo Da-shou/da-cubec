@@ -1,13 +1,14 @@
-#include "pointer.h"
-#include "world.h"
-
 #include <math.h>
+#include <cglm/cglm.h>
 
-block_type_t get_pointed_block(world_t* world, camera_t* camera,
-                               const float max_distance,
-                               vec3* pointed_block, vec3* neighbour_block,
-                               chunk_t** pointed_chunk,
-                               chunk_t** neighbour_chunk) {
+#include "world/pointer.h"
+#include "world/world.h"
+#include "world/blocks.h"
+
+uint8_t get_pointed_block(world_t* world, camera_t* camera,
+                          const float max_distance, vec3* pointed_block,
+                          vec3* neighbour_block, chunk_t** pointed_chunk,
+                          chunk_t** neighbour_chunk) {
     vec3 pos, dir;
     glm_vec3_copy(camera->position, pos);
     glm_vec3_copy(camera->front, dir);
@@ -52,34 +53,32 @@ block_type_t get_pointed_block(world_t* world, camera_t* camera,
         const int local_x = x - chunk_x * CHUNK_SIZE_XZ;
         const int local_z = z - chunk_z * CHUNK_SIZE_XZ;
 
-        const bool in_world = chunk_x >= 0 && chunk_x < WORLD_SIZE_X &&
-                              y >= 0 && y < CHUNK_SIZE_Y && chunk_z >= 0 &&
-                              chunk_z < WORLD_SIZE_Z;
-        if (in_world) {
-            chunk_t* chunk = &world->chunks[chunk_x][chunk_z];
-            const block_type_t block = chunk->blocks[local_x][y][local_z];
-            if (block != BLOCK_AIR) {
+        if (y >= 0 && y < CHUNK_SIZE_Y) {
+            chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
+            if (chunk == NULL) continue;
+            const uint8_t block = chunk->blocks[local_x][y][local_z];
+            if (block != (uint8_t)BLOCK_AIR) {
                 process_block((vec3) {(float)x, (float)y, (float)z},
                               last_pointed_to, pointed_block,
                               neighbour_block, step_x, step_y, step_z);
 
+                /* Setting the chunk pointer for the targeted block chunk
+                 * and for it's neighbour, in case the neighbour is in
+                 * a different chunk.*/
                 *pointed_chunk = chunk;
                 const int nb_chunk_x =
                     (int)floorf((*neighbour_block)[0] / CHUNK_SIZE_XZ);
                 const int nb_chunk_z =
                     (int)floorf((*neighbour_block)[2] / CHUNK_SIZE_XZ);
 
-                const bool nb_in_world =
-                    nb_chunk_x >= 0 && nb_chunk_x < WORLD_SIZE_X &&
-                    nb_chunk_z >= 0 && nb_chunk_z < WORLD_SIZE_Z;
-
                 *neighbour_chunk =
-                    nb_in_world ? &world->chunks[nb_chunk_x][nb_chunk_z]
-                                : NULL;
+                    world_get_chunk(world, nb_chunk_x, nb_chunk_z);
                 return block;
             }
         }
 
+        /* Stepping in the direction with the smallest distance to
+         * a plane then updating the last plane touched */
         if (side_x < side_y) {
             if (side_x < side_z) {
                 side_x += delta_x;
