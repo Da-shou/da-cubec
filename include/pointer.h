@@ -21,7 +21,7 @@ typedef enum { X, Y, Z } axis_t;
  * @param out_chunk Pointer of chunk that the block is in.
  * @param neighbour_block Pointer to a vec3 that will be filled with the
  * virtual coordinate of the block that could be place. of the block. */
-block_type_t get_pointed_block(world_t* world, camera_t* camera,
+uint8_t get_pointed_block(world_t* world, camera_t* camera,
                                float max_distance, vec3* pointed_block,
                                vec3* neighbour_block,
                                chunk_t** pointed_chunk,

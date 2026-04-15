@@ -81,12 +81,14 @@ int main(void) {
                 config.fragment_shader_path);
 
     camera_init(&config, &main_camera,
-                (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f, 128.0f,
-                        (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f});
+                (vec3) {(float)CHUNK_SIZE_XZ / 2.0f, 128.0f,
+                        (float)CHUNK_SIZE_XZ / 2.0f});
+
+    static perlin_params_t terrain = {0.01f, 64, 32};
 
     world_init(&world);
-    world_fill_perlin(&world, 0.01f, 64, 32);
-    world_build(&world);
+    world.generate = world_generator_perlin;
+    world.generator_data = &terrain;
 
     /* We need a view matrix. To move around the world,
      * moving the camera is the same as moving the entire
@@ -102,7 +104,7 @@ int main(void) {
     glm_mat4_identity(projection);
     glm_perspective(glm_rad(70.0f),
                     ((float)config.width / (float)config.height), 0.1f,
-                    config.render_distance * CHUNK_SIZE_XZ, projection);
+                    (config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask
@@ -118,6 +120,9 @@ int main(void) {
          * from the user such as mouse or keyboard. */
         glfwPollEvents();
 
+        /* Stream in/out chunks based on player position. */
+        world_update(&world, main_camera.position);
+
         /* Background color */
         glClearColor(0.85f, 0.85f, 1.0f, 1.0f);
 
@@ -130,10 +135,10 @@ int main(void) {
         handle_camera_mouse(app_window, &config, &main_camera);
         camera_update_view(&main_camera, view);
         if (focused) {
-            const block_type_t block = get_pointed_block(
+            const uint8_t block = get_pointed_block(
                 &world, &main_camera, config.max_reach, &target_block,
                 &neighbour, &target_chunk, &neighbour_chunk);
-            if (block != BLOCK_AIR) {
+            if (block != (uint8_t)BLOCK_AIR) {
                 handle_clicks(app_window, &world, target_block, neighbour,
                               target_chunk, neighbour_chunk);
             }

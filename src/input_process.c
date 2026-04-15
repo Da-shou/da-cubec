@@ -68,7 +68,7 @@ void handle_clicks(GLFWwindow* window, world_t* world,
     /* Right-click -> A block is placed at the neighbour coordinates.
      */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
-        if (!world_valid_position(neighbour)) return;
+        if (!world_valid_position(world, neighbour)) return;
         const int lx = (int)neighbour[0] % CHUNK_SIZE_XZ;
         const int ly = (int)neighbour[1];
         const int lz = (int)neighbour[2] % CHUNK_SIZE_XZ;
