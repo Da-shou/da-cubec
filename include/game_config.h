@@ -20,6 +20,7 @@ typedef struct {
     float sensitivity;
     float speed;
     float fov;
+    float render_distance;
 
     /* World settings */
     float max_reach;

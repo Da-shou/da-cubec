@@ -61,7 +61,7 @@ void handle_clicks(GLFWwindow* window, world_t* world,
         const int cz = (int)target_block[2] / CHUNK_SIZE_XZ;
 
         /** Destroying the block that is being looked at **/
-        target_chunk->blocks[lx][ly][lz] = BLOCK_AIR;
+        target_chunk->blocks[lx][ly][lz] = (uint8_t)BLOCK_AIR;
         world_rebuild_after_change(world, cx, cz, lx, lz);
     }
 
@@ -75,8 +75,8 @@ void handle_clicks(GLFWwindow* window, world_t* world,
         const int cx = (int)neighbour[0] / CHUNK_SIZE_XZ;
         const int cz = (int)neighbour[2] / CHUNK_SIZE_XZ;
 
-        if (neighbour_chunk->blocks[lx][ly][lz] != BLOCK_AIR) return;
-        neighbour_chunk->blocks[lx][ly][lz] = BLOCK_COBBLESTONE;
+        if (neighbour_chunk->blocks[lx][ly][lz] != (uint8_t)BLOCK_AIR) return;
+        neighbour_chunk->blocks[lx][ly][lz] = (uint8_t)BLOCK_COBBLESTONE;
         world_rebuild_after_change(world, cx, cz, lx, lz);
     }
 
