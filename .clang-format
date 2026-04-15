@@ -7,8 +7,8 @@ AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 2
 
+AlignArrayOfStructures: Left
 AllowShortBlocksOnASingleLine: Always
-
 AllowShortCaseExpressionOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
