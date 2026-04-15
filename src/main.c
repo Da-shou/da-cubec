@@ -86,7 +86,7 @@ int main(void) {
 
     static perlin_params_t terrain = {0.01f, 64, 32};
 
-    world_init(&world);
+    world_init(&world, &config);
     world.generate = world_generator_perlin;
     world.generator_data = &terrain;
 
@@ -104,7 +104,7 @@ int main(void) {
     glm_mat4_identity(projection);
     glm_perspective(glm_rad(70.0f),
                     ((float)config.width / (float)config.height), 0.1f,
-                    (config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
+                    (float)(config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask

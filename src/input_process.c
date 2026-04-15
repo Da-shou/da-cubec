@@ -5,6 +5,8 @@
 #include "world.h"
 #include "game_config.h"
 
+#include <math.h>
+
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 
@@ -54,13 +56,12 @@ void handle_clicks(GLFWwindow* window, world_t* world,
 
     /* Left-click -> The block gets destroyed (replaced with air) */
     if (lc_state == GLFW_PRESS && last_lc_state == GLFW_RELEASE) {
-        const int lx = (int)target_block[0] % CHUNK_SIZE_XZ;
-        const int ly = (int)target_block[1];
-        const int lz = (int)target_block[2] % CHUNK_SIZE_XZ;
-        const int cx = (int)target_block[0] / CHUNK_SIZE_XZ;
-        const int cz = (int)target_block[2] / CHUNK_SIZE_XZ;
+        const int cx = (int)floorf(target_block[0] / (float)CHUNK_SIZE_XZ);
+        const int cz = (int)floorf(target_block[2] / (float)CHUNK_SIZE_XZ);
+        const int lx = (int)floorf(target_block[0]) - cx * CHUNK_SIZE_XZ;
+        const int ly = (int)floorf(target_block[1]);
+        const int lz = (int)floorf(target_block[2]) - cz * CHUNK_SIZE_XZ;
 
-        /** Destroying the block that is being looked at **/
         target_chunk->blocks[lx][ly][lz] = (uint8_t)BLOCK_AIR;
         world_rebuild_after_change(world, cx, cz, lx, lz);
     }
@@ -69,13 +70,14 @@ void handle_clicks(GLFWwindow* window, world_t* world,
      */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
         if (!world_valid_position(world, neighbour)) return;
-        const int lx = (int)neighbour[0] % CHUNK_SIZE_XZ;
-        const int ly = (int)neighbour[1];
-        const int lz = (int)neighbour[2] % CHUNK_SIZE_XZ;
-        const int cx = (int)neighbour[0] / CHUNK_SIZE_XZ;
-        const int cz = (int)neighbour[2] / CHUNK_SIZE_XZ;
+        const int cx = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
+        const int cz = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
+        const int lx = (int)floorf(neighbour[0]) - cx * CHUNK_SIZE_XZ;
+        const int ly = (int)floorf(neighbour[1]);
+        const int lz = (int)floorf(neighbour[2]) - cz * CHUNK_SIZE_XZ;
 
-        if (neighbour_chunk->blocks[lx][ly][lz] != (uint8_t)BLOCK_AIR) return;
+        if (neighbour_chunk->blocks[lx][ly][lz] != (uint8_t)BLOCK_AIR)
+            return;
         neighbour_chunk->blocks[lx][ly][lz] = (uint8_t)BLOCK_COBBLESTONE;
         world_rebuild_after_change(world, cx, cz, lx, lz);
     }

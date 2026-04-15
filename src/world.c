@@ -6,8 +6,15 @@
 #include "blocks.h"
 #include "world.h"
 
-void world_init(world_t* world) {
-    const int N = LOADED_CHUNKS_SIZE;
+#include "game_config.h"
+
+void world_init(world_t* world, game_config_t* config) {
+    world->last_player_cx = INT_MIN;
+    world->last_player_cz = INT_MIN;
+    world->render_distance = config->render_distance;
+    world->generate = NULL;
+    world->generator_data = NULL;
+    const int N = world->render_distance * 2 + 1;
     vec3 dummy = {0.0f, 0.0f, 0.0f};
     for (int sx = 0; sx < N; sx++) {
         for (int sz = 0; sz < N; sz++) {
@@ -16,14 +23,10 @@ void world_init(world_t* world) {
             world->slot_cz[sx][sz] = INT_MIN;
         }
     }
-    world->last_player_cx = INT_MIN;
-    world->last_player_cz = INT_MIN;
-    world->generate = NULL;
-    world->generator_data = NULL;
 }
 
 chunk_t* world_get_chunk(world_t* world, const int cx, const int cz) {
-    const int N = LOADED_CHUNKS_SIZE;
+    const int N = world->render_distance * 2 + 1;
     const int sx = ((cx % N) + N) % N;
     const int sz = ((cz % N) + N) % N;
     if (world->slot_cx[sx][sz] == cx && world->slot_cz[sx][sz] == cz)
@@ -32,8 +35,8 @@ chunk_t* world_get_chunk(world_t* world, const int cx, const int cz) {
 }
 
 void world_update(world_t* world, const vec3 player_pos) {
-    const int R = RENDER_DISTANCE;
-    const int N = LOADED_CHUNKS_SIZE;
+    const int R = world->render_distance;
+    const int N = R*2+1;
 
     /* Getting chunk coordinates in which the player is right now. */
     const int pcx = (int)floorf(player_pos[0] / (float)CHUNK_SIZE_XZ);
@@ -48,9 +51,8 @@ void world_update(world_t* world, const vec3 player_pos) {
 
     /* dirty[sx][sz] = true if this slot was reloaded this update.
      * Used to avoid rebuilding meshes that did not change. */
-    bool dirty[LOADED_CHUNKS_SIZE][LOADED_CHUNKS_SIZE] = {0};
+    bool dirty[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE] = {0};
 
-    /* Pass 1: terrain — evict stale slots, fill new ones. */
     for (int sx = 0; sx < N; sx++) {
         for (int sz = 0; sz < N; sz++) {
             /* base_cx is the leftmost world chunk, we get this
@@ -128,7 +130,7 @@ void world_build_chunk(world_t* world, const int sx, const int sz) {
 }
 
 static void rebuild_if_loaded(world_t* world, const int cx, const int cz) {
-    const int N = LOADED_CHUNKS_SIZE;
+    const int N = world->render_distance * 2 + 1;
     const int sx = ((cx % N) + N) % N;
     const int sz = ((cz % N) + N) % N;
     if (world->slot_cx[sx][sz] == cx && world->slot_cz[sx][sz] == cz)
@@ -154,7 +156,7 @@ void world_rebuild_after_change(world_t* world, const int chunk_x,
 
 void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
                 vec4 frustum[6]) {
-    const int N = LOADED_CHUNKS_SIZE;
+    const int N = world->render_distance * 2 + 1;
     for (int sx = 0; sx < N; sx++) {
         for (int sz = 0; sz < N; sz++) {
             if (world->slot_cx[sx][sz] == INT_MIN) continue;
@@ -178,7 +180,7 @@ void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
 }
 
 void world_destroy(world_t* world) {
-    const int N = LOADED_CHUNKS_SIZE;
+    const int N = MAX_LOADED_CHUNKS_SIZE;
     for (int sx = 0; sx < N; sx++)
         for (int sz = 0; sz < N; sz++)
             chunk_destroy(&world->chunks[sx][sz]);

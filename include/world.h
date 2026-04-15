@@ -2,9 +2,10 @@
 #define WORLD_H
 
 #include "chunk.h"
+#include "game_config.h"
 
-#define RENDER_DISTANCE 8
-#define LOADED_CHUNKS_SIZE (2 * RENDER_DISTANCE + 1)
+#define MAX_RENDER_DISTANCE 32
+#define MAX_LOADED_CHUNKS_SIZE (2 * MAX_RENDER_DISTANCE + 1)
 
 /**
  * @brief Signature for a chunk terrain generator.
@@ -22,11 +23,12 @@ typedef void (*chunk_generator_t)(chunk_t* chunk, int world_cx,
  * each slot holds (INT_MIN = empty). world_get_chunk performs an O(1)
  * lookup. */
 typedef struct {
-    chunk_t chunks[LOADED_CHUNKS_SIZE][LOADED_CHUNKS_SIZE];
-    int slot_cx[LOADED_CHUNKS_SIZE][LOADED_CHUNKS_SIZE];
-    int slot_cz[LOADED_CHUNKS_SIZE][LOADED_CHUNKS_SIZE];
+    chunk_t chunks[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
+    int slot_cx[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
+    int slot_cz[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
     int last_player_cx;
     int last_player_cz;
+    uint8_t render_distance;
     chunk_generator_t generate;
     void* generator_data;
 } world_t;
@@ -35,8 +37,10 @@ typedef struct {
  * @brief Initializes all chunk slots and marks them as empty.
  * Set world.generate and world.generator_data before calling
  * world_update for the first time.
- * @param world Pointer to world structure to be initialized. */
-void world_init(world_t* world);
+ * @param world Pointer to world structure to be initialized.
+ * @param config Pointer to game configuration for render distance.
+ */
+void world_init(world_t* world, game_config_t* config);
 
 /**
  * @brief Per-frame streaming update. Evicts chunks outside render distance
@@ -59,6 +63,15 @@ chunk_t* world_get_chunk(world_t* world, int cx, int cz);
 void world_build_chunk(world_t* world, int sx, int sz);
 
 /**
+ * @brief Changes the active render distance and forces a full reload.
+ * Clamped to [1, MAX_RENDER_DISTANCE]. Marks all slots empty so the
+ * next world_update regenerates the correct set of chunks.
+ * @param world           Pointer to the world.
+ * @param render_distance New render distance in chunks.
+ */
+void world_set_render_distance(world_t* world, int render_distance);
+
+/**
  * @brief Rebuilds the mesh of a modified chunk and any loaded neighbors
  * whose border geometry changed.
  * @param world   Pointer to the world.
@@ -69,7 +82,6 @@ void world_build_chunk(world_t* world, int sx, int sz);
  */
 void world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z,
                                 int local_x, int local_z);
-
 /**
  * @brief Draws all loaded chunks with frustum culling.
  * @param world   Pointer to the world to be drawn.
