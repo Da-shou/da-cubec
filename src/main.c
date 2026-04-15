@@ -101,7 +101,7 @@ int main(void) {
      * pretty complex, cglm provides us with the correct and
      * optimized functions*/
     glm_mat4_identity(projection);
-    glm_perspective(glm_rad(70.0f),
+    glm_perspective(glm_rad(config.fov),
                     ((float)config.width / (float)config.height), 0.1f,
                     (float)(config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
 

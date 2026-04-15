@@ -8,8 +8,8 @@
 
 #include <math.h>
 
-float delta_time = 0.0f;
-float last_frame = 0.0f;
+static float delta_time = 0.0f;
+static float last_frame = 0.0f;
 
 /**
  * @brief Managing inputs for mouse and keyboard. */
@@ -38,6 +38,7 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
         camera_move(camera, CAMERA_DOWN, delta_time);
     }
 
+    /* Speeding up when CTRL is pressed. */
     const int ctrl_state = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
     if (ctrl_state == GLFW_PRESS)
         camera->movement_speed = config->speed * 5;
@@ -68,8 +69,8 @@ void handle_clicks(GLFWwindow* window, world_t* world,
         world_rebuild_after_change(world, cx, cz, lx, lz);
     }
 
-    /* Right-click -> A block is placed at the neighbour coordinates.
-     */
+    /* Right-click -> A block is placed at the
+     * neighbour coordinates. */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
         if (!world_valid_position(world, neighbour)) return;
         const int cx = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
