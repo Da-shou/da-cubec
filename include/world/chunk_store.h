@@ -42,7 +42,7 @@ void chunk_store_destroy(const chunk_store_t* store);
  * @param blocks The blocks to save into the hashmap entry.
  */
 void chunk_store_save(
-    chunk_store_t* store, int cx, int cz,
+    chunk_store_t* store, int chunk_x, int chunk_z,
     const uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]);
 
 /** @brief Copy saved blocks into out_blocks. Returns true if an entry was
@@ -54,7 +54,7 @@ void chunk_store_save(
  * into this buffer.
  */
 bool chunk_store_load(
-    const chunk_store_t* store, int cx, int cz,
+    const chunk_store_t* store, int chunk_x, int chunk_z,
     uint8_t out_blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]);
 
 #endif /* CHUNK_STORE_H */

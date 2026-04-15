@@ -12,7 +12,7 @@ unsigned int make_module(const char* filepath,
     const char* source = NULL;
     const int read_status = read_file(filepath, &source);
     if (read_status == -1) {
-        fprintf(stderr, "%s\n", "Shader source file could not be read.");
+        (void)fprintf(stderr, "%s\n", "Shader source file could not be read.");
     }
 
     // Assigning shader and source code to module
@@ -28,7 +28,7 @@ unsigned int make_module(const char* filepath,
     if (!status) {
         char error[1024];
         glGetShaderInfoLog(shader_module, 1024, NULL, error);
-        fprintf(stderr, "%s\n", error);
+        (void)fprintf(stderr, "%s\n", error);
     }
 
     free((void*)source);
@@ -55,7 +55,7 @@ unsigned int make_shader(const char* vertex_filepath,
     if (!status) {
         char error[1024];
         glGetProgramInfoLog(shader, 1024, NULL, error);
-        fprintf(stderr, "%s\n", error);
+        (void)fprintf(stderr, "%s\n", error);
     }
 
     glUseProgram(shader);

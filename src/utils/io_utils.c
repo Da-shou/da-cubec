@@ -14,23 +14,28 @@ int read_file(const char* filepath, const char** const out) {
     // Determine filesize
     if (fseek(fptr, 0, SEEK_END) != 0) {
         perror("Error seeking to end of file");
-        fclose(fptr);
+        (void)fclose(fptr);
         return -1;
     }
 
     const long fsize = ftell(fptr);
     if (fsize == -1) {
         perror("Error getting file size");
-        fclose(fptr);
+        (void)fclose(fptr);
         return -1;
     }
-    rewind(fptr);
+
+    if(fseek(fptr, 0, SEEK_SET) != 0) {
+        perror("Error seeking to the start of file");
+        (void)fclose(fptr);
+        return -1;		
+	};
 
     // Allocate memory for file reading
     char* const buffer = malloc((size_t)fsize + 1);
     if (!buffer) {
         perror("Error allocating memory");
-        fclose(fptr);
+        (void)fclose(fptr);
         return -1;
     }
 
@@ -39,7 +44,7 @@ int read_file(const char* filepath, const char** const out) {
     if (bytes != (size_t)fsize) {
         perror("Error reading file");
         free((void*)buffer);
-        fclose(fptr);
+        (void)fclose(fptr);
         return -1;
     }
 

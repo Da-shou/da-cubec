@@ -13,48 +13,48 @@ typedef struct {
 
 /**
  * @brief Initalizes a shader using two shader files.
- * @param s Shader to initalize.
+ * @param shader Shader to initalize.
  * @param vertex_filepath Path to vertex source file.
  * @param fragment_filepath Path to fragment source file. */
-void shader_init(shader_t* s, const char* vertex_filepath,
+void shader_init(shader_t* shader, const char* vertex_filepath,
                  const char* fragment_filepath);
 
 /**
  * @brief Makes this shader in use by the program.
- * @param s Shader to make the program use. */
-void shader_use(const shader_t* s);
+ * @param shader Shader to make the program use. */
+void shader_use(const shader_t* shader);
 
 /**
- * @brief Frees the shader program at s from memory.
- * @param s Shader to destroy. */
-void shader_destroy(const shader_t* s);
+ * @brief Frees the shader program at shader from memory.
+ * @param shader Shader to destroy. */
+void shader_destroy(const shader_t* shader);
 
 /**
  * @brief Sets a new boolean uniform variable.
- * @param s Shader to modify.
+ * @param shader Shader to modify.
  * @param name Name of uniform variable to set.
  * @param value Value to set the uniform variable to. */
-void shader_set_bool(const shader_t* s, const char* name, bool value);
+void shader_set_bool(const shader_t* shader, const char* name, bool value);
 
 /**
  * @brief Sets a new integer uniform variable.
- * @param s Shader to modify.
+ * @param shader Shader to modify.
  * @param name Name of uniform variable to set.
  * @param value Value to set the uniform variable to. */
-void shader_set_int(const shader_t* s, const char* name, int value);
+void shader_set_int(const shader_t* shader, const char* name, int value);
 
 /**
  * @brief Sets a new floating point uniform variable.
- * @param s Shader to modify.
+ * @param shader Shader to modify.
  * @param name Name of uniform variable to set.
  * @param value Value to set the uniform variable to. */
-void shader_set_float(const shader_t* s, const char* name, float value);
+void shader_set_float(const shader_t* shader, const char* name, float value);
 
 /**
  * @brief Sets a new 4x4 matrix uniform variable.
- * @param s Shader to modify.
+ * @param shader Shader to modify.
  * @param name Name of uniform variable to set.
  * @param value Value to set the uniform variable to. */
-void shader_set_mat4(const shader_t* s, const char* name, mat4 value);
+void shader_set_mat4(const shader_t* shader, const char* name, mat4 value);
 
 #endif // SHADER_H

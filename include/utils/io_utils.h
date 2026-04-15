@@ -8,6 +8,6 @@
  * @param filepath Path to the file
  * @param out pointer to be modified with pointer to content of file.
  **/
-int read_file(const char* filepath, const char** const out);
+int read_file(const char* filepath, const char** out);
 
 #endif // IO_UTILS_H

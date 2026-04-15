@@ -29,6 +29,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${COMPILATION_FLA
 # Including our own header files to the project
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
+target_link_libraries(${PROJECT_NAME} PRIVATE m)
+
 # Linking libraries
 # glad
 add_subdirectory(external/glad)

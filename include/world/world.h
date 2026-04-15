@@ -6,7 +6,7 @@
 #include "../game_config.h"
 
 #define MAX_RENDER_DISTANCE 60
-#define MAX_LOADED_CHUNKS_SIZE (2 * MAX_RENDER_DISTANCE + 1)
+#define MAX_LOADED_CHUNKS_SIZE ((2 * MAX_RENDER_DISTANCE) + 1)
 
 /**
  * @brief Signature for a chunk terrain generator.
@@ -59,10 +59,10 @@ void world_update(world_t* world, const vec3 player_pos);
  * @param cx World-space chunk X index.
  * @param cz World-space chunk Z index.
  * @return Pointer to the chunk, or NULL if not currently loaded. */
-chunk_t* world_get_chunk(world_t* world, int cx, int cz);
+chunk_t* world_get_chunk(world_t* world, int chunk_x, int chunk_z);
 
 /** @brief Builds the mesh for the chunk at slot (sx, sz). */
-void world_build_chunk(world_t* world, int sx, int sz);
+void world_build_chunk(world_t* world, int slot_x, int slot_z);
 
 /**
  * @brief Changes the active render distance and forces a full reload.
