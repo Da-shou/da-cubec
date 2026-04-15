@@ -81,11 +81,11 @@ int main(void) {
                 config.fragment_shader_path);
 
     camera_init(&config, &main_camera,
-                (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f, 20.f,
+                (vec3) {(float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f, 128.0f,
                         (float)WORLD_SIZE_X * CHUNK_SIZE_XZ / 2.0f});
 
     world_init(&world);
-    world_fill_superflat(&world);
+    world_fill_perlin(&world, 0.01f, 64, 32);
     world_build(&world);
 
     /* We need a view matrix. To move around the world,
@@ -102,7 +102,7 @@ int main(void) {
     glm_mat4_identity(projection);
     glm_perspective(glm_rad(70.0f),
                     ((float)config.width / (float)config.height), 0.1f,
-                    16.0f * CHUNK_SIZE_XZ, projection);
+                    32.0f * CHUNK_SIZE_XZ, projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask

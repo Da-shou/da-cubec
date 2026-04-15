@@ -60,8 +60,8 @@ void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
             /* Making a cube out of the chunk's
              * position and size. */
             vec3 chunk_aabb[2] = {
-                {chunk->position[0], chunk->position[1],
-                 chunk->position[2]},
+                {chunk->position[0],                 chunk->position[1],
+                 chunk->position[2]                },
                 {chunk->position[0] + CHUNK_SIZE_XZ,
                  chunk->position[1] + CHUNK_SIZE_Y,
                  chunk->position[2] + CHUNK_SIZE_XZ},
@@ -95,35 +95,68 @@ bool world_valid_position(const vec3 position) {
 }
 
 // clang-format off
-void world_fill_superflat(world_t* world) {
-        for (int x = 0; x < WORLD_SIZE_X; x++)
-        for (int z = 0; z < WORLD_SIZE_Z; z++) {
-                chunk_t* chunk = &world->chunks[x][z];
-                for (int cx = 0; cx < CHUNK_SIZE_XZ; cx++)
-                for (int cz = 0; cz < CHUNK_SIZE_XZ; cz++) {
-                        int height = 0;
+void world_fill_perlin(world_t* world, const float scale,
+    const int sea_level, const int amplitude) {
+    for (int x = 0; x < WORLD_SIZE_X; x++)
+    for (int z = 0; z < WORLD_SIZE_Z; z++) {
+        chunk_t* chunk = &world->chunks[x][z];
+        for (int cx = 0; cx < CHUNK_SIZE_XZ; cx++)
+        for (int cz = 0; cz < CHUNK_SIZE_XZ; cz++) {
+            /* First the chunk-local coordinates
+             * are scaled to world-coordinates. */
+            const float wx =
+                (float)(x * CHUNK_SIZE_XZ + cx) * scale;
+            const float wz =
+                (float)(z * CHUNK_SIZE_XZ + cz) * scale;
 
-                        // Stone layers
-                        for (; height < 10; height++) {
-                                chunk->blocks[cx][height][cz] =
-                                    BLOCK_STONE;
-                        }
+            /* We then use the x and z coordinates
+             * to generate noise for the chunk column. */
+            vec2 p = {wx, wz};
+            const float noise = glm_perlin_vec2(p);
 
-                        // Sand layer
-                        chunk->blocks[cx][height++][cz] =
-                            BLOCK_SAND;
+            /* The noise value is scaled to the chunk column height. */
+            const int surface =
+                sea_level + (int)(noise * (float)amplitude);
 
-                        // Dirt layers
-                        for (; height < 13; height++) {
-                                chunk->blocks[cx][height][cz] =
-                                    BLOCK_DIRT;
-                        }
-
-                        // Grass layer
-                        chunk->blocks[cx][height][cz] =
-                            BLOCK_GRASS;
-                }
+            /* The column is constructed layer by layer. */
+            int y = 0;
+            for (; y < surface - 5 && y < CHUNK_SIZE_Y; y++)
+                chunk->blocks[cx][y][cz] = BLOCK_STONE;
+            for (; y < surface - 4 && y < CHUNK_SIZE_Y; y++)
+                chunk->blocks[cx][y][cz] = BLOCK_SAND;
+            for (; y < surface - 1 && y < CHUNK_SIZE_Y; y++)
+                chunk->blocks[cx][y][cz] = BLOCK_DIRT;
+            if (surface > 0 && y < CHUNK_SIZE_Y)
+                chunk->blocks[cx][y][cz] = BLOCK_GRASS;
         }
+    }
+}
+
+void world_fill_superflat(world_t* world) {
+    for (int x = 0; x < WORLD_SIZE_X; x++)
+    for (int z = 0; z < WORLD_SIZE_Z; z++) {
+        chunk_t* chunk = &world->chunks[x][z];
+        for (int cx = 0; cx < CHUNK_SIZE_XZ; cx++)
+        for (int cz = 0; cz < CHUNK_SIZE_XZ; cz++) {
+            int height = 0;
+
+            // Stone layers
+            for (; height < 10; height++) {
+                chunk->blocks[cx][height][cz] = BLOCK_STONE;
+            }
+
+            // Sand layer
+            chunk->blocks[cx][height++][cz] = BLOCK_SAND;
+
+            // Dirt layers
+            for (; height < 13; height++) {
+                chunk->blocks[cx][height][cz] = BLOCK_DIRT;
+            }
+
+            // Grass layer
+            chunk->blocks[cx][height][cz] = BLOCK_GRASS;
+        }
+    }
 }
 
 // clang-format on
