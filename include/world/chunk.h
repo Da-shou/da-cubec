@@ -1,6 +1,7 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "shader.h"
@@ -9,7 +10,7 @@
 #define CHUNK_SIZE_XZ 16
 #define CHUNK_SIZE_Y 512
 
-static const size_t STARTING_CHUNK_CAPACITY = 1024;
+static const size_t starting_chunk_capacity = 1024;
 
 /**
  * @brief Each chunk will be made of a certain amount of vertices. The
@@ -76,8 +77,8 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
  * @param uv_size Size of one tile in the atlas.*/
-void chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t x, uint16_t y,
-                          uint8_t z, bool face_vertices[4][3],
+void chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
+                          uint8_t face_z, bool face_vertices[4][3],
                           float uv_offset_x, float uv_offset_y,
                           float uv_size);
 /**
@@ -131,8 +132,8 @@ void chunk_mesh_destroy(chunk_mesh_t* mesh);
  * @param v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
  * @return Packed vertex data for efficient storage and transmission.
  */
-uint32_t chunk_vertex_pack(uint8_t x, uint16_t y, uint8_t z, float u,
-                           float v);
+uint32_t chunk_vertex_pack(uint8_t vertex_x, uint16_t vertex_y, uint8_t vertex_z, float uv_u,
+                           float uv_v);
 
 /**
  * @brief Destroys the chunk struct storing the cubes infos.

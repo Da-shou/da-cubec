@@ -1,6 +1,10 @@
 export BUILD="build"
 export EXECUTABLE="da-cubec"
 
+if [[ $2 == tidy ]]; then
+	clang-tidy src/*.c --header-filter='src/.*'
+fi
+
 # Compile project using CMake
 if [[ "$OSTYPE" == "msys" ]]; then
 	cmake -G "MinGW Makefiles" -S . -B "$BUILD"

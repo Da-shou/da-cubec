@@ -37,8 +37,8 @@ void chunk_init(chunk_t* chunk, vec3 position) {
 }
 
 void chunk_mesh_init(chunk_mesh_t* mesh) {
-    mesh->vertex_capacity = STARTING_CHUNK_CAPACITY;
-    mesh->index_capacity = STARTING_CHUNK_CAPACITY;
+    mesh->vertex_capacity = starting_chunk_capacity;
+    mesh->index_capacity = starting_chunk_capacity;
     mesh->vertex_count = 0;
     mesh->index_count = 0;
     mesh->vertices = (chunk_vertex_t*)malloc(mesh->vertex_capacity * sizeof(chunk_vertex_t));
@@ -116,7 +116,7 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                 const block_type_t block = chunk->blocks[block_x][block_y][block_z];
                 if (block == BLOCK_AIR) { continue; }
 
-                const block_uv_t uv_block = BLOCK_UVS[block];
+                const block_uv_t uv_block = block_uvs[block];
 
                 /* To determine if the face of a block in a chunk will be rendered, we check the 4
                  * potentials neighbors (front, back, left and right). The top and bottom chunks d
@@ -127,11 +127,11 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.north ||
                         neighbors.north->blocks[block_x][block_y][0] == (uint8_t)BLOCK_AIR) {
                         chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                             uv_block.front.u, uv_block.front.v, TILE_OFFSET);
+                                             uv_block.front.u, uv_block.front.v, tile_offset);
                     }
                 } else if (chunk->blocks[block_x][block_y][block_z + 1] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                         uv_block.front.u, uv_block.front.v, TILE_OFFSET);
+                                         uv_block.front.u, uv_block.front.v, tile_offset);
                 }
 
                 if (block_z == 0) {
@@ -140,25 +140,25 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                         neighbors.south->blocks[block_x][block_y][CHUNK_SIZE_XZ - 1] ==
                             (uint8_t)BLOCK_AIR) {
                         chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                             uv_block.back.u, uv_block.back.v, TILE_OFFSET);
+                                             uv_block.back.u, uv_block.back.v, tile_offset);
                     }
                 } else if (chunk->blocks[block_x][block_y][block_z - 1] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                         uv_block.back.u, uv_block.back.v, TILE_OFFSET);
+                                         uv_block.back.u, uv_block.back.v, tile_offset);
                 }
 
                 if (block_y == CHUNK_SIZE_Y - 1 ||
                     // Above
                     chunk->blocks[block_x][block_y + 1][block_z] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_top, uv_block.top.u,
-                                         uv_block.top.v, TILE_OFFSET);
+                                         uv_block.top.v, tile_offset);
                 }
 
                 if (block_y == 0 ||
                     // Below
                     chunk->blocks[block_x][block_y - 1][block_z] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_bottom,
-                                         uv_block.bottom.u, uv_block.bottom.v, TILE_OFFSET);
+                                         uv_block.bottom.u, uv_block.bottom.v, tile_offset);
                 }
 
                 if (block_x == CHUNK_SIZE_XZ - 1) {
@@ -166,11 +166,11 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.east ||
                         neighbors.east->blocks[0][block_y][block_z] == (uint8_t)BLOCK_AIR) {
                         chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                             uv_block.right.u, uv_block.right.v, TILE_OFFSET);
+                                             uv_block.right.u, uv_block.right.v, tile_offset);
                     }
                 } else if (chunk->blocks[block_x + 1][block_y][block_z] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                         uv_block.right.u, uv_block.right.v, TILE_OFFSET);
+                                         uv_block.right.u, uv_block.right.v, tile_offset);
                 }
 
                 if (block_x == 0) {
@@ -179,11 +179,11 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                         neighbors.west->blocks[CHUNK_SIZE_XZ - 1][block_y][block_z] ==
                             (uint8_t)BLOCK_AIR) {
                         chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                             uv_block.left.u, uv_block.left.v, TILE_OFFSET);
+                                             uv_block.left.u, uv_block.left.v, tile_offset);
                     }
                 } else if (chunk->blocks[block_x - 1][block_y][block_z] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                         uv_block.left.u, uv_block.left.v, TILE_OFFSET);
+                                         uv_block.left.u, uv_block.left.v, tile_offset);
                 }
             }
         }
@@ -193,8 +193,8 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
 
 uint32_t chunk_vertex_pack(const uint8_t vertex_x, const uint16_t vertex_y, const uint8_t vertex_z,
                            const float uv_u, const float uv_v) {
-    const uint32_t u_idx = (uint32_t)roundf(uv_u / TILE_OFFSET);
-    const uint32_t v_idx = (uint32_t)roundf(uv_v / TILE_OFFSET);
+    const uint32_t u_idx = (uint32_t)roundf(uv_u / tile_offset);
+    const uint32_t v_idx = (uint32_t)roundf(uv_v / tile_offset);
     return (vertex_x & 0x1FU) | ((vertex_z & 0x1FU) << 5U) | ((vertex_y & 0x3FFU) << 10U) |
            (u_idx << 20U) | (v_idx << 23U);
 }

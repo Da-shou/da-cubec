@@ -12,7 +12,8 @@ Checks: >
   -readability-function-cognitive-complexity,
   -cert-msc51-cpp,
   -cert-msc32-c,
-  -misc-use-internal-linkage
+  -misc-use-internal-linkage,
+  -misc-include-cleaner
 
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
