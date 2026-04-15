@@ -3,8 +3,8 @@
 #include <math.h>
 #include <string.h>
 
-#include "blocks.h"
-#include "world.h"
+#include "world/blocks.h"
+#include "world/world.h"
 
 #include "game_config.h"
 

@@ -1,13 +1,14 @@
-#include "pointer.h"
-#include "world.h"
-
 #include <math.h>
+#include <cglm/cglm.h>
+
+#include "world/pointer.h"
+#include "world/world.h"
+#include "world/blocks.h"
 
 uint8_t get_pointed_block(world_t* world, camera_t* camera,
-                               const float max_distance,
-                               vec3* pointed_block, vec3* neighbour_block,
-                               chunk_t** pointed_chunk,
-                               chunk_t** neighbour_chunk) {
+                          const float max_distance, vec3* pointed_block,
+                          vec3* neighbour_block, chunk_t** pointed_chunk,
+                          chunk_t** neighbour_chunk) {
     vec3 pos, dir;
     glm_vec3_copy(camera->position, pos);
     glm_vec3_copy(camera->front, dir);
@@ -54,23 +55,22 @@ uint8_t get_pointed_block(world_t* world, camera_t* camera,
 
         if (y >= 0 && y < CHUNK_SIZE_Y) {
             chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
-            if (chunk != NULL) {
-                const uint8_t block = chunk->blocks[local_x][y][local_z];
-                if (block != (uint8_t)BLOCK_AIR) {
-                    process_block((vec3){(float)x, (float)y, (float)z},
-                                  last_pointed_to, pointed_block,
-                                  neighbour_block, step_x, step_y, step_z);
+            if (chunk == NULL) continue;
+            const uint8_t block = chunk->blocks[local_x][y][local_z];
+            if (block != (uint8_t)BLOCK_AIR) {
+                process_block((vec3) {(float)x, (float)y, (float)z},
+                              last_pointed_to, pointed_block,
+                              neighbour_block, step_x, step_y, step_z);
 
-                    *pointed_chunk = chunk;
-                    const int nb_chunk_x = (int)floorf(
-                        (*neighbour_block)[0] / CHUNK_SIZE_XZ);
-                    const int nb_chunk_z = (int)floorf(
-                        (*neighbour_block)[2] / CHUNK_SIZE_XZ);
+                *pointed_chunk = chunk;
+                const int nb_chunk_x =
+                    (int)floorf((*neighbour_block)[0] / CHUNK_SIZE_XZ);
+                const int nb_chunk_z =
+                    (int)floorf((*neighbour_block)[2] / CHUNK_SIZE_XZ);
 
-                    *neighbour_chunk =
-                        world_get_chunk(world, nb_chunk_x, nb_chunk_z);
-                    return block;
-                }
+                *neighbour_chunk =
+                    world_get_chunk(world, nb_chunk_x, nb_chunk_z);
+                return block;
             }
         }
 

@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+
 #include "chunk.h"
 
 /* Power-of-2 capacity. Handles up to ~768 modified chunks at 0.75 load. */

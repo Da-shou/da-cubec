@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "chunk_store.h"
+#include "world/chunk_store.h"
 
 #define BLOCKS_SIZE (CHUNK_SIZE_XZ * CHUNK_SIZE_Y * CHUNK_SIZE_XZ)
 

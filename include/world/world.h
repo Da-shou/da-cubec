@@ -3,7 +3,7 @@
 
 #include "chunk.h"
 #include "chunk_store.h"
-#include "game_config.h"
+#include "../game_config.h"
 
 #define MAX_RENDER_DISTANCE 60
 #define MAX_LOADED_CHUNKS_SIZE (2 * MAX_RENDER_DISTANCE + 1)

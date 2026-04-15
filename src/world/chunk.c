@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "chunk.h"
-#include "blocks.h"
+#include "world/chunk.h"
+#include "world/blocks.h"
 #include "shader.h"
 #include "material.h"
 

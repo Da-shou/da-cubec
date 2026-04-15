@@ -1,11 +1,10 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
-#include <stdlib.h>
 #include <stdint.h>
-#include <blocks.h>
-#include <shader.h>
-#include <material.h>
+
+#include "shader.h"
+#include "material.h"
 
 #define CHUNK_SIZE_XZ 16
 #define CHUNK_SIZE_Y 512

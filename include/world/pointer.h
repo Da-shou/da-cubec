@@ -1,12 +1,9 @@
 #ifndef POINTER_H
 #define POINTER_H
 
-#include <cglm/cglm.h>
-
-#include <camera.h>
-#include <world.h>
-#include <chunk.h>
-#include <blocks.h>
+#include "camera.h"
+#include "world.h"
+#include "chunk.h"
 
 typedef enum { X, Y, Z } axis_t;
 

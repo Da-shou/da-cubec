@@ -1,8 +1,9 @@
 #include <GLFW/glfw3.h>
 
 #include "camera.h"
-#include "chunk.h"
-#include "world.h"
+#include "world/blocks.h"
+#include "world/chunk.h"
+#include "world/world.h"
 #include "game_config.h"
 
 #include <math.h>
