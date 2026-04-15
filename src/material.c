@@ -35,11 +35,11 @@ void material_create(material_t* material, const char* filename) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 }
 
-void material_use(material_t* material, int unit) {
+void material_use(const material_t* material, const int unit) {
     glActiveTexture(GL_TEXTURE0 + (GLenum)unit);
     glBindTexture(GL_TEXTURE_2D, material->texture);
 }
 
-void material_destroy(material_t* material) {
+void material_destroy(const material_t* material) {
     glDeleteTextures(1, &material->texture);
 }

@@ -80,8 +80,7 @@ int main(void) {
     shader_init(&basic_shader, config.vertex_shader_path,
                 config.fragment_shader_path);
 
-    camera_init(&config, &main_camera,
-                (vec3) {0.0f, 127.0f, 0.0f});
+    camera_init(&config, &main_camera, (vec3) {0.0f, 127.0f, 0.0f});
 
     static perlin_params_t terrain = {0.01f, 64, 32};
 
@@ -103,7 +102,8 @@ int main(void) {
     glm_mat4_identity(projection);
     glm_perspective(glm_rad(config.fov),
                     ((float)config.width / (float)config.height), 0.1f,
-                    (float)(config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
+                    (float)(config.render_distance + 1) * CHUNK_SIZE_XZ,
+                    projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask
@@ -180,8 +180,8 @@ void glfw_gl_init() {
         exit(EXIT_FAILURE);
     }
 
-    app_window = glfwCreateWindow(config.width, config.height, config.title,
-                              NULL, NULL);
+    app_window = glfwCreateWindow(config.width, config.height,
+                                  config.title, NULL, NULL);
     if (app_window == NULL) {
         fprintf(stderr, "%s\n", "Failed to create GLFW window.");
         glfwTerminate();

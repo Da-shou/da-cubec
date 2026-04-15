@@ -19,11 +19,11 @@ void material_create(material_t* material, const char* filename);
  * @brief Makes the necessary calls so that the material is used.
  * @param material Pointer to the material which will be used.
  * @param unit Number of the unit of the texture.*/
-void material_use(material_t* material, int unit);
+void material_use(const material_t* material, int unit);
 
 /**
  * @brief Destroys the allocation OpenGL material.
  * @param material Pointer to the material to be destroyed. */
-void material_destroy(material_t* material);
+void material_destroy(const material_t* material);
 
 #endif

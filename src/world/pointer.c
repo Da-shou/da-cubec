@@ -62,6 +62,9 @@ uint8_t get_pointed_block(world_t* world, camera_t* camera,
                               last_pointed_to, pointed_block,
                               neighbour_block, step_x, step_y, step_z);
 
+                /* Setting the chunk pointer for the targeted block chunk
+                 * and for it's neighbour, in case the neighbour is in
+                 * a different chunk.*/
                 *pointed_chunk = chunk;
                 const int nb_chunk_x =
                     (int)floorf((*neighbour_block)[0] / CHUNK_SIZE_XZ);
@@ -74,6 +77,8 @@ uint8_t get_pointed_block(world_t* world, camera_t* camera,
             }
         }
 
+        /* Stepping in the direction with the smallest distance to
+         * a plane then updating the last plane touched */
         if (side_x < side_y) {
             if (side_x < side_z) {
                 side_x += delta_x;

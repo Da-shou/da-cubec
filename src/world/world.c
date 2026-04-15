@@ -8,6 +8,8 @@
 
 #include "game_config.h"
 
+#include <time.h>
+
 /**
  * @brief Gets the correct slot index for a chunk coordinate.
  * @param coord The chunk coordinate to translate to slot.
@@ -19,6 +21,7 @@ static int chunk_to_slot(const int coord, int N) {
 }
 
 void world_init(world_t* world, game_config_t* config) {
+    srand(time(NULL));
     world->last_player_cx = INT_MIN;
     world->last_player_cz = INT_MIN;
     world->render_distance = config->render_distance;
@@ -47,7 +50,7 @@ chunk_t* world_get_chunk(world_t* world, const int cx, const int cz) {
 
 void world_update(world_t* world, const vec3 player_pos) {
     const int R = world->render_distance;
-    const int N = R*2+1;
+    const int N = R * 2 + 1;
 
     /* Getting chunk coordinates in which the player is right now. */
     const int pcx = (int)floorf(player_pos[0] / (float)CHUNK_SIZE_XZ);
@@ -78,15 +81,16 @@ void world_update(world_t* world, const vec3 player_pos) {
              * to get the target chunk's x coordinate.
              * Same logic for the z coordinate.
              */
-            const int base_cx   = pcx - R;
-            const int base_sx   = chunk_to_slot(base_cx, N);
+            const int base_cx = pcx - R;
+            const int base_sx = chunk_to_slot(base_cx, N);
             const int target_cx = base_cx + ((sx - base_sx + N) % N);
 
-            const int base_cz   = pcz - R;
-            const int base_sz   = chunk_to_slot(base_cz, N);
+            const int base_cz = pcz - R;
+            const int base_sz = chunk_to_slot(base_cz, N);
             const int target_cz = base_cz + ((sz - base_sz + N) % N);
 
-            /* If the target chunk for this slot is already loaded, skip. */
+            /* If the target chunk for this slot is already loaded, skip.
+             */
             if (world->slot_cx[sx][sz] == target_cx &&
                 world->slot_cz[sx][sz] == target_cz)
                 continue;
@@ -97,13 +101,12 @@ void world_update(world_t* world, const vec3 player_pos) {
             if (slot->modified && world->slot_cx[sx][sz] != INT_MIN)
                 chunk_store_save(&world->chunk_store,
                                  world->slot_cx[sx][sz],
-                                 world->slot_cz[sx][sz],
-                                 slot->blocks);
+                                 world->slot_cz[sx][sz], slot->blocks);
 
             /* Clear blocks and reset mesh counters. */
             memset(slot->blocks, 0, sizeof(slot->blocks));
             slot->mesh.vertex_count = 0;
-            slot->mesh.index_count  = 0;
+            slot->mesh.index_count = 0;
             slot->modified = false;
 
             /* Update the world-space position used by chunk_draw. */
@@ -114,8 +117,8 @@ void world_update(world_t* world, const vec3 player_pos) {
             world->slot_cx[sx][sz] = target_cx;
             world->slot_cz[sx][sz] = target_cz;
 
-            if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
-                                  slot->blocks))
+            if (!chunk_store_load(&world->chunk_store, target_cx,
+                                  target_cz, slot->blocks))
                 if (world->generate)
                     world->generate(slot, target_cx, target_cz,
                                     world->generator_data);
@@ -131,7 +134,7 @@ void world_update(world_t* world, const vec3 player_pos) {
             const int esx = (sx + 1) % N;
             const int ssz = (sz - 1 + N) % N;
             const int nsz = (sz + 1) % N;
-            if (dirty[sx][sz]  || dirty[wsx][sz] || dirty[esx][sz] ||
+            if (dirty[sx][sz] || dirty[wsx][sz] || dirty[esx][sz] ||
                 dirty[sx][ssz] || dirty[sx][nsz])
                 world_build_chunk(world, sx, sz);
         }
@@ -223,8 +226,8 @@ bool world_valid_position(const world_t* world, const vec3 position) {
     return world_get_chunk((world_t*)world, cx, cz) != NULL;
 }
 
-void world_generator_perlin(chunk_t* chunk, int world_cx, int world_cz,
-                            const void* userdata) {
+void world_generator_perlin(chunk_t* chunk, const int world_cx,
+                            const int world_cz, const void* userdata) {
     const perlin_params_t* p = userdata;
     for (int lx = 0; lx < CHUNK_SIZE_XZ; lx++) {
         for (int lz = 0; lz < CHUNK_SIZE_XZ; lz++) {
@@ -233,9 +236,14 @@ void world_generator_perlin(chunk_t* chunk, int world_cx, int world_cz,
             const float wz =
                 (float)(world_cz * CHUNK_SIZE_XZ + lz) * p->scale;
 
+            /* surface is the highest y point of the column of blocks
+             * currently being constructed. */
             vec2 pt = {wx, wz};
             const int surface = p->sea_level + (int)(glm_perlin_vec2(pt) *
                                                      (float)p->amplitude);
+
+            /* Setting the different layers of block depending on the
+             * y level */
             int y = 0;
             for (; y < surface - 5 && y < CHUNK_SIZE_Y; y++)
                 chunk->blocks[lx][y][lz] = BLOCK_STONE;

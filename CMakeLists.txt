@@ -17,6 +17,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Defining compilations flags
 set(COMPILATION_FLAGS "-Wall -Wextra -Os")
 
+set(BUILD_SHARED_LIBS ON)
+
 # Adding all .c files in src
 file(GLOB_RECURSE SOURCES "src/*.c")
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -42,8 +44,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC external/stb)
 
 # cglm.h
 # From documentation
-option(CGLM_SHARED "Shared build" OFF)
-option(CGLM_STATIC "Static build" ON)
+option(CGLM_SHARED "Shared build" ON)
+option(CGLM_STATIC "Static build" OFF)
 option(CGLM_USE_C99 "" ON)
 option(CGLM_USE_TEST "Enable Tests" OFF)
 add_subdirectory(external/cglm)

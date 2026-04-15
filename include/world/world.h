@@ -108,14 +108,14 @@ bool world_valid_position(const world_t* world, const vec3 position);
 
 /** @brief Parameters for world_generator_perlin. */
 typedef struct {
-    float scale;
-    int sea_level;
-    int amplitude;
+    float scale;   /**< Large or smaller hills. */
+    int sea_level; /**< Height of sea level. */
+    int amplitude; /**< Maximum height of hills. */
 } perlin_params_t;
 
 /**
  * @brief Perlin-noise terrain generator. Pass a perlin_params_t* as
- * userdata. Produces stone/dirt/grass columns at heights driven by 2D
+ * userdata. Produces stone/sand/dirt/grass columns at heights driven by 2D
  * perlin noise. */
 void world_generator_perlin(chunk_t* chunk, int world_cx, int world_cz,
                             const void* userdata);

@@ -13,6 +13,5 @@ game_config_t game_config_default(void) {
         .fov = 70.0f,
         .max_reach = 6.0f,
         .sky_color = {0.85f, 0.85f, 1.0f, 1.0f},
-        .render_distance = 8
-    };
+        .render_distance = 8};
 }
