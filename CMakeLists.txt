@@ -16,7 +16,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Defining compilations flags
 set(COMPILATION_FLAGS "-Wall -Wextra -Os")
-
 set(BUILD_SHARED_LIBS ON)
 
 # Adding all .c files in src

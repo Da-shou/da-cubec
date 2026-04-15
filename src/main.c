@@ -1,5 +1,4 @@
 /* gl has to be included before GLFW */
-#include "cglm/mat4.h"
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
@@ -11,6 +10,7 @@
 #include "game_config.h"
 #include "input_process.h"
 #include "material.h"
+#include "text_renderer.h"
 #include "world/blocks.h"
 #include "world/chunk.h"
 #include "world/pointer.h"
@@ -72,7 +72,12 @@ int main(void) {
 
     /* Initalizing our shader */
     shader_t basic_shader;
-    shader_init(&basic_shader, config.vertex_shader_path, config.fragment_shader_path);
+    shader_init(&basic_shader, config.basic_vertex_shader_path, config.basic_fragment_shader_path);
+
+    /* Text renderer for the HUD overlay */
+    text_renderer_t title_renderer;
+    text_renderer_init(&title_renderer, config.font_path, config.text_vertex_shader_path,
+                       config.text_fragment_shader_path, 24.0F, config.width, config.height);
 
     camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
 
@@ -132,6 +137,7 @@ int main(void) {
         }
 
         /* Apply the view and projection matrices */
+        shader_use(&basic_shader);
         glUniformMatrix4fv(view_location, 1, GL_FALSE, (float*)view);
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
 
@@ -147,12 +153,19 @@ int main(void) {
         glm_frustum_planes(view_projection, frustum_planes);
         world_draw(&world, &basic_shader, &atlas, frustum_planes);
 
+        /* Draw game title in the bottom-left corner */
+		char title_text[64];
+        (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title, config.version);
+        text_renderer_draw(&title_renderer, title_text, 10.0F, (float)config.height - 10.0F, 1.0F,
+                           1.0F, 1.0F);
+
         /* Swapping the buffers is a necessary step and I forgot
          * why. */
         glfwSwapBuffers(app_window);
     }
 
     shader_destroy(&basic_shader);
+    text_renderer_destroy(&title_renderer);
     material_destroy(&atlas);
     world_destroy(&world);
 

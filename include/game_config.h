@@ -10,10 +10,14 @@ typedef struct {
     /* Window settings */
     uint16_t width, height;
     const char* title;
+	const char* version;
 
     /* Filepath for assets */
-    const char* vertex_shader_path;
-    const char* fragment_shader_path;
+    const char* basic_vertex_shader_path;
+    const char* basic_fragment_shader_path;
+	const char* text_vertex_shader_path;
+	const char* text_fragment_shader_path;
+	const char* font_path;
     const char* texture_atlas_path;
 
     /* Camera settings */

@@ -3,14 +3,18 @@
 game_config_t game_config_default(void) {
     return (game_config_t) {.width = 800,
                             .height = 600,
+							.version = "v0.1.2",
                             .title = "da-cubec",
-                            .vertex_shader_path = "src/shaders/basic.vert.glsl",
-                            .fragment_shader_path = "src/shaders/basic.frag.glsl",
+                            .basic_vertex_shader_path = "src/shaders/cube.vert.glsl",
+                            .basic_fragment_shader_path = "src/shaders/cube.frag.glsl",
+                            .text_vertex_shader_path = "src/shaders/text.vert.glsl",
+                            .text_fragment_shader_path = "src/shaders/text.frag.glsl",
+                            .font_path = "fonts/pix32.ttf",
                             .texture_atlas_path = "img/atlas.png",
                             .sensitivity = 0.05F,
                             .speed = 25.0F,
                             .fov = 70.0F,
                             .max_reach = 6.0F,
                             .sky_color = {0.85F, 0.85F, 1.0F, 1.0F},
-                            .render_distance = 8};
+                            .render_distance = 16};
 }
