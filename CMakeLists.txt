@@ -16,7 +16,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Defining compilations flags
 set(COMPILATION_FLAGS "-Wall -Wextra -Os")
-
 set(BUILD_SHARED_LIBS ON)
 
 # Adding all .c files in src
@@ -28,6 +27,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${COMPILATION_FLA
 
 # Including our own header files to the project
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE m)
 
 # Linking libraries
 # glad

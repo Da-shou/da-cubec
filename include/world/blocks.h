@@ -1,7 +1,7 @@
 #ifndef BLOCKS_H
 #define BLOCKS_H
 
-static const float TILE_OFFSET = 0.25f;
+static const float tile_offset = 0.25F;
 
 /**
  * @brief Stores two texture coordinates. */
@@ -34,51 +34,51 @@ typedef enum {
 
 /**
  * @brief Defines the texture mapping for each block type */
-static const block_uv_t BLOCK_UVS[] = {
+static const block_uv_t block_uvs[] = {
     [BLOCK_STONE] =
         {
-            .top = {0.00f, 0.00f},
-            .bottom = {0.00f, 0.00f},
-            .front = {0.00f, 0.00f},
-            .back = {0.00f, 0.00f},
-            .left = {0.00f, 0.00f},
-            .right = {0.00f, 0.00f},
+            .top = {0.00F, 0.00F},
+            .bottom = {0.00F, 0.00F},
+            .front = {0.00F, 0.00F},
+            .back = {0.00F, 0.00F},
+            .left = {0.00F, 0.00F},
+            .right = {0.00F, 0.00F},
         },
     [BLOCK_COBBLESTONE] =
         {
-            .top = {0.25f, 0.00f},
-            .bottom = {0.25f, 0.00f},
-            .front = {0.25f, 0.00f},
-            .back = {0.25f, 0.00f},
-            .left = {0.25f, 0.00f},
-            .right = {0.25f, 0.00f},
+            .top = {0.25F, 0.00F},
+            .bottom = {0.25F, 0.00F},
+            .front = {0.25F, 0.00F},
+            .back = {0.25F, 0.00F},
+            .left = {0.25F, 0.00F},
+            .right = {0.25F, 0.00F},
         },
     [BLOCK_DIRT] =
         {
-            .top = {0.5f, 0.00f},
-            .bottom = {0.5f, 0.00f},
-            .front = {0.5f, 0.00f},
-            .back = {0.5f, 0.00f},
-            .left = {0.5f, 0.00f},
-            .right = {0.5f, 0.00f},
+            .top = {0.5F, 0.00F},
+            .bottom = {0.5F, 0.00F},
+            .front = {0.5F, 0.00F},
+            .back = {0.5F, 0.00F},
+            .left = {0.5F, 0.00F},
+            .right = {0.5F, 0.00F},
         },
     [BLOCK_GRASS] =
         {
-            .top = {0.00f, 0.25f},
-            .bottom = {0.5f, 0.00f},
-            .front = {0.75f, 0.00f},
-            .back = {0.75f, 0.00f},
-            .right = {0.75f, 0.00f},
-            .left = {0.75f, 0.00f},
+            .top = {0.00F, 0.25F},
+            .bottom = {0.5F, 0.00F},
+            .front = {0.75F, 0.00F},
+            .back = {0.75F, 0.00F},
+            .right = {0.75F, 0.00F},
+            .left = {0.75F, 0.00F},
         },
     [BLOCK_SAND] =
         {
-            .top = {0.25f, 0.25f},
-            .bottom = {0.25f, 0.25f},
-            .front = {0.25f, 0.25f},
-            .back = {0.25f, 0.25f},
-            .right = {0.25f, 0.25f},
-            .left = {0.25f, 0.25f},
+            .top = {0.25F, 0.25F},
+            .bottom = {0.25F, 0.25F},
+            .front = {0.25F, 0.25F},
+            .back = {0.25F, 0.25F},
+            .right = {0.25F, 0.25F},
+            .left = {0.25F, 0.25F},
         },
 };
 

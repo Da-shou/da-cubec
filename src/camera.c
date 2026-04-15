@@ -5,30 +5,29 @@
 
 #include "camera.h"
 
-static const float CAMERA_YAW = -90.0f;
-static const float CAMERA_PITCH = 0.0f;
-static const float CAMERA_ZOOM = 45.0f;
+static const float camera_yaw = -90.0F;
+static const float camera_pitch = 0.0F;
+static const float camera_zoom = 45.0F;
 
 static float last_mouse_x = 0;
 static float last_mouse_y = 0;
 static bool first_mouse = true;
 
-void camera_init(const game_config_t* config, camera_t* camera,
-                 vec3 position) {
+void camera_init(const game_config_t* config, camera_t* camera, vec3 position) {
     /* Setting up the camera's intial position.*/
     glm_vec3_copy(position, camera->position);
 
     /* The default front vector*/
-    glm_vec3_copy((vec3) {0.0f, 0.0f, -1.0f}, camera->front);
+    glm_vec3_copy((vec3) {0.0F, 0.0F, -1.0F}, camera->front);
 
     /* Setting the default parameter of the camera */
-    camera->yaw = CAMERA_YAW;
-    camera->pitch = CAMERA_PITCH;
+    camera->yaw = camera_yaw;
+    camera->pitch = camera_pitch;
     camera->movement_speed = config->speed;
     camera->mouse_sensitivity = config->sensitivity;
-    camera->zoom = CAMERA_ZOOM;
+    camera->zoom = camera_zoom;
 
-    glm_vec3_copy((vec3) {0.0f, 1.0f, 0.0f}, camera->world_up);
+    glm_vec3_copy((vec3) {0.0F, 1.0F, 0.0F}, camera->world_up);
 
     camera_update_vectors(camera);
 }
@@ -37,11 +36,9 @@ void camera_update_vectors(camera_t* camera) {
     /* Calculate the front vector using calculations to take yaw and
      * pitch into account, which will allow moving the camera with the
      * mouse. */
-    const float front_x =
-        cosf(glm_rad(camera->yaw)) * cosf(glm_rad(camera->pitch));
+    const float front_x = cosf(glm_rad(camera->yaw)) * cosf(glm_rad(camera->pitch));
     const float front_y = sinf(glm_rad(camera->pitch));
-    const float front_z =
-        sinf(glm_rad(camera->yaw)) * cosf(glm_rad(camera->pitch));
+    const float front_z = sinf(glm_rad(camera->yaw)) * cosf(glm_rad(camera->pitch));
     glm_vec3_copy((vec3) {front_x, front_y, front_z}, camera->front);
     glm_normalize(camera->front);
 
@@ -59,8 +56,7 @@ void camera_update_view(camera_t* camera, mat4 view) {
     glm_lookat(camera->position, direction, camera->up, view);
 }
 
-void camera_move(camera_t* camera, const CAMERA_DIRECTION direction,
-                 const float delta_time) {
+void camera_move(camera_t* camera, const CAMERA_DIRECTION direction, const float delta_time) {
     const float camera_delta_speed = camera->movement_speed * delta_time;
 
     vec3 temp;
@@ -122,8 +118,8 @@ void camera_rotate(camera_t* camera, const float x_pos, const float y_pos,
     /* Used to clamp the camera movement to disallow the camera to
      * completely rotate. */
     if (constrain_pitch) {
-        if (camera->pitch > 89.0f) camera->pitch = 89.0f;
-        if (camera->pitch < -89.0f) camera->pitch = -89.0f;
+        if (camera->pitch > 89.0F) { camera->pitch = 89.0F; }
+        if (camera->pitch < -89.0F) { camera->pitch = -89.0F; }
     }
 
     /* When the camera rotates, its front, right and up vector change

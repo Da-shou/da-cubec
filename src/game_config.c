@@ -1,17 +1,20 @@
 #include "game_config.h"
 
 game_config_t game_config_default(void) {
-    return (game_config_t) {
-        .width = 800,
-        .height = 600,
-        .title = "da-cubec",
-        .vertex_shader_path = "src/shaders/basic.vert.glsl",
-        .fragment_shader_path = "src/shaders/basic.frag.glsl",
-        .texture_atlas_path = "img/atlas.png",
-        .sensitivity = 0.05f,
-        .speed = 25.0f,
-        .fov = 70.0f,
-        .max_reach = 6.0f,
-        .sky_color = {0.85f, 0.85f, 1.0f, 1.0f},
-        .render_distance = 8};
+    return (game_config_t) {.width = 800,
+                            .height = 600,
+							.version = "v0.1.3",
+                            .title = "da-cubec",
+                            .basic_vertex_shader_path = "src/shaders/cube.vert.glsl",
+                            .basic_fragment_shader_path = "src/shaders/cube.frag.glsl",
+                            .text_vertex_shader_path = "src/shaders/text.vert.glsl",
+                            .text_fragment_shader_path = "src/shaders/text.frag.glsl",
+                            .font_path = "fonts/pix32.ttf",
+                            .texture_atlas_path = "img/atlas.png",
+                            .sensitivity = 0.05F,
+                            .speed = 25.0F,
+                            .fov = 70.0F,
+                            .max_reach = 6.0F,
+                            .sky_color = {0.85F, 0.85F, 1.0F, 1.0F},
+                            .render_distance = 16};
 }
