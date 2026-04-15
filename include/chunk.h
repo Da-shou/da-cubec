@@ -38,7 +38,7 @@ typedef struct {
  * allows us to create a big mesh made out of these blocks and render it
  * with one call instead of multiple calls. */
 typedef struct {
-    block_type_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
+    uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
     chunk_mesh_t mesh;
     vec3 position;
 } chunk_t;

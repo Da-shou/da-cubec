@@ -40,7 +40,7 @@ chunk_t* neighbour_chunk;
 /* World structure that will contain all of the chunk and block infos */
 world_t world;
 
-GLFWwindow* window;
+GLFWwindow* app_window;
 
 /* If focused is true, the mouse is locked and camera movement is enabled.
  */
@@ -102,7 +102,7 @@ int main(void) {
     glm_mat4_identity(projection);
     glm_perspective(glm_rad(70.0f),
                     ((float)config.width / (float)config.height), 0.1f,
-                    32.0f * CHUNK_SIZE_XZ, projection);
+                    config.render_distance * CHUNK_SIZE_XZ, projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask
@@ -113,7 +113,7 @@ int main(void) {
         glGetUniformLocation(basic_shader.id, "projection");
 
     /* Main window loop */
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(app_window)) {
         /* Calling this function allows us to gather all inputs
          * from the user such as mouse or keyboard. */
         glfwPollEvents();
@@ -127,14 +127,14 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        handle_camera_mouse(window, &config, &main_camera);
+        handle_camera_mouse(app_window, &config, &main_camera);
         camera_update_view(&main_camera, view);
         if (focused) {
             const block_type_t block = get_pointed_block(
                 &world, &main_camera, config.max_reach, &target_block,
                 &neighbour, &target_chunk, &neighbour_chunk);
             if (block != BLOCK_AIR) {
-                handle_clicks(window, &world, target_block, neighbour,
+                handle_clicks(app_window, &world, target_block, neighbour,
                               target_chunk, neighbour_chunk);
             }
         }
@@ -156,14 +156,14 @@ int main(void) {
 
         /* Swapping the buffers is a necessary step and I forgot
          * why. */
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(app_window);
     }
 
     shader_destroy(&basic_shader);
     material_destroy(&atlas);
     world_destroy(&world);
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(app_window);
     glfwTerminate();
 
     printf("%s\n", "Exiting now...");
@@ -177,21 +177,21 @@ void glfw_gl_init() {
         exit(EXIT_FAILURE);
     }
 
-    window = glfwCreateWindow(config.width, config.height, config.title,
+    app_window = glfwCreateWindow(config.width, config.height, config.title,
                               NULL, NULL);
-    if (window == NULL) {
+    if (app_window == NULL) {
         fprintf(stderr, "%s\n", "Failed to create GLFW window.");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(app_window);
     /* Setting all of our callbacks for various events such as moving
      * the cursor, clicking on the window, or resizing the window.*/
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(app_window, key_callback);
+    glfwSetCursorPosCallback(app_window, mouse_callback);
+    glfwSetMouseButtonCallback(app_window, mouse_button_callback);
+    glfwSetFramebufferSizeCallback(app_window, framebuffer_size_callback);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -211,7 +211,7 @@ void glfw_gl_init() {
     /* Fix initial viewport using actual framebuffer size (may differ
      * from window size on HiDPI/Wayland displays) */
     int fb_width, fb_height;
-    glfwGetFramebufferSize(window, &fb_width, &fb_height);
+    glfwGetFramebufferSize(app_window, &fb_width, &fb_height);
     glViewport(0, 0, fb_width, fb_height);
 
     /* Set drawing mode (wireframe or full polygons) */

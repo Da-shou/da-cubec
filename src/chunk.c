@@ -136,11 +136,11 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                 if (z == CHUNK_SIZE_XZ - 1) {
                     // Front-checking
                     if (!neighbors.north ||
-                        neighbors.north->blocks[x][y][0] == BLOCK_AIR)
+                        neighbors.north->blocks[x][y][0] == (uint8_t)BLOCK_AIR)
                         chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT,
                                              uv.front.u, uv.front.v,
                                              TILE_OFFSET);
-                } else if (chunk->blocks[x][y][z + 1] == BLOCK_AIR) {
+                } else if (chunk->blocks[x][y][z + 1] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, x, y, z, FACE_FRONT,
                                          uv.front.u, uv.front.v,
                                          TILE_OFFSET);
@@ -150,22 +150,22 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     // Back-checking
                     if (!neighbors.south ||
                         neighbors.south->blocks[x][y][CHUNK_SIZE_XZ - 1] ==
-                            BLOCK_AIR)
+                            (uint8_t)BLOCK_AIR)
                         chunk_mesh_push_face(mesh, x, y, z, FACE_BACK,
                                              uv.back.u, uv.back.v,
                                              TILE_OFFSET);
-                } else if (chunk->blocks[x][y][z - 1] == BLOCK_AIR) {
+                } else if (chunk->blocks[x][y][z - 1] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, x, y, z, FACE_BACK,
                                          uv.back.u, uv.back.v,
                                          TILE_OFFSET);
                 }
 
                 if (y == CHUNK_SIZE_Y - 1 ||
-                    chunk->blocks[x][y + 1][z] == BLOCK_AIR)
+                    chunk->blocks[x][y + 1][z] == (uint8_t)BLOCK_AIR)
                     chunk_mesh_push_face(mesh, x, y, z, FACE_TOP, uv.top.u,
                                          uv.top.v, TILE_OFFSET);
 
-                if (y == 0 || chunk->blocks[x][y - 1][z] == BLOCK_AIR)
+                if (y == 0 || chunk->blocks[x][y - 1][z] == (uint8_t)BLOCK_AIR)
                     chunk_mesh_push_face(mesh, x, y, z, FACE_BOTTOM,
                                          uv.bottom.u, uv.bottom.v,
                                          TILE_OFFSET);
@@ -173,11 +173,11 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                 if (x == CHUNK_SIZE_XZ - 1) {
                     // Right-checking
                     if (!neighbors.east ||
-                        neighbors.east->blocks[0][y][z] == BLOCK_AIR)
+                        neighbors.east->blocks[0][y][z] == (uint8_t)BLOCK_AIR)
                         chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT,
                                              uv.right.u, uv.right.v,
                                              TILE_OFFSET);
-                } else if (chunk->blocks[x + 1][y][z] == BLOCK_AIR) {
+                } else if (chunk->blocks[x + 1][y][z] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, x, y, z, FACE_RIGHT,
                                          uv.right.u, uv.right.v,
                                          TILE_OFFSET);
@@ -187,11 +187,11 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     // Left-checking
                     if (!neighbors.west ||
                         neighbors.west->blocks[CHUNK_SIZE_XZ - 1][y][z] ==
-                            BLOCK_AIR)
+                            (uint8_t)BLOCK_AIR)
                         chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT,
                                              uv.left.u, uv.left.v,
                                              TILE_OFFSET);
-                } else if (chunk->blocks[x - 1][y][z] == BLOCK_AIR) {
+                } else if (chunk->blocks[x - 1][y][z] == (uint8_t)BLOCK_AIR) {
                     chunk_mesh_push_face(mesh, x, y, z, FACE_LEFT,
                                          uv.left.u, uv.left.v,
                                          TILE_OFFSET);
