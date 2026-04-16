@@ -341,11 +341,13 @@ void key_callback(GLFWwindow* window, const int key, const int scancode, const i
     }
 }
 
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void mouse_callback(GLFWwindow* window, const double x_pos, const double y_pos) {
     (void)window;
     if (focused) { camera_rotate(&main_camera, (float)x_pos, (float)y_pos, GL_TRUE); }
 }
 
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void mouse_button_callback(GLFWwindow* window, const int button, const int action,
                            const int mods) {
     (void)mods;
@@ -356,6 +358,7 @@ void mouse_button_callback(GLFWwindow* window, const int button, const int actio
     }
 }
 
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
     (void)window;
     glViewport(0, 0, width, height);

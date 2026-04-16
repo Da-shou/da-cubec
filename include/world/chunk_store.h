@@ -37,8 +37,8 @@ void chunk_store_destroy(const chunk_store_t* store);
 /** @brief Save a full blocks snapshot for (cx, cz). Overwrites any
  * existing entry.
  * @param store Hashmap to look into
- * @param cx X Coordinate of the chunk
- * @param cz Z Coordinate of the chunk
+ * @param chunk_x X Coordinate of the chunk
+ * @param chunk_z Z Coordinate of the chunk
  * @param blocks The blocks to save into the hashmap entry.
  */
 void chunk_store_save(
@@ -48,8 +48,8 @@ void chunk_store_save(
 /** @brief Copy saved blocks into out_blocks. Returns true if an entry was
  * found.
  * @param store Pointer to chunk hashmap to look into
- * @param cx X Coordinate of the chunk
- * @param cz Z Coordinate of the chunk
+ * @param chunk_x X Coordinate of the chunk
+ * @param chunk_z Z Coordinate of the chunk
  * @param out_blocks The blocks from the hashmap entry will be copied
  * into this buffer.
  */

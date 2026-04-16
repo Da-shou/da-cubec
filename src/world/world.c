@@ -17,11 +17,11 @@
  * @param max_load The corrent max loaded chunk size (render distance * 2 + 1)
  * @return The slot index for this chunk coordinate.
  */
-static int chunk_to_slot(const int coord, int max_load) {
+static int chunk_to_slot(const int coord, const int max_load) {
     return ((coord % max_load) + max_load) % max_load;
 }
 
-void world_init(world_t* world, game_config_t* config) {
+void world_init(world_t* world, const game_config_t* config) {
     srand(time(NULL));
     world->last_player_cx = INT_MIN;
     world->last_player_cz = INT_MIN;
@@ -205,7 +205,7 @@ int world_rebuild_after_change(world_t* world, const int chunk_x,
 
 // clang-format on
 
-void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
+void world_draw(world_t* world, const shader_t* shader, const material_t* atlas,
                 vec4 frustum[6]) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
     for (int sx = 0; sx < max_loaded_chunk_size; sx++) {
@@ -220,6 +220,7 @@ void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
                 {chunk->position[0] + CHUNK_SIZE_XZ, chunk->position[1] + CHUNK_SIZE_Y,
                  chunk->position[2] + CHUNK_SIZE_XZ},
             };
+
             /* Checking if the cube made of the chunk intersects the
              * frustum of the camera. If yes, render the chunk. */
             if (glm_aabb_frustum(chunk_aabb, frustum)) {

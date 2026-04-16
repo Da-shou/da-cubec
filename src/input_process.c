@@ -27,7 +27,7 @@ void handle_freecam_switch(GLFWwindow* window, game_config_t* config) {
 /**
  * @brief Managing inputs for mouse and keyboard. */
 void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
-                         player_t* player, const float delta_time) {
+                         const player_t* player, const float delta_time) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera_move(player->camera, CAMERA_FORWARD, delta_time);
     }

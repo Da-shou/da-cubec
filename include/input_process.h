@@ -4,7 +4,6 @@
 #include <GLFW/glfw3.h>
 
 #include "game_config.h"
-#include "camera.h"
 #include "player.h"
 #include "world/chunk.h"
 #include "world/world.h"
@@ -37,12 +36,10 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
 /**
  * @brief Polls keyboard state and computes player movement wishes.
  * @param window    GLFW window to poll keys from.
- * @param config    Game config (for sprint speed).
- * @param[out] wish_forward  -1 (S), 0 (none), or +1 (W).
- * @param[out] wish_right    -1 (A), 0 (none), or +1 (D).
- * @param[out] jump_pressed  True if SPACE is pressed.
- * @param[out] sprint        True if CTRL is pressed.
- * @param[out] dt            Delta time for this frame.
+ * @param wish_forward  -1 (S), 0 (none), or +1 (W).
+ * @param wish_right    -1 (A), 0 (none), or +1 (D).
+ * @param jump_pressed  True if SPACE is pressed.
+ * @param sprint        True if CTRL is pressed.
  */
 void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_right,
                          bool* jump_pressed, bool* sprint);

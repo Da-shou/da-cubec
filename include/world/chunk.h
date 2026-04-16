@@ -73,16 +73,15 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * the mesh. Everytime a face faces air, that face is added to the chunk
  * mesh to get rendered.
  * @param mesh Pointer to the mesh of the chunk.
- * @param x,y,z Location of the face within the chunk.
+ * @param face_x, face_y, face_z Location of the face within the chunk.
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
  * @param uv_size Size of one tile in the atlas.
  * @return 0 if successful, -1 if memory allocation failed
  */
 int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
-                          uint8_t face_z, bool face_vertices[4][3],
-                          float uv_offset_x, float uv_offset_y,
-                          float uv_size);
+                         uint8_t face_z, bool face_vertices[4][3], float uv_offset_x,
+                         float uv_offset_y, float uv_size);
 /**
  * @brief Builds a mesh and pushes it to the GPU based on the block array
  * of the chunk. Will analyse the chunk, push all found faces to the mesh
@@ -97,7 +96,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
  * @return 0 if successful, -1 if memory allocation failed
  */
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
-                      chunk_neighbours_t neighbors);
+                     chunk_neighbours_t neighbors);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside
@@ -118,7 +117,7 @@ void chunk_mesh_draw(const chunk_mesh_t* mesh);
  * @param shader Pointer to the shader program used.
  * @param atlas Pointer to the texture atlas used.
  * */
-void chunk_draw(chunk_t* chunk, const shader_t* shader, material_t* atlas);
+void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas);
 
 /**
  * @brief Destroys the allocated memory used for a chunk mesh.
@@ -128,15 +127,15 @@ void chunk_mesh_destroy(chunk_mesh_t* mesh);
 /**
  * Packs the 5 values (that in total make 20 bytes of data) we need for
  * each vertex into a uint32_t to lighten the buffer data.
- * @param x X coordinate of the vertex in 3D space. (5 bits [0-16])
- * @param y Y coordinate of the vertex in 3D space. (5 bits [0-16])
- * @param z Z coordinate of the vertex in 3D space. (10 bits [0-512])
- * @param u Texture coordinate U. (3 bits (0, 1, 2, or 3 divided by 4.))
- * @param v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
+ * @param vertex_x X coordinate of the vertex in 3D space. (5 bits [0-16])
+ * @param vertex_y Y coordinate of the vertex in 3D space. (5 bits [0-16])
+ * @param vertex_z Z coordinate of the vertex in 3D space. (10 bits [0-512])
+ * @param uv_u Texture coordinate U. (3 bits (0, 1, 2, or 3 divided by 4.))
+ * @param uv_v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
  * @return Packed vertex data for efficient storage and transmission.
  */
-uint32_t chunk_vertex_pack(uint8_t vertex_x, uint16_t vertex_y, uint8_t vertex_z, float uv_u,
-                           float uv_v);
+uint32_t chunk_vertex_pack(uint8_t vertex_x, uint16_t vertex_y, uint8_t vertex_z,
+                           float uv_u, float uv_v);
 
 /**
  * @brief Destroys the chunk struct storing the cubes infos.

@@ -41,7 +41,7 @@ typedef struct {
  * @param world Pointer to world structure to be initialized.
  * @param config Pointer to game configuration for render distance.
  */
-void world_init(world_t* world, game_config_t* config);
+void world_init(world_t* world, const game_config_t* config);
 
 /**
  * @brief Per-frame streaming update. Evicts chunks outside render distance
@@ -56,12 +56,13 @@ int world_update(world_t* world, const vec3 player_pos);
 /**
  * @brief O(1) chunk lookup by world-space chunk coordinates.
  * @param world Pointer to the world.
- * @param cx World-space chunk X index.
- * @param cz World-space chunk Z index.
+ * @param chunk_x World-space chunk X index.
+ * @param chunk_z World-space chunk Z index.
  * @return Pointer to the chunk, or NULL if not currently loaded. */
 chunk_t* world_get_chunk(world_t* world, int chunk_x, int chunk_z);
 
 /** @brief Builds the mesh for the chunk at slot (sx, sz).
+ * @param world Pointer to the world to look into.
  * @param slot_x Index of the chunk slot to build.
  * @param slot_z Index of the chunk slot to build.
  * @returns 0 on success, -1 on memory allocation failure.
@@ -95,7 +96,7 @@ int world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z, int loc
  * @param atlas   Pointer to atlas texture material to be used.
  * @param frustum Frustum planes for culling.
  */
-void world_draw(world_t* world, const shader_t* shader, material_t* atlas, vec4 frustum[6]);
+void world_draw(world_t* world, const shader_t* shader, const material_t* atlas, vec4 frustum[6]);
 
 /**
  * @brief Frees all chunk meshes in the world.

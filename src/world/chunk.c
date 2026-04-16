@@ -268,7 +268,7 @@ void chunk_mesh_draw(const chunk_mesh_t* mesh) {
     glBindVertexArray(0);
 }
 
-void chunk_draw(chunk_t* chunk, const shader_t* shader, material_t* atlas) {
+void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas) {
     glActiveTexture(GL_TEXTURE0);
     material_use(atlas, 0);
     shader_use(shader);
