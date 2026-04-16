@@ -133,8 +133,8 @@ int main(void) {
                 get_pointed_block(&world, &main_camera, config.max_reach, &target_block, &neighbour,
                                   &target_chunk, &neighbour_chunk);
             if (block != (uint8_t)BLOCK_AIR) {
-                handle_clicks(app_window, &world, target_block, neighbour, target_chunk,
-                              neighbour_chunk);
+                handle_clicks(app_window, &world, main_camera.position, target_block, neighbour,
+                              target_chunk, neighbour_chunk);
             }
         }
 
@@ -159,10 +159,9 @@ int main(void) {
         char title_text[64];
         (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title, config.version);
         char opengl_info[64];
-        (void)snprintf(opengl_info, sizeof(opengl_info),
-                       "GLFW %d.%d.%d OpenGL %d.%d", GLFW_VERSION_MAJOR,
-                       GLFW_VERSION_MINOR, GLFW_VERSION_REVISION, GLAD_VERSION_MAJOR(version),
-                       GLAD_VERSION_MINOR(version));
+        (void)snprintf(opengl_info, sizeof(opengl_info), "GLFW %d.%d.%d OpenGL %d.%d",
+                       GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION,
+                       GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
         text_renderer_draw(&text_renderer, title_text, 10.0F, (float)config.height - 40.0F, 1.0F,
                            1.0F, 1.0F);
         text_renderer_draw(&text_renderer, opengl_info, 10.0F, (float)config.height - 10.0F, 1.0F,

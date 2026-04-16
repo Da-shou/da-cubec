@@ -1,6 +1,8 @@
 export BUILD="build"
 export EXECUTABLE="da-cubec"
 
+clang-format -i src/*.*
+
 if [[ $2 == tidy ]] || [[ $1 == tidy ]]; then
 	clang-tidy src/*.c --header-filter='src/.*'
 fi
@@ -25,6 +27,8 @@ if [[ -f "./$BUILD/compile_commands.json" ]]; then
 fi
 
 # Run program if successfully compiled
-if [[ -f "./$BUILD/$EXECUTABLE" ]] && [[ $1 == "run" ]]; then
-	"./$EXECUTABLE"
+if [[ "$OSTYPE" == "msys" ]]; then
+	"./$EXECUTABLE.exe"
+elif [[ "$OSTYPE" == "linux-gnu" ]]; then
+  "./$EXECUTABLE"
 fi

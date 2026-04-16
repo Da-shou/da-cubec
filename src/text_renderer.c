@@ -65,8 +65,9 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path, const 
     glGenBuffers(1, &renderer->vbo);
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, (long)TEXT_RENDERER_MAX_CHARS * 6 * 4 * (GLsizeiptr)sizeof(float),
-                 NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 (GLsizeiptr)TEXT_RENDERER_MAX_CHARS * 6 * 4 * (GLsizeiptr)sizeof(float), NULL,
+                 GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -83,8 +84,8 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text, const
     float coord_y = text_y;
     const stbtt_bakedchar* const cdata = (const stbtt_bakedchar*)renderer->cdata;
 
-	/* For each character in text that we want to draw, we will create a quad with two triangles
-	 * to store the single letter. */
+    /* For each character in text that we want to draw, we will create a quad with two triangles
+     * to store the single letter. */
     for (const char* ch = text; *ch != '\0' && quad_count < TEXT_RENDERER_MAX_CHARS; ch++) {
         const unsigned char letter = (unsigned char)*ch;
         if (letter >= TEXT_RENDERER_FIRST_CHAR &&
@@ -133,7 +134,8 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text, const
     glDisable(GL_CULL_FACE);
 
     shader_use(&renderer->shader);
-	shader_set_vec3(&renderer->shader, "text_color", (vec3) {text_color_r, text_color_g, text_color_b});
+    shader_set_vec3(&renderer->shader, "text_color",
+                    (vec3) {text_color_r, text_color_g, text_color_b});
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, renderer->texture_id);
