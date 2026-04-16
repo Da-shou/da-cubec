@@ -48,9 +48,9 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
     glGenBuffers(1, &mesh->eao);
 }
 
-void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_t face_y,
-                          const uint8_t face_z, bool face_vertices[4][3], const float uv_offset_x,
-                          const float uv_offset_y, const float uv_size) {
+int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_t face_y,
+                         const uint8_t face_z, bool face_vertices[4][3], const float uv_offset_x,
+                         const float uv_offset_y, const float uv_size) {
     /* Checking if vertices and indices array need to be reallocated.
      * To add a face, we need 4 new vertices. And for each face added,
      * we need 6 indices each. */
@@ -59,7 +59,7 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16
         void* new_space = realloc(mesh->vertices, mesh->vertex_capacity * sizeof(chunk_vertex_t));
         if (new_space == NULL) {
             free(mesh->vertices);
-            return;
+            return -1;
         }
         mesh->vertices = new_space;
     }
@@ -68,8 +68,8 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16
         mesh->index_capacity *= 2;
         void* new_space = realloc(mesh->indices, mesh->index_capacity * sizeof(unsigned int));
         if (new_space == NULL) {
-            free(mesh->vertices);
-            return;
+            free(mesh->indices);
+            return -1;
         }
         mesh->indices = new_space;
     }
@@ -102,10 +102,11 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16
     mesh->indices[mesh->index_count++] = (unsigned int)(base + 2);
     mesh->indices[mesh->index_count++] = (unsigned int)(base + 3);
     mesh->indices[mesh->index_count++] = (unsigned int)(base + 0);
+
+    return 0;
 }
 
-void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
-                      const chunk_neighbours_t neighbors) {
+int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neighbours_t neighbors) {
     mesh->vertex_count = 0;
     mesh->index_count = 0;
     /* Big ass check on ALL cubes and sending each facing that face
@@ -126,12 +127,17 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     // Front-checking
                     if (!neighbors.north ||
                         neighbors.north->blocks[block_x][block_y][0] == (uint8_t)BLOCK_AIR) {
-                        chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                             uv_block.front.u, uv_block.front.v, tile_offset);
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
+                                                  uv_block.front.u, uv_block.front.v,
+                                                  tile_offset)) {
+                            return -1;
+                        };
                     }
                 } else if (chunk->blocks[block_x][block_y][block_z + 1] == (uint8_t)BLOCK_AIR) {
-                    chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                         uv_block.front.u, uv_block.front.v, tile_offset);
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
+                                              uv_block.front.u, uv_block.front.v, tile_offset)) {
+                        return -1;
+                    };
                 }
 
                 if (block_z == 0) {
@@ -139,38 +145,52 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.south ||
                         neighbors.south->blocks[block_x][block_y][CHUNK_SIZE_XZ - 1] ==
                             (uint8_t)BLOCK_AIR) {
-                        chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                             uv_block.back.u, uv_block.back.v, tile_offset);
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
+                                                  uv_block.back.u, uv_block.back.v,
+                                                  tile_offset)) {
+                            return -1;
+                        };
                     }
                 } else if (chunk->blocks[block_x][block_y][block_z - 1] == (uint8_t)BLOCK_AIR) {
-                    chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                         uv_block.back.u, uv_block.back.v, tile_offset);
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
+                                              uv_block.back.u, uv_block.back.v, tile_offset)) {
+                        return -1;
+                    };
                 }
 
                 if (block_y == CHUNK_SIZE_Y - 1 ||
                     // Above
                     chunk->blocks[block_x][block_y + 1][block_z] == (uint8_t)BLOCK_AIR) {
-                    chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_top, uv_block.top.u,
-                                         uv_block.top.v, tile_offset);
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_top,
+                                              uv_block.top.u, uv_block.top.v, tile_offset)) {
+                        return -1;
+                    };
                 }
 
                 if (block_y == 0 ||
                     // Below
                     chunk->blocks[block_x][block_y - 1][block_z] == (uint8_t)BLOCK_AIR) {
-                    chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_bottom,
-                                         uv_block.bottom.u, uv_block.bottom.v, tile_offset);
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_bottom,
+                                              uv_block.bottom.u, uv_block.bottom.v, tile_offset)) {
+                        return -1;
+                    };
                 }
 
                 if (block_x == CHUNK_SIZE_XZ - 1) {
                     // Right-checking
                     if (!neighbors.east ||
                         neighbors.east->blocks[0][block_y][block_z] == (uint8_t)BLOCK_AIR) {
-                        chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                             uv_block.right.u, uv_block.right.v, tile_offset);
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
+                                                  uv_block.right.u, uv_block.right.v,
+                                                  tile_offset)) {
+                            return -1;
+                        };
                     }
                 } else if (chunk->blocks[block_x + 1][block_y][block_z] == (uint8_t)BLOCK_AIR) {
-                    chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                         uv_block.right.u, uv_block.right.v, tile_offset);
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
+                                              uv_block.right.u, uv_block.right.v, tile_offset)) {
+                        return -1;
+                    };
                 }
 
                 if (block_x == 0) {
@@ -178,17 +198,23 @@ void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.west ||
                         neighbors.west->blocks[CHUNK_SIZE_XZ - 1][block_y][block_z] ==
                             (uint8_t)BLOCK_AIR) {
-                        chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                             uv_block.left.u, uv_block.left.v, tile_offset);
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
+                                                  uv_block.left.u, uv_block.left.v,
+                                                  tile_offset)) {
+                            return -1;
+                        };
                     }
                 } else if (chunk->blocks[block_x - 1][block_y][block_z] == (uint8_t)BLOCK_AIR) {
-                    chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                         uv_block.left.u, uv_block.left.v, tile_offset);
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
+                                              uv_block.left.u, uv_block.left.v, tile_offset)) {
+                        return -1;
+                    };
                 }
             }
         }
     }
     chunk_mesh_upload(mesh);
+    return 0;
 }
 
 uint32_t chunk_vertex_pack(const uint8_t vertex_x, const uint16_t vertex_y, const uint8_t vertex_z,

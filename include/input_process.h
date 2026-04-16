@@ -26,8 +26,9 @@ void handle_camera_mouse(GLFWwindow* window, game_config_t* config,
  * @param neighbour Position of the neighbour block.
  * @param target_chunk Pointer to the chunk that contains the target block.
  * @param neighbour_chunk Pointer to the chunk that contains the neighbour block.
+ * @return 0 on success, -1 on chunk building failure.
  */
-void handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 target_block,
+int handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 target_block,
                    vec3 neighbour, chunk_t* target_chunk,
                    chunk_t* neighbour_chunk);
 

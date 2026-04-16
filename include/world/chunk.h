@@ -76,8 +76,10 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * @param x,y,z Location of the face within the chunk.
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
- * @param uv_size Size of one tile in the atlas.*/
-void chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
+ * @param uv_size Size of one tile in the atlas.
+ * @return 0 if successful, -1 if memory allocation failed
+ */
+int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
                           uint8_t face_z, bool face_vertices[4][3],
                           float uv_offset_x, float uv_offset_y,
                           float uv_size);
@@ -92,8 +94,9 @@ void chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
  * chunk. The neighbours are checked when the blocks of the current chunk
  * are on the edge, so the chunk does not render a face that is facing a
  * face from a neighbouring chunk.
+ * @return 0 if successful, -1 if memory allocation failed
  */
-void chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
+int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                       chunk_neighbours_t neighbors);
 
 /**

@@ -51,7 +51,7 @@ chunk_t* world_get_chunk(world_t* world, const int chunk_x, const int chunk_z) {
     return NULL;
 }
 
-void world_update(world_t* world, const vec3 player_pos) {
+int world_update(world_t* world, const vec3 player_pos) {
     const int render_distance = world->render_distance;
     const int max_loaded_chunk_size = (render_distance * 2) + 1;
 
@@ -60,7 +60,7 @@ void world_update(world_t* world, const vec3 player_pos) {
     const int pcz = (int)floorf(player_pos[2] / (float)CHUNK_SIZE_XZ);
 
     /* If the player has not crossed a new chunk, do not do anything. */
-    if (pcx == world->last_player_cx && pcz == world->last_player_cz) { return; }
+    if (pcx == world->last_player_cx && pcz == world->last_player_cz) { return 0; }
 
     world->last_player_cx = pcx;
     world->last_player_cz = pcz;
@@ -140,13 +140,16 @@ void world_update(world_t* world, const vec3 player_pos) {
             const int nsz = (sz + 1) % max_loaded_chunk_size;
             if (dirty[sx][sz] || dirty[wsx][sz] || dirty[esx][sz] || dirty[sx][ssz] ||
                 dirty[sx][nsz]) {
-                world_build_chunk(world, sx, sz);
+                const int memcheck = world_build_chunk(world, sx, sz);
+                if (memcheck < 0) { return -1; }
             }
         }
     }
+
+    return 0;
 }
 
-void world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
+int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
     const int chunk_x = world->slot_cx[slot_x][slot_z];
     const int chunk_z = world->slot_cz[slot_x][slot_z];
     const chunk_neighbours_t neighbors = {
@@ -156,37 +159,44 @@ void world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
         .north = world_get_chunk(world, chunk_x, chunk_z + 1),
     };
     chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
-    chunk_build_mesh(chunk, &chunk->mesh, neighbors);
+    const int memcheck = chunk_build_mesh(chunk, &chunk->mesh, neighbors);
+    return memcheck;
 }
 
 /**
  * @brief Checks if a chunk is loaded and rebuilds it if it is.
  * @param world World to check the chunks in
- * @param cx X coordinate of the chunk in the chunk grid
- * @param cz Z coordinate of the chunk in the chunk grid
+ * @param chunk_x X coordinate of the chunk in the chunk grid
+ * @param chunk_z Z coordinate of the chunk in the chunk grid
+ * @return 0 on success, -1 on memory allocation failure
  */
-static void rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_z) {
+static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_z) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
     const int slot_x = chunk_to_slot(chunk_x, max_loaded_chunk_size);
     const int slot_z = chunk_to_slot(chunk_z, max_loaded_chunk_size);
+    int memcheck = 0;
     if (world->slot_cx[slot_x][slot_z] == chunk_x && world->slot_cz[slot_x][slot_z] == chunk_z) {
-        world_build_chunk(world, slot_x, slot_z);
+        memcheck = world_build_chunk(world, slot_x, slot_z);
     }
+    return memcheck;
 }
 
 // clang-format off
-void world_rebuild_after_change(world_t* world, const int chunk_x,
+int world_rebuild_after_change(world_t* world, const int chunk_x,
                                 const int chunk_z, const int local_x,
                                 const int local_z) {
-    rebuild_if_loaded(world, chunk_x, chunk_z);
+    int memcheck = 0;
+    memcheck += rebuild_if_loaded(world, chunk_x, chunk_z);
     if (local_x == 0)
-        { rebuild_if_loaded(world, chunk_x - 1, chunk_z); }
+        { memcheck += rebuild_if_loaded(world, chunk_x - 1, chunk_z); }
     if (local_x == CHUNK_SIZE_XZ - 1)
-        { rebuild_if_loaded(world, chunk_x + 1, chunk_z); }
+        { memcheck += rebuild_if_loaded(world, chunk_x + 1, chunk_z); }
     if (local_z == 0)
-        { rebuild_if_loaded(world, chunk_x, chunk_z - 1); }
+        { memcheck += rebuild_if_loaded(world, chunk_x, chunk_z - 1); }
     if (local_z == CHUNK_SIZE_XZ - 1)
-        { rebuild_if_loaded(world, chunk_x, chunk_z + 1); }
+        { memcheck += rebuild_if_loaded(world, chunk_x, chunk_z + 1); }
+    if (memcheck < 0) { return -1; }
+    return 0;
 }
 
 // clang-format on

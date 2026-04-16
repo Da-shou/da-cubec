@@ -50,8 +50,9 @@ void world_init(world_t* world, game_config_t* config);
  * frame before world_draw.
  * @param world      Pointer to the world.
  * @param player_pos Current player world-space position.
+ * @return 0 if successful, -1 on memory allocation failure.
  */
-void world_update(world_t* world, const vec3 player_pos);
+int world_update(world_t* world, const vec3 player_pos);
 
 /**
  * @brief O(1) chunk lookup by world-space chunk coordinates.
@@ -61,8 +62,12 @@ void world_update(world_t* world, const vec3 player_pos);
  * @return Pointer to the chunk, or NULL if not currently loaded. */
 chunk_t* world_get_chunk(world_t* world, int chunk_x, int chunk_z);
 
-/** @brief Builds the mesh for the chunk at slot (sx, sz). */
-void world_build_chunk(world_t* world, int slot_x, int slot_z);
+/** @brief Builds the mesh for the chunk at slot (sx, sz).
+ * @param slot_x Index of the chunk slot to build.
+ * @param slot_z Index of the chunk slot to build.
+ * @returns 0 on success, -1 on memory allocation failure.
+ */
+int world_build_chunk(world_t* world, int slot_x, int slot_z);
 
 /**
  * @brief Changes the active render distance and forces a full reload.
@@ -81,8 +86,9 @@ void world_set_render_distance(world_t* world, int render_distance);
  * @param chunk_z World-space chunk Z of the modified chunk.
  * @param local_x Block's local X within the chunk.
  * @param local_z Block's local Z within the chunk.
+ * @return 0 on success, -1 on memory allocation failure.
  */
-void world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z,
+int world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z,
                                 int local_x, int local_z);
 /**
  * @brief Draws all loaded chunks with frustum culling.

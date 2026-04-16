@@ -40,17 +40,17 @@ int read_file(const char* filepath, const char** const out_text) {
     }
 
     // Read bytes into buffer
-    const size_t bytes = fread((void*)buffer, 1, (size_t)fsize, fptr);
+    const size_t bytes = fread(buffer, 1, (size_t)fsize, fptr);
     if (bytes != (size_t)fsize) {
         perror("Error reading file");
-        free((void*)buffer);
+        free(buffer);
         (void)fclose(fptr);
         return -1;
     }
 
     if (fclose(fptr)) {
         perror("Error closing file");
-        free((void*)buffer);
+        free(buffer);
         return -1;
     }
 

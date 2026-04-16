@@ -4,7 +4,7 @@ export EXECUTABLE="da-cubec"
 clang-format -i src/*.*
 
 if [[ $2 == tidy ]] || [[ $1 == tidy ]]; then
-	clang-tidy src/*.c --header-filter='src/.*'
+	find src -name '*.c' | xargs clang-tidy --header-filter='src/.*'
 fi
 
 # Compile project using CMake
@@ -27,8 +27,10 @@ if [[ -f "./$BUILD/compile_commands.json" ]]; then
 fi
 
 # Run program if successfully compiled
-if [[ "$OSTYPE" == "msys" ]]; then
-	"./$EXECUTABLE.exe"
-elif [[ "$OSTYPE" == "linux-gnu" ]]; then
-  "./$EXECUTABLE"
+if [[ $1 == "run" ]]; then
+	if [[ "$OSTYPE" == "msys" ]]; then
+  	"./$EXECUTABLE.exe"
+  elif [[ "$OSTYPE" == "linux-gnu" ]]; then
+    "./$EXECUTABLE"
+  fi
 fi

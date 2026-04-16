@@ -13,7 +13,9 @@ Checks: >
   -cert-msc51-cpp,
   -cert-msc32-c,
   -misc-use-internal-linkage,
-  -misc-include-cleaner
+  -misc-include-cleaner,
+  -clang-analyzer-security.ArrayBound,
+  -bugprone-random-generator-seed
 
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'

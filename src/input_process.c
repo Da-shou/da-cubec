@@ -8,6 +8,7 @@
 #include "cglm/vec3-ext.h"
 
 #include <math.h>
+#include <stdio.h>
 
 static float delta_time = 0.0F;
 static float last_frame = 0.0F;
@@ -47,10 +48,11 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config, camera
     }
 }
 
-void handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 target_block,
-                   vec3 neighbour, chunk_t* target_chunk, chunk_t* neighbour_chunk) {
+int handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 target_block,
+                  vec3 neighbour, chunk_t* target_chunk, chunk_t* neighbour_chunk) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
+    static int memcheck = 0;
 
     const int lc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     const int rc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
@@ -71,7 +73,7 @@ void handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 tar
     /* Right-click -> A block is placed at the
      * neighbour coordinates. */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
-        if (!world_valid_position(world, neighbour)) { return; }
+        if (!world_valid_position(world, neighbour)) { return 0; }
         const int chunk_x = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
         const int chunk_z = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
         const int n_local_x = (int)floorf(neighbour[0]) - (chunk_x * CHUNK_SIZE_XZ);
@@ -84,19 +86,21 @@ void handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 tar
         /* Cannot place block at the same coordinate as the camera. */
         if (camera_local_x == n_local_x && camera_local_y == n_local_y &&
             camera_local_z == n_local_z) {
-            return;
+            return 0;
         }
 
         /* Can only place a block if there is air at the wanted spot */
         if (neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] != (uint8_t)BLOCK_AIR) {
-            return;
+            return 0;
         }
 
         neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] = (uint8_t)BLOCK_COBBLESTONE;
         neighbour_chunk->modified = true;
-        world_rebuild_after_change(world, chunk_x, chunk_z, n_local_x, n_local_z);
+        memcheck = world_rebuild_after_change(world, chunk_x, chunk_z, n_local_x, n_local_z);
     }
 
     last_lc_state = lc_state;
     last_rc_state = rc_state;
+    if (memcheck < 0) { return -1; }
+    return 0;
 }

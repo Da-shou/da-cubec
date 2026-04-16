@@ -133,8 +133,11 @@ int main(void) {
                 get_pointed_block(&world, &main_camera, config.max_reach, &target_block, &neighbour,
                                   &target_chunk, &neighbour_chunk);
             if (block != (uint8_t)BLOCK_AIR) {
-                handle_clicks(app_window, &world, main_camera.position, target_block, neighbour,
-                              target_chunk, neighbour_chunk);
+                if (handle_clicks(app_window, &world, main_camera.position, target_block, neighbour,
+                                  target_chunk, neighbour_chunk)) {
+                    (void)fprintf(stderr, "Chunk building failed after handle_click, exiting.\n");
+                    break;
+                };
             }
         }
 
@@ -144,7 +147,12 @@ int main(void) {
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
 
         /* Stream in/out chunks based on player position. */
-        world_update(&world, main_camera.position);
+        const int memcheck = world_update(&world, main_camera.position);
+        if (memcheck < 0) {
+            (void)fprintf(stderr, "Memory allocation failure in world_update, exiting.\n");
+            break;
+        }
+
         /* Calculating the planes that make up the frustum of
          * the camera then culling everything that is outside the
          * frustum of the camera. Fortunately the CGLM libraries
