@@ -19,16 +19,18 @@ typedef struct {
     float width;        /* AABB width and depth (centered on position XZ) */
     float height;       /* AABB height (extends upward from position.y) */
     float eye_offset;   /* Eye height above feet */
+    camera_t* camera;
     bool on_ground;     /* True when standing on a solid surface */
 } player_t;
 
 /**
  * Initializes a player with the given configuration and spawn position.
  * @param player Pointer to player struct to update.
+ * @param camera Pointer to the camera that the player will control;
  * @param config Pointer to the current configuration of the game to get the player's attributes.
  * @param spawn Spawn position of the player.
  */
-void player_init(player_t* player, const game_config_t* config, vec3 spawn);
+void player_init(player_t* player, const game_config_t* config, const camera_t* camera, vec3 spawn);
 
 /**
  * Updates the player each frame, processing the wished movements of the player.

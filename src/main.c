@@ -117,7 +117,7 @@ int main(void) {
     camera_init(&config, &main_camera, (vec3){0.0F, 127.0F, 0.0F});
 
     static player_t player;
-    player_init(&player, &config, (vec3){0.0F, 127.0F, 0.0F});
+    player_init(&player, &config, &main_camera, (vec3){0.0F, 127.0F, 0.0F});
     float wish_forward;
     float wish_right;
     float delta_time;
@@ -141,7 +141,7 @@ int main(void) {
 
         handle_player_input(app_window, &wish_forward, &wish_right,
                             &jump_pressed, &sprint, &delta_time);
-        player_update(&player, &config, &world, &main_camera,
+        player_update(&player, &config, &world, player.camera,
                       wish_forward, wish_right, jump_pressed, sprint, delta_time);
 
         camera_update_view(&main_camera, view);
