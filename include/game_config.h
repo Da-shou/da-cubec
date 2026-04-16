@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /**
@@ -24,6 +25,7 @@ typedef struct {
     float sensitivity;
     float speed;
     float fov;
+    bool free_camera;
     uint8_t render_distance;
 
     /* Player physics settings */

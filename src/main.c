@@ -75,6 +75,13 @@ int main(void) {
     shader_t basic_shader;
     shader_init(&basic_shader, config.basic_vertex_shader_path,
                 config.basic_fragment_shader_path);
+    shader_set_vec3(
+        &basic_shader, "fog_color",
+        (vec3) {config.sky_color[0], config.sky_color[2], config.sky_color[3]});
+    const float fog_far = CHUNK_SIZE_XZ * config.render_distance;
+    const float fog_near = CHUNK_SIZE_XZ * (config.render_distance - 3);
+    shader_set_float(&basic_shader, "fog_near", fog_near);
+    shader_set_float(&basic_shader, "fog_far", fog_far);
 
     /* Text renderer for the HUD overlay */
     text_renderer_t text_renderer;
@@ -89,6 +96,7 @@ int main(void) {
     world_init(&world, &config);
     world.generate = world_generator_perlin;
     world.generator_data = &terrain;
+    world_update(&world, GLM_VEC3_ZERO);
 
     /* We need a view matrix. To move around the world,
      * moving the camera is the same as moving the entire
@@ -119,14 +127,17 @@ int main(void) {
        but we still need it for initial vector setup */
     camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
 
-    /* Initalizing the global player variables */
     static player_t player;
+    /* Initalizing the global player variables */
     player_init(&player, &config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
     static float wish_forward = 0.0F;
     static float wish_right = 0.0F;
     static float last_frame = 0.0F;
     static bool jump_pressed = false;
     static bool sprint = false;
+
+    const vec3* pov_origin =
+        config.free_camera ? &main_camera.position : &player.position;
 
     /* Main window loop */
     while (!glfwWindowShouldClose(app_window)) {
@@ -148,40 +159,36 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        player_update(&player, &config, &world, player.camera, wish_forward, wish_right,
-                      jump_pressed, sprint, delta_time);
-
-        handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
-                            &sprint);
-
-        camera_update_view(&main_camera, view);
-
-        if (focused) {
-            const uint8_t block =
-                get_pointed_block(&world, &main_camera, config.max_reach, &target_block,
-                                  &neighbour, &target_chunk, &neighbour_chunk);
-            if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(app_window, &world, &player, target_block, neighbour,
-                                  target_chunk, neighbour_chunk)) {
-                    (void)fprintf(stderr,
-                                  "Chunk building failed after handle_click, exiting.\n");
-                    break;
-                };
+        if (config.free_camera) {
+            handle_camera_mouse(app_window, &config, &main_camera, delta_time);
+        } else {
+            player_update(&player, &config, &world, player.camera, wish_forward,
+                          wish_right, jump_pressed, sprint, delta_time);
+            handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
+                                &sprint);
+            if (focused) {
+                const uint8_t block = get_pointed_block(
+                    &world, &main_camera, config.max_reach, &target_block, &neighbour,
+                    &target_chunk, &neighbour_chunk);
+                if (block != (uint8_t)BLOCK_AIR) {
+                    if (handle_clicks(app_window, &world, &player, target_block,
+                                      neighbour, target_chunk, neighbour_chunk)) {
+                        (void)fprintf(
+                            stderr,
+                            "Chunk building failed after handle_click, exiting.\n");
+                        break;
+                    };
+                }
             }
         }
+
+        camera_update_view(&main_camera, view);
 
         /* Apply the view and projection matrices */
         shader_use(&basic_shader);
         glUniformMatrix4fv(view_location, 1, GL_FALSE, (float*)view);
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
-
-        /* Stream in/out chunks based on player position. */
-        const int memcheck = world_update(&world, player.position);
-        if (memcheck < 0) {
-            (void)fprintf(stderr,
-                          "Memory allocation failure in world_update, exiting.\n");
-            break;
-        }
+        shader_set_vec3(&basic_shader, "camera_position", (float*)*pov_origin);
 
         /* Calculating the planes that make up the frustum of
          * the camera then culling everything that is outside the
@@ -192,6 +199,14 @@ int main(void) {
         vec4 frustum_planes[6];
         glm_frustum_planes(view_projection, frustum_planes);
         world_draw(&world, &basic_shader, &atlas, frustum_planes);
+
+        /* Stream in/out chunks based on player position. */
+        const int memcheck = world_update(&world, *pov_origin);
+        if (memcheck < 0) {
+            (void)fprintf(stderr,
+                          "Memory allocation failure in world_update, exiting.\n");
+            break;
+        }
 
         /* Draw game title in the bottom-left corner */
         char title_text[64];

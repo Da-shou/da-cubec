@@ -14,8 +14,10 @@
  * @param window Pointer to the window that will poll the mouse events.
  * @param config Game configuration to set the sensitivity.
  * @param camera Pointer to the camera that will be updated.
+ * @param delta_time delta time calculated in the main render loop
  */
-void handle_camera_mouse(GLFWwindow* window, game_config_t* config, camera_t* camera);
+void handle_camera_mouse(GLFWwindow* window, game_config_t* config, camera_t* camera,
+                         float delta_time);
 
 /**
  * @brief managing inputs for breaking and placing blocks.

@@ -2,11 +2,13 @@
 
 layout (location = 0) in uint packed_data;
 
+out float camera_distance;
 out vec2 texture_coordinates;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 camera_position;
 
 void main() {
 	/* Unpacking the vertex data packed into a 32 bit unsigned int. */
@@ -16,6 +18,8 @@ void main() {
 	float u = float((packed_data >> 20u) & 0x007u) * 0.25;
 	float v = float((packed_data >> 23u) & 0x007u) * 0.25;
 
-	gl_Position = projection * view * model * vec4(x, y, z, 1.0);
+	vec4 world_position = vec4(x,y,z,1.0F);
+	gl_Position = projection * view * model * world_position;
 	texture_coordinates = vec2(u,v);
+	camera_distance = length(world_position.xyz - camera_position);
 }

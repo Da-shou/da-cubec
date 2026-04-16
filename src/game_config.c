@@ -14,6 +14,7 @@ game_config_t game_config_default(void) {
                             .sensitivity = 0.05F,
                             .speed = 25.0F,
                             .fov = 70.0F,
+                            .free_camera = false,
                             .player_walk_speed = 3.0F,
                             .player_sprint_speed = 5.0F,
                             .player_jump_velocity = 8.5F,

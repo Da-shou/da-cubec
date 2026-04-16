@@ -14,24 +14,24 @@
 /**
  * @brief Managing inputs for mouse and keyboard. */
 void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
-                         camera_t* camera, const float* delta_time) {
+                         camera_t* camera, const float delta_time) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_FORWARD, *delta_time);
+        camera_move(camera, CAMERA_FORWARD, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_BACKWARD, *delta_time);
+        camera_move(camera, CAMERA_BACKWARD, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_LEFT, *delta_time);
+        camera_move(camera, CAMERA_LEFT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_RIGHT, *delta_time);
+        camera_move(camera, CAMERA_RIGHT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_UP, *delta_time);
+        camera_move(camera, CAMERA_UP, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_DOWN, *delta_time);
+        camera_move(camera, CAMERA_DOWN, delta_time);
     }
 
     /* Speeding up when CTRL is pressed. */
