@@ -5,6 +5,7 @@
 #include "world/chunk.h"
 #include "world/world.h"
 #include "game_config.h"
+#include "cglm/vec3-ext.h"
 
 #include <math.h>
 
@@ -46,8 +47,8 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config, camera
     }
 }
 
-void handle_clicks(GLFWwindow* window, world_t* world, const vec3 target_block,
-                   const vec3 neighbour, chunk_t* target_chunk, chunk_t* neighbour_chunk) {
+void handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 target_block,
+                   vec3 neighbour, chunk_t* target_chunk, chunk_t* neighbour_chunk) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
 
@@ -73,14 +74,27 @@ void handle_clicks(GLFWwindow* window, world_t* world, const vec3 target_block,
         if (!world_valid_position(world, neighbour)) { return; }
         const int chunk_x = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
         const int chunk_z = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
-        const int local_x = (int)floorf(neighbour[0]) - (chunk_x * CHUNK_SIZE_XZ);
-        const int local_y = (int)floorf(neighbour[1]);
-        const int local_z = (int)floorf(neighbour[2]) - (chunk_z * CHUNK_SIZE_XZ);
+        const int n_local_x = (int)floorf(neighbour[0]) - (chunk_x * CHUNK_SIZE_XZ);
+        const int n_local_y = (int)floorf(neighbour[1]);
+        const int n_local_z = (int)floorf(neighbour[2]) - (chunk_z * CHUNK_SIZE_XZ);
+        const int camera_local_x = (int)floorf(camera_pos[0]) - (chunk_x * CHUNK_SIZE_XZ);
+        const int camera_local_y = (int)floorf(camera_pos[1]);
+        const int camera_local_z = (int)floorf(camera_pos[2]) - (chunk_z * CHUNK_SIZE_XZ);
 
-        if (neighbour_chunk->blocks[local_x][local_y][local_z] != (uint8_t)BLOCK_AIR) { return; }
-        neighbour_chunk->blocks[local_x][local_y][local_z] = (uint8_t)BLOCK_COBBLESTONE;
+        /* Cannot place block at the same coordinate as the camera. */
+        if (camera_local_x == n_local_x && camera_local_y == n_local_y &&
+            camera_local_z == n_local_z) {
+            return;
+        }
+
+        /* Can only place a block if there is air at the wanted spot */
+        if (neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] != (uint8_t)BLOCK_AIR) {
+            return;
+        }
+
+        neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] = (uint8_t)BLOCK_COBBLESTONE;
         neighbour_chunk->modified = true;
-        world_rebuild_after_change(world, chunk_x, chunk_z, local_x, local_z);
+        world_rebuild_after_change(world, chunk_x, chunk_z, n_local_x, n_local_z);
     }
 
     last_lc_state = lc_state;
