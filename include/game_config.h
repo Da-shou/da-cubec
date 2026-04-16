@@ -26,6 +26,16 @@ typedef struct {
     float fov;
     uint8_t render_distance;
 
+    /* Player physics settings */
+    float player_walk_speed;
+    float player_sprint_speed;
+    float player_jump_velocity;
+    float gravity;
+    float player_width;
+    float player_height;
+    float player_eye_offset;
+    float terminal_velocity;
+
     /* World settings */
     float max_reach;
     float sky_color[4];

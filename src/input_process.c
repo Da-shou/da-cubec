@@ -5,7 +5,8 @@
 #include "world/chunk.h"
 #include "world/world.h"
 #include "game_config.h"
-#include "cglm/vec3-ext.h"
+#include "player.h"
+#include "cglm/box.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -48,7 +49,7 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config, camera
     }
 }
 
-int handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 target_block,
+int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, vec3 target_block,
                   vec3 neighbour, chunk_t* target_chunk, chunk_t* neighbour_chunk) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
@@ -74,20 +75,29 @@ int handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 targ
      * neighbour coordinates. */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
         if (!world_valid_position(world, neighbour)) { return 0; }
+
         const int chunk_x = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
         const int chunk_z = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
         const int n_local_x = (int)floorf(neighbour[0]) - (chunk_x * CHUNK_SIZE_XZ);
         const int n_local_y = (int)floorf(neighbour[1]);
         const int n_local_z = (int)floorf(neighbour[2]) - (chunk_z * CHUNK_SIZE_XZ);
-        const int camera_local_x = (int)floorf(camera_pos[0]) - (chunk_x * CHUNK_SIZE_XZ);
-        const int camera_local_y = (int)floorf(camera_pos[1]);
-        const int camera_local_z = (int)floorf(camera_pos[2]) - (chunk_z * CHUNK_SIZE_XZ);
 
-        /* Cannot place block at the same coordinate as the camera. */
-        if (camera_local_x == n_local_x && camera_local_y == n_local_y &&
-            camera_local_z == n_local_z) {
-            return 0;
-        }
+        /* Player AABB */
+        const float player_half_width = player->width / 2.0F;
+        vec3 player_aabb[2] = {{player->position[0] - player_half_width, player->position[1],
+                                player->position[2] - player_half_width},
+                               {player->position[0] + player_half_width,
+                                player->position[1] + player->height,
+                                player->position[2] + player_half_width}};
+
+        /* Block AABB */
+        vec3 block_aabb[2] = {{neighbour[0], neighbour[1], neighbour[2]},
+                              {neighbour[0] + 1.0F, neighbour[1] + 1.0F, neighbour[2] + 1.0F}};
+
+        /* If player and future placed block interesect, do not place the block. */
+        const bool overlap = glm_aabb_aabb(player_aabb, block_aabb);
+
+        if (overlap) { return 0; }
 
         /* Can only place a block if there is air at the wanted spot */
         if (neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] != (uint8_t)BLOCK_AIR) {
@@ -103,4 +113,23 @@ int handle_clicks(GLFWwindow* window, world_t* world, vec3 camera_pos, vec3 targ
     last_rc_state = rc_state;
     if (memcheck < 0) { return -1; }
     return 0;
+}
+
+void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_right,
+                         bool* jump_pressed, bool* sprint, float* dt) {
+    const float current_frame = (float)glfwGetTime();
+    delta_time = current_frame - last_frame;
+    last_frame = current_frame;
+    *dt = delta_time;
+    *wish_forward = 0.0F;
+    *wish_right = 0.0F;
+    *jump_pressed = false;
+    *sprint = false;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) { *wish_forward += 1.0F; }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) { *wish_forward -= 1.0F; }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) { *wish_right += 1.0F; }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { *wish_right -= 1.0F; }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { *jump_pressed = true; }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) { *sprint = true; }
 }

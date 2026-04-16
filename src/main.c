@@ -10,6 +10,7 @@
 #include "game_config.h"
 #include "input_process.h"
 #include "material.h"
+#include "player.h"
 #include "text_renderer.h"
 #include "world/blocks.h"
 #include "world/chunk.h"
@@ -110,6 +111,18 @@ int main(void) {
 
     const int version = gladLoadGL(glfwGetProcAddress);
 
+    /* Replace the camera spawn height with player spawn */
+    /* The camera init position will be overwritten by player_update,
+       but we still need it for initial vector setup */
+    camera_init(&config, &main_camera, (vec3){0.0F, 127.0F, 0.0F});
+
+    static player_t player;
+    player_init(&player, &config, (vec3){0.0F, 127.0F, 0.0F});
+    float wish_forward;
+    float wish_right;
+    float delta_time;
+    bool jump_pressed, sprint;
+
     /* Main window loop */
     while (!glfwWindowShouldClose(app_window)) {
         /* Calling this function allows us to gather all inputs
@@ -126,14 +139,19 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        handle_camera_mouse(app_window, &config, &main_camera);
+        handle_player_input(app_window, &wish_forward, &wish_right,
+                            &jump_pressed, &sprint, &delta_time);
+        player_update(&player, &config, &world, &main_camera,
+                      wish_forward, wish_right, jump_pressed, sprint, delta_time);
+
         camera_update_view(&main_camera, view);
+
         if (focused) {
             const uint8_t block =
                 get_pointed_block(&world, &main_camera, config.max_reach, &target_block, &neighbour,
                                   &target_chunk, &neighbour_chunk);
             if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(app_window, &world, main_camera.position, target_block, neighbour,
+                if (handle_clicks(app_window, &world, &player, target_block, neighbour,
                                   target_chunk, neighbour_chunk)) {
                     (void)fprintf(stderr, "Chunk building failed after handle_click, exiting.\n");
                     break;
@@ -147,7 +165,7 @@ int main(void) {
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
 
         /* Stream in/out chunks based on player position. */
-        const int memcheck = world_update(&world, main_camera.position);
+        const int memcheck = world_update(&world, player.position);
         if (memcheck < 0) {
             (void)fprintf(stderr, "Memory allocation failure in world_update, exiting.\n");
             break;

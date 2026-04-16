@@ -232,6 +232,17 @@ void world_destroy(world_t* world) {
     chunk_store_destroy(&world->chunk_store);
 }
 
+uint8_t world_get_block(world_t* world, const int block_x, const int block_y, const int block_z) {
+    if (block_y < 0 || block_y >= CHUNK_SIZE_Y) { return BLOCK_AIR; }
+    const int chunk_x = (int)floorf((float)block_x / (float)CHUNK_SIZE_XZ);
+    const int chunk_z = (int)floorf((float)block_z / (float)CHUNK_SIZE_XZ);
+    const chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
+    if (chunk == NULL) { return BLOCK_AIR; }
+    const int local_x = block_x - (chunk_x * CHUNK_SIZE_XZ);
+    const int local_z = block_z - (chunk_z * CHUNK_SIZE_XZ);
+    return chunk->blocks[local_x][block_y][local_z];
+}
+
 bool world_valid_position(const world_t* world, const vec3 position) {
     if (position[1] < 0.0F || position[1] >= (float)CHUNK_SIZE_Y) { return false; }
     const int chunk_x = (int)floorf(position[0] / (float)CHUNK_SIZE_XZ);
