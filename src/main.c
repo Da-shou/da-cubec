@@ -45,6 +45,12 @@ static GLFWwindow* app_window;
 static bool focused = false;
 
 /**
+ * @brief Draws the name of the executable, version and GLFW/OpenGL version with a
+ * text renderer.
+ */
+void draw_debug_info(const text_renderer_t* text_renderer);
+
+/**
  * @brief Called every time a key is pressed. */
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 /**
@@ -76,6 +82,22 @@ int main(void) {
     shader_init(&basic_shader, config.basic_vertex_shader_path,
                 config.basic_fragment_shader_path);
 
+    /* Setting our fog variables and sending them to the shader. The fog color will be the
+     * same as the sky, fog_near is the distance from the camera from which the fog will
+     * start, fog_far is when the fog will be at maximum density.*/
+    shader_set_vec3(
+        &basic_shader, "fog_color",
+        (vec3) {config.sky_color[0], config.sky_color[1], config.sky_color[2]});
+
+    const float max_render_distance = (float)config.render_distance * CHUNK_SIZE_XZ;
+    const float fog_far = max_render_distance - (float)config.render_distance;
+    const float fog_near = max_render_distance * 0.75F;
+    const float fog_density = 2.0F;
+
+    shader_set_float(&basic_shader, "fog_far", fog_far);
+    shader_set_float(&basic_shader, "fog_near", fog_near);
+    shader_set_float(&basic_shader, "fog_density", fog_density);
+
     /* Text renderer for the HUD overlay */
     text_renderer_t text_renderer;
     text_renderer_init(&text_renderer, config.font_path, config.text_vertex_shader_path,
@@ -89,6 +111,7 @@ int main(void) {
     world_init(&world, &config);
     world.generate = world_generator_perlin;
     world.generator_data = &terrain;
+    world_update(&world, GLM_VEC3_ZERO);
 
     /* We need a view matrix. To move around the world,
      * moving the camera is the same as moving the entire
@@ -112,21 +135,22 @@ int main(void) {
     const int view_location = glGetUniformLocation(basic_shader.id, "view");
     const int projection_location = glGetUniformLocation(basic_shader.id, "projection");
 
-    const int version = gladLoadGL(glfwGetProcAddress);
-
     /* Replace the camera spawn height with player spawn */
     /* The camera init position will be overwritten by player_update,
        but we still need it for initial vector setup */
     camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
 
-    /* Initalizing the global player variables */
     static player_t player;
+    /* Initalizing the global player variables */
     player_init(&player, &config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
     static float wish_forward = 0.0F;
     static float wish_right = 0.0F;
     static float last_frame = 0.0F;
     static bool jump_pressed = false;
     static bool sprint = false;
+
+    const vec3* pov_origin =
+        config.free_camera ? &main_camera.position : &player.position;
 
     /* Main window loop */
     while (!glfwWindowShouldClose(app_window)) {
@@ -148,40 +172,48 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        player_update(&player, &config, &world, player.camera, wish_forward, wish_right,
-                      jump_pressed, sprint, delta_time);
+        handle_freecam_switch(app_window, &config);
 
-        handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
-                            &sprint);
-
-        camera_update_view(&main_camera, view);
-
+        /* Only getting inputs if the window is focused. */
         if (focused) {
-            const uint8_t block =
-                get_pointed_block(&world, &main_camera, config.max_reach, &target_block,
-                                  &neighbour, &target_chunk, &neighbour_chunk);
-            if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(app_window, &world, &player, target_block, neighbour,
-                                  target_chunk, neighbour_chunk)) {
-                    (void)fprintf(stderr,
-                                  "Chunk building failed after handle_click, exiting.\n");
-                    break;
-                };
+            /* The freecam still updates the player's position so that the world
+             * can keep loading. */
+            if (config.free_camera) {
+                handle_camera_mouse(app_window, &config, &player, delta_time);
+                vec3 player_updated_position = {player.camera->position[0],
+                                                player.camera->position[1] -
+                                                    player.eye_offset,
+                                                player.camera->position[2]};
+                glm_vec3_copy(GLM_VEC3_ZERO, player.velocity);
+                glm_vec3_copy(player_updated_position, player.position);
+            } else {
+                handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
+                                    &sprint);
+                player_update(&player, &config, &world, player.camera, wish_forward,
+                              wish_right, jump_pressed, sprint, delta_time);
+
+                const uint8_t block = get_pointed_block(
+                    &world, &main_camera, config.max_reach, &target_block, &neighbour,
+                    &target_chunk, &neighbour_chunk);
+                if (block != (uint8_t)BLOCK_AIR) {
+                    if (handle_clicks(app_window, &world, &player, target_block,
+                                      neighbour, target_chunk, neighbour_chunk)) {
+                        (void)fprintf(
+                            stderr,
+                            "Chunk building failed after handle_click, exiting.\n");
+                        break;
+                    };
+                }
             }
         }
+
+        camera_update_view(&main_camera, view);
 
         /* Apply the view and projection matrices */
         shader_use(&basic_shader);
         glUniformMatrix4fv(view_location, 1, GL_FALSE, (float*)view);
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
-
-        /* Stream in/out chunks based on player position. */
-        const int memcheck = world_update(&world, player.position);
-        if (memcheck < 0) {
-            (void)fprintf(stderr,
-                          "Memory allocation failure in world_update, exiting.\n");
-            break;
-        }
+        shader_set_vec3(&basic_shader, "camera_position", (float*)*pov_origin);
 
         /* Calculating the planes that make up the frustum of
          * the camera then culling everything that is outside the
@@ -193,18 +225,15 @@ int main(void) {
         glm_frustum_planes(view_projection, frustum_planes);
         world_draw(&world, &basic_shader, &atlas, frustum_planes);
 
-        /* Draw game title in the bottom-left corner */
-        char title_text[64];
-        (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title,
-                       config.version);
-        char opengl_info[64];
-        (void)snprintf(opengl_info, sizeof(opengl_info), "GLFW %d.%d.%d OpenGL %d.%d",
-                       GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION,
-                       GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
-        text_renderer_draw(&text_renderer, title_text, 10.0F,
-                           (float)config.height - 40.0F, 1.0F, 1.0F, 1.0F);
-        text_renderer_draw(&text_renderer, opengl_info, 10.0F,
-                           (float)config.height - 10.0F, 1.0F, 1.0F, 1.0F);
+        /* Stream in/out chunks based on player position. */
+        const int memcheck = world_update(&world, *pov_origin);
+        if (memcheck < 0) {
+            (void)fprintf(stderr,
+                          "Memory allocation failure in world_update, exiting.\n");
+            break;
+        }
+
+        draw_debug_info(&text_renderer);
 
         /* Swapping the buffers is a necessary step and I forgot
          * why. */
@@ -276,6 +305,24 @@ void glfw_gl_init() {
     prioritze drawings vertices that are closer to the camera. */
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+}
+
+void draw_debug_info(const text_renderer_t* text_renderer) {
+    /* Draw game title in the bottom-left corner */
+
+    static int version = 0;
+    if (version == 0) { version = gladLoadGL(glfwGetProcAddress); }
+
+    char title_text[64];
+    (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title, config.version);
+    char opengl_info[64];
+    (void)snprintf(opengl_info, sizeof(opengl_info), "GLFW %d.%d.%d OpenGL %d.%d",
+                   GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION,
+                   GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+    text_renderer_draw(text_renderer, title_text, 10.0F, (float)config.height - 40.0F,
+                       1.0F, 1.0F, 1.0F);
+    text_renderer_draw(text_renderer, opengl_info, 10.0F, (float)config.height - 10.0F,
+                       1.0F, 1.0F, 1.0F);
 }
 
 void key_callback(GLFWwindow* window, const int key, const int scancode, const int action,
