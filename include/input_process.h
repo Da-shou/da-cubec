@@ -13,10 +13,10 @@
  * @brief managing inputs for camera controls.
  * @param window Pointer to the window that will poll the mouse events.
  * @param config Game configuration to set the sensitivity.
- * @param camera Pointer to the camera that will be updated.
+ * @param player Pointer to the player that will be updated.
  * @param delta_time delta time calculated in the main render loop
  */
-void handle_camera_mouse(GLFWwindow* window, game_config_t* config, camera_t* camera,
+void handle_camera_mouse(GLFWwindow* window, game_config_t* config, player_t* player,
                          float delta_time);
 
 /**
@@ -46,5 +46,12 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
  */
 void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_right,
                          bool* jump_pressed, bool* sprint);
+
+/**
+ * @brief Switches between player view and freecam
+ * @param window Pointer to the window polling the inputs.
+ * @param config Pointer to the config to edit to set the free_camera value.
+ */
+void handle_freecam_switch(GLFWwindow* window, game_config_t* config);
 
 #endif

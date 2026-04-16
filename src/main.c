@@ -77,11 +77,13 @@ int main(void) {
                 config.basic_fragment_shader_path);
     shader_set_vec3(
         &basic_shader, "fog_color",
-        (vec3) {config.sky_color[0], config.sky_color[2], config.sky_color[3]});
+        (vec3) {config.sky_color[0], config.sky_color[1], config.sky_color[2]});
     const float fog_far = CHUNK_SIZE_XZ * config.render_distance;
-    const float fog_near = CHUNK_SIZE_XZ * (config.render_distance - 3);
+    const float fog_near = CHUNK_SIZE_XZ * (config.render_distance - 2);
+    const float fog_density = 0.004F;
     shader_set_float(&basic_shader, "fog_near", fog_near);
     shader_set_float(&basic_shader, "fog_far", fog_far);
+    shader_set_float(&basic_shader, "fog_density", fog_density);
 
     /* Text renderer for the HUD overlay */
     text_renderer_t text_renderer;
@@ -159,13 +161,20 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        handle_freecam_switch(app_window, &config);
+
         if (config.free_camera) {
-            handle_camera_mouse(app_window, &config, &main_camera, delta_time);
+            handle_camera_mouse(app_window, &config, &player, delta_time);
+            vec3 player_updated_position = {player.camera->position[0],
+                                            player.camera->position[1] -
+                                                player.eye_offset,
+                                            player.camera->position[2]};
+            glm_vec3_copy(player_updated_position, player.position);
         } else {
-            player_update(&player, &config, &world, player.camera, wish_forward,
-                          wish_right, jump_pressed, sprint, delta_time);
             handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
                                 &sprint);
+            player_update(&player, &config, &world, player.camera, wish_forward,
+                          wish_right, jump_pressed, sprint, delta_time);
             if (focused) {
                 const uint8_t block = get_pointed_block(
                     &world, &main_camera, config.max_reach, &target_block, &neighbour,

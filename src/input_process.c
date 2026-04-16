@@ -11,35 +11,49 @@
 #include <math.h>
 #include <stdio.h>
 
+void handle_freecam_switch(GLFWwindow* window, game_config_t* config) {
+    static int last_tab_state = GLFW_RELEASE;
+
+    const int tab_state = glfwGetKey(window, GLFW_KEY_TAB);
+    if (last_tab_state == tab_state) { return; }
+
+    if (tab_state == GLFW_PRESS && last_tab_state == GLFW_RELEASE) {
+        config->free_camera = !config->free_camera;
+        printf("Toggle free camera to %d\n", config->free_camera);
+    }
+
+    last_tab_state = tab_state;
+}
+
 /**
  * @brief Managing inputs for mouse and keyboard. */
 void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
-                         camera_t* camera, const float delta_time) {
+                         player_t* player, const float delta_time) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_FORWARD, delta_time);
+        camera_move(player->camera, CAMERA_FORWARD, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_BACKWARD, delta_time);
+        camera_move(player->camera, CAMERA_BACKWARD, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_LEFT, delta_time);
+        camera_move(player->camera, CAMERA_LEFT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_RIGHT, delta_time);
+        camera_move(player->camera, CAMERA_RIGHT, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_UP, delta_time);
+        camera_move(player->camera, CAMERA_UP, delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_DOWN, delta_time);
+        camera_move(player->camera, CAMERA_DOWN, delta_time);
     }
 
     /* Speeding up when CTRL is pressed. */
     const int ctrl_state = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
     if (ctrl_state == GLFW_PRESS) {
-        camera->movement_speed = config->speed * 5;
+        player->camera->movement_speed = config->speed * 5;
     } else {
-        camera->movement_speed = config->speed;
+        player->camera->movement_speed = config->speed;
     }
 }
 
