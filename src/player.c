@@ -6,7 +6,8 @@
 #include "world/blocks.h"
 #include "camera.h"
 
-void player_init(player_t* player, const game_config_t* config, camera_t* camera, vec3 spawn) {
+void player_init(player_t* player, const game_config_t* config, camera_t* camera,
+                 vec3 spawn) {
     glm_vec3_copy(spawn, player->position);
     glm_vec3_zero(player->velocity);
     player->width = config->player_width;
@@ -22,9 +23,11 @@ void player_init(player_t* player, const game_config_t* config, camera_t* camera
  * @return true if collision detected, false otherwise
  */
 static bool player_collides(world_t* world, const float player_x, const float player_y,
-                            const float player_z, const float half_w, const float height) {
+                            const float player_z, const float half_w,
+                            const float height) {
     /* Making a box around the player. So we can interate on each block
-     * afterwards and if at least one block is not BLOCK_AIR, then there is a collision. */
+     * afterwards and if at least one block is not BLOCK_AIR, then there is a collision.
+     */
     const int min_bx = (int)floorf(player_x - half_w);
     const int max_bx = (int)floorf(player_x + half_w - COLLISION_EPSILON);
     const int min_by = (int)floorf(player_y);
@@ -35,9 +38,7 @@ static bool player_collides(world_t* world, const float player_x, const float pl
     for (int bx = min_bx; bx <= max_bx; bx++) {
         for (int by = min_by; by <= max_by; by++) {
             for (int bz = min_bz; bz <= max_bz; bz++) {
-                if (world_get_block(world, bx, by, bz) != BLOCK_AIR) {
-                    return true;
-                }
+                if (world_get_block(world, bx, by, bz) != BLOCK_AIR) { return true; }
             }
         }
     }
@@ -45,39 +46,35 @@ static bool player_collides(world_t* world, const float player_x, const float pl
     return false;
 }
 
-void player_update(player_t* player, const game_config_t* config,
-                   world_t* world, camera_t* camera,
-                   const float wish_forward, const float wish_right,
+void player_update(player_t* player, const game_config_t* config, world_t* world,
+                   camera_t* camera, const float wish_forward, const float wish_right,
                    const bool jump_pressed, const bool sprint, const float delta_time) {
-
     /* Horizontal velocity from input. We need to make flat vectors from the front vector
      * of the camera, putting the y axis at 0.0F.*/
-    vec3 flat_front = { camera->front[0], 0.0F, camera->front[2] };
+    vec3 flat_front = {camera->front[0], 0.0F, camera->front[2]};
     const float front_len = glm_vec3_norm(flat_front);
     if (front_len > COLLISION_EPSILON) {
         glm_vec3_scale(flat_front, 1.0F / front_len, flat_front);
     }
 
     /* Same for the right vector */
-    vec3 flat_right = { camera->right[0], 0.0F, camera->right[2] };
+    vec3 flat_right = {camera->right[0], 0.0F, camera->right[2]};
     const float right_len = glm_vec3_norm(flat_right);
     if (right_len > COLLISION_EPSILON) {
         glm_vec3_scale(flat_right, 1.0F / right_len, flat_right);
     }
 
-    /* Wished direction of the player, multiplied by the flat vector values from before. */
+    /* Wished direction of the player, multiplied by the flat vector values from before.
+     */
     vec3 wished_direction = {
-        (wish_forward * flat_front[0]) + (wish_right * flat_right[0]),
-        0.0F,
-        (wish_forward * flat_front[2]) + (wish_right * flat_right[2])
-    };
+        (wish_forward * flat_front[0]) + (wish_right * flat_right[0]), 0.0F,
+        (wish_forward * flat_front[2]) + (wish_right * flat_right[2])};
 
     /* Length of the wished direction */
     const float wish_len = glm_vec3_norm(wished_direction);
 
     /* Setting correct player speed */
     const float speed = sprint ? config->player_sprint_speed : config->player_walk_speed;
-
 
     if (wish_len > COLLISION_EPSILON) {
         glm_vec3_scale(wished_direction, speed / wish_len, wished_direction);
@@ -94,7 +91,8 @@ void player_update(player_t* player, const game_config_t* config,
         player->on_ground = false;
     }
 
-    /* Creating the gravity vector, and clamping the value on the player's terminal velocity. */
+    /* Creating the gravity vector, and clamping the value on the player's terminal
+     * velocity. */
     if (!player->on_ground) {
         player->velocity[1] -= config->gravity * delta_time;
         if (player->velocity[1] < -config->terminal_velocity) {
@@ -157,7 +155,7 @@ void player_update(player_t* player, const game_config_t* config,
     }
 
     /* Commit position and sync camera */
-    glm_vec3_copy((vec3){player_x, player_y, player_z}, player->position);
+    glm_vec3_copy((vec3) {player_x, player_y, player_z}, player->position);
     glm_vec3_copy(player->position, camera->position);
     camera->position[1] += player->eye_offset;
 }

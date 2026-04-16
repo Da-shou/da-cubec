@@ -41,7 +41,8 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
     mesh->index_capacity = starting_chunk_capacity;
     mesh->vertex_count = 0;
     mesh->index_count = 0;
-    mesh->vertices = (chunk_vertex_t*)malloc(mesh->vertex_capacity * sizeof(chunk_vertex_t));
+    mesh->vertices =
+        (chunk_vertex_t*)malloc(mesh->vertex_capacity * sizeof(chunk_vertex_t));
     mesh->indices = (unsigned int*)malloc(mesh->vertex_capacity * sizeof(unsigned int));
     glGenVertexArrays(1, &mesh->vao);
     glGenBuffers(1, &mesh->vbo);
@@ -49,14 +50,16 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
 }
 
 int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_t face_y,
-                         const uint8_t face_z, bool face_vertices[4][3], const float uv_offset_x,
-                         const float uv_offset_y, const float uv_size) {
+                         const uint8_t face_z, bool face_vertices[4][3],
+                         const float uv_offset_x, const float uv_offset_y,
+                         const float uv_size) {
     /* Checking if vertices and indices array need to be reallocated.
      * To add a face, we need 4 new vertices. And for each face added,
      * we need 6 indices each. */
     if (mesh->vertex_count + 4 > mesh->vertex_capacity) {
         mesh->vertex_capacity *= 2;
-        void* new_space = realloc(mesh->vertices, mesh->vertex_capacity * sizeof(chunk_vertex_t));
+        void* new_space =
+            realloc(mesh->vertices, mesh->vertex_capacity * sizeof(chunk_vertex_t));
         if (new_space == NULL) {
             free(mesh->vertices);
             return -1;
@@ -66,7 +69,8 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
 
     if (mesh->index_count + 6 > mesh->index_capacity) {
         mesh->index_capacity *= 2;
-        void* new_space = realloc(mesh->indices, mesh->index_capacity * sizeof(unsigned int));
+        void* new_space =
+            realloc(mesh->indices, mesh->index_capacity * sizeof(unsigned int));
         if (new_space == NULL) {
             free(mesh->indices);
             return -1;
@@ -106,7 +110,8 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
     return 0;
 }
 
-int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neighbours_t neighbors) {
+int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
+                     const chunk_neighbours_t neighbors) {
     mesh->vertex_count = 0;
     mesh->index_count = 0;
     /* Big ass check on ALL cubes and sending each facing that face
@@ -119,23 +124,27 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neigh
 
                 const block_uv_t uv_block = block_uvs[block];
 
-                /* To determine if the face of a block in a chunk will be rendered, we check the 4
-                 * potentials neighbors (front, back, left and right). The top and bottom chunks d
-                 * not exist. If a block is found in the neighbouring chunk, then the face is not
-                 * rendered. If the chunk is at the edge of the world, then the face is rendered. */
+                /* To determine if the face of a block in a chunk will be rendered, we
+                 * check the 4 potentials neighbors (front, back, left and right). The top
+                 * and bottom chunks d not exist. If a block is found in the neighbouring
+                 * chunk, then the face is not rendered. If the chunk is at the edge of
+                 * the world, then the face is rendered. */
                 if (block_z == CHUNK_SIZE_XZ - 1) {
                     // Front-checking
                     if (!neighbors.north ||
-                        neighbors.north->blocks[block_x][block_y][0] == (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                                  uv_block.front.u, uv_block.front.v,
-                                                  tile_offset)) {
+                        neighbors.north->blocks[block_x][block_y][0] ==
+                            (uint8_t)BLOCK_AIR) {
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
+                                                 face_front, uv_block.front.u,
+                                                 uv_block.front.v, tile_offset)) {
                             return -1;
                         };
                     }
-                } else if (chunk->blocks[block_x][block_y][block_z + 1] == (uint8_t)BLOCK_AIR) {
+                } else if (chunk->blocks[block_x][block_y][block_z + 1] ==
+                           (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                              uv_block.front.u, uv_block.front.v, tile_offset)) {
+                                             uv_block.front.u, uv_block.front.v,
+                                             tile_offset)) {
                         return -1;
                     };
                 }
@@ -145,15 +154,17 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neigh
                     if (!neighbors.south ||
                         neighbors.south->blocks[block_x][block_y][CHUNK_SIZE_XZ - 1] ==
                             (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                                  uv_block.back.u, uv_block.back.v,
-                                                  tile_offset)) {
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
+                                                 face_back, uv_block.back.u,
+                                                 uv_block.back.v, tile_offset)) {
                             return -1;
                         };
                     }
-                } else if (chunk->blocks[block_x][block_y][block_z - 1] == (uint8_t)BLOCK_AIR) {
+                } else if (chunk->blocks[block_x][block_y][block_z - 1] ==
+                           (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                              uv_block.back.u, uv_block.back.v, tile_offset)) {
+                                             uv_block.back.u, uv_block.back.v,
+                                             tile_offset)) {
                         return -1;
                     };
                 }
@@ -162,7 +173,8 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neigh
                     // Above
                     chunk->blocks[block_x][block_y + 1][block_z] == (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_top,
-                                              uv_block.top.u, uv_block.top.v, tile_offset)) {
+                                             uv_block.top.u, uv_block.top.v,
+                                             tile_offset)) {
                         return -1;
                     };
                 }
@@ -171,24 +183,27 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neigh
                     // Below
                     chunk->blocks[block_x][block_y - 1][block_z] == (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_bottom,
-                                              uv_block.bottom.u, uv_block.bottom.v, tile_offset)) {
+                                             uv_block.bottom.u, uv_block.bottom.v,
+                                             tile_offset)) {
                         return -1;
                     };
                 }
 
                 if (block_x == CHUNK_SIZE_XZ - 1) {
                     // Right-checking
-                    if (!neighbors.east ||
-                        neighbors.east->blocks[0][block_y][block_z] == (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                                  uv_block.right.u, uv_block.right.v,
-                                                  tile_offset)) {
+                    if (!neighbors.east || neighbors.east->blocks[0][block_y][block_z] ==
+                                               (uint8_t)BLOCK_AIR) {
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
+                                                 face_right, uv_block.right.u,
+                                                 uv_block.right.v, tile_offset)) {
                             return -1;
                         };
                     }
-                } else if (chunk->blocks[block_x + 1][block_y][block_z] == (uint8_t)BLOCK_AIR) {
+                } else if (chunk->blocks[block_x + 1][block_y][block_z] ==
+                           (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                              uv_block.right.u, uv_block.right.v, tile_offset)) {
+                                             uv_block.right.u, uv_block.right.v,
+                                             tile_offset)) {
                         return -1;
                     };
                 }
@@ -198,15 +213,17 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neigh
                     if (!neighbors.west ||
                         neighbors.west->blocks[CHUNK_SIZE_XZ - 1][block_y][block_z] ==
                             (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                                  uv_block.left.u, uv_block.left.v,
-                                                  tile_offset)) {
+                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
+                                                 face_left, uv_block.left.u,
+                                                 uv_block.left.v, tile_offset)) {
                             return -1;
                         };
                     }
-                } else if (chunk->blocks[block_x - 1][block_y][block_z] == (uint8_t)BLOCK_AIR) {
+                } else if (chunk->blocks[block_x - 1][block_y][block_z] ==
+                           (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                              uv_block.left.u, uv_block.left.v, tile_offset)) {
+                                             uv_block.left.u, uv_block.left.v,
+                                             tile_offset)) {
                         return -1;
                     };
                 }
@@ -217,19 +234,20 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh, const chunk_neigh
     return 0;
 }
 
-uint32_t chunk_vertex_pack(const uint8_t vertex_x, const uint16_t vertex_y, const uint8_t vertex_z,
-                           const float uv_u, const float uv_v) {
+uint32_t chunk_vertex_pack(const uint8_t vertex_x, const uint16_t vertex_y,
+                           const uint8_t vertex_z, const float uv_u, const float uv_v) {
     const uint32_t u_idx = (uint32_t)roundf(uv_u / tile_offset);
     const uint32_t v_idx = (uint32_t)roundf(uv_v / tile_offset);
-    return (vertex_x & 0x1FU) | ((vertex_z & 0x1FU) << 5U) | ((vertex_y & 0x3FFU) << 10U) |
-           (u_idx << 20U) | (v_idx << 23U);
+    return (vertex_x & 0x1FU) | ((vertex_z & 0x1FU) << 5U) |
+           ((vertex_y & 0x3FFU) << 10U) | (u_idx << 20U) | (v_idx << 23U);
 }
 
 void chunk_mesh_upload(const chunk_mesh_t* mesh) {
     glBindVertexArray(mesh->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-    glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(mesh->vertex_count * sizeof(chunk_vertex_t)),
+    glBufferData(GL_ARRAY_BUFFER,
+                 (GLsizeiptr)(mesh->vertex_count * sizeof(chunk_vertex_t)),
                  mesh->vertices, GL_DYNAMIC_DRAW);
 
     /** Since all of our data is packed into an uint32_t, no need to to
@@ -239,8 +257,9 @@ void chunk_mesh_upload(const chunk_mesh_t* mesh) {
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->eao);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)(mesh->index_count * sizeof(unsigned int)),
-                 mesh->indices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 (GLsizeiptr)(mesh->index_count * sizeof(unsigned int)), mesh->indices,
+                 GL_DYNAMIC_DRAW);
 }
 
 void chunk_mesh_draw(const chunk_mesh_t* mesh) {

@@ -25,11 +25,11 @@ int read_file(const char* filepath, const char** const out_text) {
         return -1;
     }
 
-    if(fseek(fptr, 0, SEEK_SET) != 0) {
+    if (fseek(fptr, 0, SEEK_SET) != 0) {
         perror("Error seeking to the start of file");
         (void)fclose(fptr);
-        return -1;		
-	};
+        return -1;
+    };
 
     // Allocate memory for file reading
     char* const buffer = malloc((size_t)fsize + 1);
@@ -61,7 +61,8 @@ int read_file(const char* filepath, const char** const out_text) {
     return 0;
 }
 
-int read_file_bytes(const char* filepath, const unsigned char** const out_text, long* const out_size) {
+int read_file_bytes(const char* filepath, const unsigned char** const out_text,
+                    long* const out_size) {
     FILE* file = fopen(filepath, "rb");
 
     if (!file) {

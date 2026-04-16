@@ -13,7 +13,7 @@
  */
 static int hash_key(const int chunk_x, const int chunk_z) {
     const uint32_t entity_key =
-        ( (uint32_t)chunk_x * 2654435761U ) ^ ( (uint32_t)chunk_z * 2246822519U );
+        ((uint32_t)chunk_x * 2654435761U) ^ ((uint32_t)chunk_z * 2246822519U);
     return (int)(entity_key & (CHUNK_STORE_CAPACITY - 1));
 }
 
@@ -27,9 +27,8 @@ void chunk_store_destroy(const chunk_store_t* store) {
     }
 }
 
-void chunk_store_save(
-    chunk_store_t* store, const int chunk_x, const int chunk_z,
-    const uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]) {
+void chunk_store_save(chunk_store_t* store, const int chunk_x, const int chunk_z,
+                      const uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]) {
     /* Getting the hashkey for the current chunk */
     int key = hash_key(chunk_x, chunk_z);
 
@@ -54,9 +53,8 @@ void chunk_store_save(
     }
 }
 
-bool chunk_store_load(
-    const chunk_store_t* store, int const chunk_x, int const chunk_z,
-    uint8_t out_blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]) {
+bool chunk_store_load(const chunk_store_t* store, int const chunk_x, int const chunk_z,
+                      uint8_t out_blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]) {
     /* Getting the hashkey for the current chunk */
     int key = hash_key(chunk_x, chunk_z);
     for (int16_t i = 0; i < CHUNK_STORE_CAPACITY; i++) {

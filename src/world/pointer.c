@@ -6,8 +6,8 @@
 #include "world/blocks.h"
 
 uint8_t get_pointed_block(world_t* world, camera_t* camera, const float max_distance,
-                          vec3* pointed_block, vec3* neighbour_block, chunk_t** pointed_chunk,
-                          chunk_t** neighbour_chunk) {
+                          vec3* pointed_block, vec3* neighbour_block,
+                          chunk_t** pointed_chunk, chunk_t** neighbour_chunk) {
     vec3 pos;
     vec3 dir;
     glm_vec3_copy(camera->position, pos);
@@ -59,8 +59,8 @@ uint8_t get_pointed_block(world_t* world, camera_t* camera, const float max_dist
             const uint8_t block = chunk->blocks[local_x][camera_y][local_z];
             if (block != (uint8_t)BLOCK_AIR) {
                 process_block((vec3) {(float)camera_x, (float)camera_y, (float)camera_z},
-                              last_pointed_to, pointed_block, neighbour_block, step_x, step_y,
-                              step_z);
+                              last_pointed_to, pointed_block, neighbour_block, step_x,
+                              step_y, step_z);
 
                 /* Setting the chunk pointer for the targeted block chunk
                  * and for it's neighbour, in case the neighbour is in
@@ -107,7 +107,8 @@ uint8_t get_pointed_block(world_t* world, camera_t* camera, const float max_dist
 }
 
 void process_block(vec3 block_position, const axis_t last, vec3* pointed_block,
-                   vec3* neighbour_block, const int step_x, const int step_y, const int step_z) {
+                   vec3* neighbour_block, const int step_x, const int step_y,
+                   const int step_z) {
     glm_vec3_copy(block_position, *pointed_block);
     glm_vec3_copy(*pointed_block, *neighbour_block);
     switch (last) {

@@ -17,7 +17,7 @@ AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
 BinPackParameters: BinPack
 BreakBeforeBraces: Attach
-ColumnLimit: 100
+ColumnLimit: 90
 EmptyLineBeforeAccessModifier: Always
 EnumTrailingComma: Remove
 IndentAccessModifiers: false

@@ -15,7 +15,7 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Defining compilations flags
-set(COMPILATION_FLAGS "-Wall -Wextra -Os")
+set(COMPILATION_FLAGS "-Wall -Wextra -O3")
 set(BUILD_SHARED_LIBS ON)
 
 # Adding all .c files in src

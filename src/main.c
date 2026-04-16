@@ -73,12 +73,14 @@ int main(void) {
 
     /* Initalizing our shader */
     shader_t basic_shader;
-    shader_init(&basic_shader, config.basic_vertex_shader_path, config.basic_fragment_shader_path);
+    shader_init(&basic_shader, config.basic_vertex_shader_path,
+                config.basic_fragment_shader_path);
 
     /* Text renderer for the HUD overlay */
     text_renderer_t text_renderer;
     text_renderer_init(&text_renderer, config.font_path, config.text_vertex_shader_path,
-                       config.text_fragment_shader_path, 24.0F, config.width, config.height);
+                       config.text_fragment_shader_path, 24.0F, config.width,
+                       config.height);
 
     camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
 
@@ -100,8 +102,9 @@ int main(void) {
      * pretty complex, cglm provides us with the correct and
      * optimized functions*/
     glm_mat4_identity(projection);
-    glm_perspective(glm_rad(config.fov), ((float)config.width / (float)config.height), 0.1F,
-                    (float)(config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
+    glm_perspective(glm_rad(config.fov), ((float)config.width / (float)config.height),
+                    0.1F, (float)(config.render_distance + 1) * CHUNK_SIZE_XZ,
+                    projection);
 
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask
@@ -114,17 +117,23 @@ int main(void) {
     /* Replace the camera spawn height with player spawn */
     /* The camera init position will be overwritten by player_update,
        but we still need it for initial vector setup */
-    camera_init(&config, &main_camera, (vec3){0.0F, 127.0F, 0.0F});
+    camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
 
+    /* Initalizing the global player variables */
     static player_t player;
-    player_init(&player, &config, &main_camera, (vec3){0.0F, 127.0F, 0.0F});
-    float wish_forward;
-    float wish_right;
-    float delta_time;
-    bool jump_pressed, sprint;
+    player_init(&player, &config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
+    static float wish_forward = 0.0F;
+    static float wish_right = 0.0F;
+    static float last_frame = 0.0F;
+    static bool jump_pressed = false;
+    static bool sprint = false;
 
     /* Main window loop */
     while (!glfwWindowShouldClose(app_window)) {
+        const float current_frame = (float)glfwGetTime();
+        const float delta_time = current_frame - last_frame;
+        last_frame = current_frame;
+
         /* Calling this function allows us to gather all inputs
          * from the user such as mouse or keyboard. */
         glfwPollEvents();
@@ -139,21 +148,23 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        handle_player_input(app_window, &wish_forward, &wish_right,
-                            &jump_pressed, &sprint, &delta_time);
-        player_update(&player, &config, &world, player.camera,
-                      wish_forward, wish_right, jump_pressed, sprint, delta_time);
+        player_update(&player, &config, &world, player.camera, wish_forward, wish_right,
+                      jump_pressed, sprint, delta_time);
+
+        handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
+                            &sprint);
 
         camera_update_view(&main_camera, view);
 
         if (focused) {
             const uint8_t block =
-                get_pointed_block(&world, &main_camera, config.max_reach, &target_block, &neighbour,
-                                  &target_chunk, &neighbour_chunk);
+                get_pointed_block(&world, &main_camera, config.max_reach, &target_block,
+                                  &neighbour, &target_chunk, &neighbour_chunk);
             if (block != (uint8_t)BLOCK_AIR) {
                 if (handle_clicks(app_window, &world, &player, target_block, neighbour,
                                   target_chunk, neighbour_chunk)) {
-                    (void)fprintf(stderr, "Chunk building failed after handle_click, exiting.\n");
+                    (void)fprintf(stderr,
+                                  "Chunk building failed after handle_click, exiting.\n");
                     break;
                 };
             }
@@ -167,7 +178,8 @@ int main(void) {
         /* Stream in/out chunks based on player position. */
         const int memcheck = world_update(&world, player.position);
         if (memcheck < 0) {
-            (void)fprintf(stderr, "Memory allocation failure in world_update, exiting.\n");
+            (void)fprintf(stderr,
+                          "Memory allocation failure in world_update, exiting.\n");
             break;
         }
 
@@ -183,15 +195,16 @@ int main(void) {
 
         /* Draw game title in the bottom-left corner */
         char title_text[64];
-        (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title, config.version);
+        (void)snprintf(title_text, sizeof(title_text), "%s %s", config.title,
+                       config.version);
         char opengl_info[64];
         (void)snprintf(opengl_info, sizeof(opengl_info), "GLFW %d.%d.%d OpenGL %d.%d",
                        GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR, GLFW_VERSION_REVISION,
                        GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
-        text_renderer_draw(&text_renderer, title_text, 10.0F, (float)config.height - 40.0F, 1.0F,
-                           1.0F, 1.0F);
-        text_renderer_draw(&text_renderer, opengl_info, 10.0F, (float)config.height - 10.0F, 1.0F,
-                           1.0F, 1.0F);
+        text_renderer_draw(&text_renderer, title_text, 10.0F,
+                           (float)config.height - 40.0F, 1.0F, 1.0F, 1.0F);
+        text_renderer_draw(&text_renderer, opengl_info, 10.0F,
+                           (float)config.height - 10.0F, 1.0F, 1.0F, 1.0F);
 
         /* Swapping the buffers is a necessary step and I forgot
          * why. */
@@ -238,7 +251,8 @@ void glfw_gl_init() {
     /* Printing compilation and runtime infos */
     const int version = gladLoadGL(glfwGetProcAddress);
     printf("\nNow launching application...\n");
-    printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
+    printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
+           GLAD_VERSION_MINOR(version));
     printf("Compiled against GLFW %i.%i.%i\n", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR,
            GLFW_VERSION_REVISION);
     int major;
@@ -285,7 +299,8 @@ void mouse_callback(GLFWwindow* window, const double x_pos, const double y_pos) 
     if (focused) { camera_rotate(&main_camera, (float)x_pos, (float)y_pos, GL_TRUE); }
 }
 
-void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods) {
+void mouse_button_callback(GLFWwindow* window, const int button, const int action,
+                           const int mods) {
     (void)mods;
     if (button != GLFW_MOUSE_BUTTON_LEFT) { return; }
     if (!focused && action == GLFW_PRESS) {

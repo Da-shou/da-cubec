@@ -30,7 +30,7 @@ void world_init(world_t* world, game_config_t* config) {
     world->generator_data = NULL;
     const int max_loaded_chunks_size = (world->render_distance * 2) + 1;
     vec3 dummy;
-	glm_vec3_copy(GLM_VEC3_ZERO, dummy);
+    glm_vec3_copy(GLM_VEC3_ZERO, dummy);
     for (int sx = 0; sx < max_loaded_chunks_size; sx++) {
         for (int sz = 0; sz < max_loaded_chunks_size; sz++) {
             chunk_init(&world->chunks[sx][sz], dummy);
@@ -45,7 +45,8 @@ chunk_t* world_get_chunk(world_t* world, const int chunk_x, const int chunk_z) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
     const int slot_x = chunk_to_slot(chunk_x, max_loaded_chunk_size);
     const int slot_z = chunk_to_slot(chunk_z, max_loaded_chunk_size);
-    if (world->slot_cx[slot_x][slot_z] == chunk_x && world->slot_cz[slot_x][slot_z] == chunk_z) {
+    if (world->slot_cx[slot_x][slot_z] == chunk_x &&
+        world->slot_cz[slot_x][slot_z] == chunk_z) {
         return &world->chunks[slot_x][slot_z];
     }
     return NULL;
@@ -85,17 +86,18 @@ int world_update(world_t* world, const vec3 player_pos) {
              */
             const int base_cx = pcx - render_distance;
             const int base_sx = chunk_to_slot(base_cx, max_loaded_chunk_size);
-            const int target_cx =
-                base_cx + ((sx - base_sx + max_loaded_chunk_size) % max_loaded_chunk_size);
+            const int target_cx = base_cx + ((sx - base_sx + max_loaded_chunk_size) %
+                                             max_loaded_chunk_size);
 
             const int base_cz = pcz - render_distance;
             const int base_sz = chunk_to_slot(base_cz, max_loaded_chunk_size);
-            const int target_cz =
-                base_cz + ((sz - base_sz + max_loaded_chunk_size) % max_loaded_chunk_size);
+            const int target_cz = base_cz + ((sz - base_sz + max_loaded_chunk_size) %
+                                             max_loaded_chunk_size);
 
             /* If the target chunk for this slot is already loaded, skip.
              */
-            if (world->slot_cx[sx][sz] == target_cx && world->slot_cz[sx][sz] == target_cz) {
+            if (world->slot_cx[sx][sz] == target_cx &&
+                world->slot_cz[sx][sz] == target_cz) {
                 continue;
             }
 
@@ -121,7 +123,8 @@ int world_update(world_t* world, const vec3 player_pos) {
             world->slot_cx[sx][sz] = target_cx;
             world->slot_cz[sx][sz] = target_cz;
 
-            if (!chunk_store_load(&world->chunk_store, target_cx, target_cz, slot->blocks)) {
+            if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
+                                  slot->blocks)) {
                 if (world->generate) {
                     world->generate(slot, target_cx, target_cz, world->generator_data);
                 }
@@ -175,7 +178,8 @@ static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_
     const int slot_x = chunk_to_slot(chunk_x, max_loaded_chunk_size);
     const int slot_z = chunk_to_slot(chunk_z, max_loaded_chunk_size);
     int memcheck = 0;
-    if (world->slot_cx[slot_x][slot_z] == chunk_x && world->slot_cz[slot_x][slot_z] == chunk_z) {
+    if (world->slot_cx[slot_x][slot_z] == chunk_x &&
+        world->slot_cz[slot_x][slot_z] == chunk_z) {
         memcheck = world_build_chunk(world, slot_x, slot_z);
     }
     return memcheck;
@@ -201,7 +205,8 @@ int world_rebuild_after_change(world_t* world, const int chunk_x,
 
 // clang-format on
 
-void world_draw(world_t* world, const shader_t* shader, material_t* atlas, vec4 frustum[6]) {
+void world_draw(world_t* world, const shader_t* shader, material_t* atlas,
+                vec4 frustum[6]) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
     for (int sx = 0; sx < max_loaded_chunk_size; sx++) {
         for (int sz = 0; sz < max_loaded_chunk_size; sz++) {
@@ -217,7 +222,9 @@ void world_draw(world_t* world, const shader_t* shader, material_t* atlas, vec4 
             };
             /* Checking if the cube made of the chunk intersects the
              * frustum of the camera. If yes, render the chunk. */
-            if (glm_aabb_frustum(chunk_aabb, frustum)) { chunk_draw(chunk, shader, atlas); }
+            if (glm_aabb_frustum(chunk_aabb, frustum)) {
+                chunk_draw(chunk, shader, atlas);
+            }
         }
     }
 }
@@ -232,7 +239,8 @@ void world_destroy(world_t* world) {
     chunk_store_destroy(&world->chunk_store);
 }
 
-uint8_t world_get_block(world_t* world, const int block_x, const int block_y, const int block_z) {
+uint8_t world_get_block(world_t* world, const int block_x, const int block_y,
+                        const int block_z) {
     if (block_y < 0 || block_y >= CHUNK_SIZE_Y) { return BLOCK_AIR; }
     const int chunk_x = (int)floorf((float)block_x / (float)CHUNK_SIZE_XZ);
     const int chunk_z = (int)floorf((float)block_z / (float)CHUNK_SIZE_XZ);
@@ -255,14 +263,17 @@ void world_generator_perlin(chunk_t* chunk, const int world_cx, const int world_
     const perlin_params_t* perlin_params = userdata;
     for (int lx = 0; lx < CHUNK_SIZE_XZ; lx++) {
         for (int lz = 0; lz < CHUNK_SIZE_XZ; lz++) {
-            const float world_x = (float)((world_cx * CHUNK_SIZE_XZ) + lx) * perlin_params->scale;
-            const float world_z = (float)((world_cz * CHUNK_SIZE_XZ) + lz) * perlin_params->scale;
+            const float world_x =
+                (float)((world_cx * CHUNK_SIZE_XZ) + lx) * perlin_params->scale;
+            const float world_z =
+                (float)((world_cz * CHUNK_SIZE_XZ) + lz) * perlin_params->scale;
 
             /* surface is the highest y point of the column of blocks
              * currently being constructed. */
             vec2 perlin_point = {world_x, world_z};
-            const int surface = perlin_params->sea_level + (int)(glm_perlin_vec2(perlin_point) *
-                                                                 (float)perlin_params->amplitude);
+            const int surface =
+                perlin_params->sea_level +
+                (int)(glm_perlin_vec2(perlin_point) * (float)perlin_params->amplitude);
 
             /* Setting the different layers of block depending on the
              * y level */
@@ -276,7 +287,9 @@ void world_generator_perlin(chunk_t* chunk, const int world_cx, const int world_
             for (; altitude < surface - 1 && altitude < CHUNK_SIZE_Y; altitude++) {
                 chunk->blocks[lx][altitude][lz] = BLOCK_DIRT;
             }
-            if (surface > 0 && altitude < CHUNK_SIZE_Y) { chunk->blocks[lx][altitude][lz] = BLOCK_GRASS; }
+            if (surface > 0 && altitude < CHUNK_SIZE_Y) {
+                chunk->blocks[lx][altitude][lz] = BLOCK_GRASS;
+            }
         }
     }
 }

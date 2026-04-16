@@ -2,9 +2,11 @@ export BUILD="build"
 export EXECUTABLE="da-cubec"
 
 clang-format -i src/*.*
+clang-format -i include/*.*
 
 if [[ $2 == tidy ]] || [[ $1 == tidy ]]; then
 	find src -name '*.c' | xargs clang-tidy --header-filter='src/.*'
+	find include -name '*.h' | xargs clang-tidy --header-filter='src/.*'
 fi
 
 # Compile project using CMake

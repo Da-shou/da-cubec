@@ -12,10 +12,12 @@
 #include "utils/io_utils.h"
 
 /* Ensure our opaque buffer matches the real struct size. */
-typedef char stbtt_size_check[(sizeof(stbtt_bakedchar) == TEXT_RENDERER_BAKED_CHAR_SIZE) ? 1 : -1];
+typedef char
+    stbtt_size_check[(sizeof(stbtt_bakedchar) == TEXT_RENDERER_BAKED_CHAR_SIZE) ? 1 : -1];
 
-void text_renderer_init(text_renderer_t* renderer, const char* font_path, const char* vert_path,
-                        const char* frag_path, const float font_size, const int screen_width,
+void text_renderer_init(text_renderer_t* renderer, const char* font_path,
+                        const char* vert_path, const char* frag_path,
+                        const float font_size, const int screen_width,
                         const int screen_height) {
     /* Load the TTF file into memory. */
     long font_size_bytes = 0;
@@ -30,22 +32,24 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path, const 
     /* Bake ASCII printable characters into a grayscale bitmap. */
     unsigned char bitmap[TEXT_RENDERER_BITMAP_SIZE * TEXT_RENDERER_BITMAP_SIZE];
     stbtt_bakedchar* const cdata = (stbtt_bakedchar*)renderer->cdata;
-    const int rows_used = stbtt_BakeFontBitmap(
-        font_data, 0, font_size, bitmap, TEXT_RENDERER_BITMAP_SIZE, TEXT_RENDERER_BITMAP_SIZE,
-        TEXT_RENDERER_FIRST_CHAR, TEXT_RENDERER_NUM_CHARS, cdata);
+    const int rows_used =
+        stbtt_BakeFontBitmap(font_data, 0, font_size, bitmap, TEXT_RENDERER_BITMAP_SIZE,
+                             TEXT_RENDERER_BITMAP_SIZE, TEXT_RENDERER_FIRST_CHAR,
+                             TEXT_RENDERER_NUM_CHARS, cdata);
 
     free((void*)font_data);
 
     if (rows_used < 0) {
-        (void)fprintf(stderr, "text_renderer: font bitmap too small, %d chars didn't fit\n",
+        (void)fprintf(stderr,
+                      "text_renderer: font bitmap too small, %d chars didn't fit\n",
                       -rows_used);
     }
 
     /* Upload the bitmap as a single-channel texture. */
     glGenTextures(1, &renderer->texture_id);
     glBindTexture(GL_TEXTURE_2D, renderer->texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, TEXT_RENDERER_BITMAP_SIZE, TEXT_RENDERER_BITMAP_SIZE, 0,
-                 GL_RED, GL_UNSIGNED_BYTE, bitmap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, TEXT_RENDERER_BITMAP_SIZE,
+                 TEXT_RENDERER_BITMAP_SIZE, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -66,17 +70,17 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path, const 
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 (GLsizeiptr)TEXT_RENDERER_MAX_CHARS * 6 * 4 * (GLsizeiptr)sizeof(float), NULL,
-                 GL_DYNAMIC_DRAW);
+                 (GLsizeiptr)TEXT_RENDERER_MAX_CHARS * 6 * 4 * (GLsizeiptr)sizeof(float),
+                 NULL, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
-void text_renderer_draw(const text_renderer_t* renderer, const char* text, const float text_x,
-                        const float text_y, const float text_color_r, const float text_color_g,
-                        const float text_color_b) {
+void text_renderer_draw(const text_renderer_t* renderer, const char* text,
+                        const float text_x, const float text_y, const float text_color_r,
+                        const float text_color_g, const float text_color_b) {
     /* Build a batch of quads for all printable characters. */
     float vertices[TEXT_RENDERER_MAX_CHARS * 6 * 4];
     int quad_count = 0;
@@ -84,16 +88,17 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text, const
     float coord_y = text_y;
     const stbtt_bakedchar* const cdata = (const stbtt_bakedchar*)renderer->cdata;
 
-    /* For each character in text that we want to draw, we will create a quad with two triangles
-     * to store the single letter. */
-    for (const char* ch = text; *ch != '\0' && quad_count < TEXT_RENDERER_MAX_CHARS; ch++) {
+    /* For each character in text that we want to draw, we will create a quad with two
+     * triangles to store the single letter. */
+    for (const char* ch = text; *ch != '\0' && quad_count < TEXT_RENDERER_MAX_CHARS;
+         ch++) {
         const unsigned char letter = (unsigned char)*ch;
         if (letter >= TEXT_RENDERER_FIRST_CHAR &&
             letter < TEXT_RENDERER_FIRST_CHAR + TEXT_RENDERER_NUM_CHARS) {
             stbtt_aligned_quad quad;
-            stbtt_GetBakedQuad(cdata, TEXT_RENDERER_BITMAP_SIZE, TEXT_RENDERER_BITMAP_SIZE,
-                               (int)(letter - TEXT_RENDERER_FIRST_CHAR), &coord_x, &coord_y, &quad,
-                               1);
+            stbtt_GetBakedQuad(
+                cdata, TEXT_RENDERER_BITMAP_SIZE, TEXT_RENDERER_BITMAP_SIZE,
+                (int)(letter - TEXT_RENDERER_FIRST_CHAR), &coord_x, &coord_y, &quad, 1);
 
             float* vertex = &vertices[(ptrdiff_t)(quad_count * 24)];
             /* Triangle 1 */
@@ -142,8 +147,8 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text, const
 
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, (GLsizeiptr)((size_t)(quad_count * 24) * sizeof(float)),
-                    vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0,
+                    (GLsizeiptr)((size_t)(quad_count * 24) * sizeof(float)), vertices);
     glDrawArrays(GL_TRIANGLES, 0, quad_count * 6);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);

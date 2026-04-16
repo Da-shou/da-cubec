@@ -56,7 +56,8 @@ void camera_update_view(camera_t* camera, mat4 view) {
     glm_lookat(camera->position, direction, camera->up, view);
 }
 
-void camera_move(camera_t* camera, const CAMERA_DIRECTION direction, const float delta_time) {
+void camera_move(camera_t* camera, const CAMERA_DIRECTION direction,
+                 const float delta_time) {
     const float camera_delta_speed = camera->movement_speed * delta_time;
 
     vec3 temp;

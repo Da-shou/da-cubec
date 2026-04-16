@@ -11,33 +11,27 @@
 #include <math.h>
 #include <stdio.h>
 
-static float delta_time = 0.0F;
-static float last_frame = 0.0F;
-
 /**
  * @brief Managing inputs for mouse and keyboard. */
-void handle_camera_mouse(GLFWwindow* window, const game_config_t* config, camera_t* camera) {
-    const float current_frame = (float)glfwGetTime();
-    delta_time = current_frame - last_frame;
-    last_frame = current_frame;
-
+void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
+                         camera_t* camera, const float* delta_time) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_FORWARD, delta_time);
+        camera_move(camera, CAMERA_FORWARD, *delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_BACKWARD, delta_time);
+        camera_move(camera, CAMERA_BACKWARD, *delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_LEFT, delta_time);
+        camera_move(camera, CAMERA_LEFT, *delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_RIGHT, delta_time);
+        camera_move(camera, CAMERA_RIGHT, *delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_UP, delta_time);
+        camera_move(camera, CAMERA_UP, *delta_time);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-        camera_move(camera, CAMERA_DOWN, delta_time);
+        camera_move(camera, CAMERA_DOWN, *delta_time);
     }
 
     /* Speeding up when CTRL is pressed. */
@@ -49,8 +43,9 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config, camera
     }
 }
 
-int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, vec3 target_block,
-                  vec3 neighbour, chunk_t* target_chunk, chunk_t* neighbour_chunk) {
+int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
+                  vec3 target_block, vec3 neighbour, chunk_t* target_chunk,
+                  chunk_t* neighbour_chunk) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
     static int memcheck = 0;
@@ -84,15 +79,17 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, ve
 
         /* Player AABB */
         const float player_half_width = player->width / 2.0F;
-        vec3 player_aabb[2] = {{player->position[0] - player_half_width, player->position[1],
+        vec3 player_aabb[2] = {{player->position[0] - player_half_width,
+                                player->position[1],
                                 player->position[2] - player_half_width},
                                {player->position[0] + player_half_width,
                                 player->position[1] + player->height,
                                 player->position[2] + player_half_width}};
 
         /* Block AABB */
-        vec3 block_aabb[2] = {{neighbour[0], neighbour[1], neighbour[2]},
-                              {neighbour[0] + 1.0F, neighbour[1] + 1.0F, neighbour[2] + 1.0F}};
+        vec3 block_aabb[2] = {
+            {neighbour[0], neighbour[1], neighbour[2]},
+            {neighbour[0] + 1.0F, neighbour[1] + 1.0F, neighbour[2] + 1.0F}};
 
         /* If player and future placed block interesect, do not place the block. */
         const bool overlap = glm_aabb_aabb(player_aabb, block_aabb);
@@ -100,13 +97,16 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, ve
         if (overlap) { return 0; }
 
         /* Can only place a block if there is air at the wanted spot */
-        if (neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] != (uint8_t)BLOCK_AIR) {
+        if (neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] !=
+            (uint8_t)BLOCK_AIR) {
             return 0;
         }
 
-        neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] = (uint8_t)BLOCK_COBBLESTONE;
+        neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] =
+            (uint8_t)BLOCK_COBBLESTONE;
         neighbour_chunk->modified = true;
-        memcheck = world_rebuild_after_change(world, chunk_x, chunk_z, n_local_x, n_local_z);
+        memcheck =
+            world_rebuild_after_change(world, chunk_x, chunk_z, n_local_x, n_local_z);
     }
 
     last_lc_state = lc_state;
@@ -116,11 +116,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, ve
 }
 
 void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_right,
-                         bool* jump_pressed, bool* sprint, float* dt) {
-    const float current_frame = (float)glfwGetTime();
-    delta_time = current_frame - last_frame;
-    last_frame = current_frame;
-    *dt = delta_time;
+                         bool* jump_pressed, bool* sprint) {
     *wish_forward = 0.0F;
     *wish_right = 0.0F;
     *jump_pressed = false;

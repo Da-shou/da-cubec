@@ -31,9 +31,9 @@ typedef struct {
  * @param font_size Font size in pixels.
  * @param screen_width Width of the render target in pixels.
  * @param screen_height Height of the render target in pixels. */
-void text_renderer_init(text_renderer_t* renderer, const char* font_path, const char* vert_path,
-                        const char* frag_path, float font_size, int screen_width,
-                        int screen_height);
+void text_renderer_init(text_renderer_t* renderer, const char* font_path,
+                        const char* vert_path, const char* frag_path, float font_size,
+                        int screen_width, int screen_height);
 
 /**
  * @brief Draws a string at the given screen position.
@@ -44,8 +44,9 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path, const 
  * @param text_color_r Red component of the text color (0–1).
  * @param text_color_g Green component of the text color (0–1).
  * @param text_color_b Blue component of the text color (0–1). */
-void text_renderer_draw(const text_renderer_t* renderer, const char* text, float text_x, float text_y, float text_color_r,
-                        float text_color_g, float text_color_b);
+void text_renderer_draw(const text_renderer_t* renderer, const char* text, float text_x,
+                        float text_y, float text_color_r, float text_color_g,
+                        float text_color_b);
 
 /**
  * @brief Frees GPU resources held by a text renderer.

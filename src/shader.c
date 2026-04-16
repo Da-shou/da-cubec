@@ -6,7 +6,8 @@
 #include "shader.h"
 #include "utils/shader_utils.h"
 
-void shader_init(shader_t* shader, const char* vertex_filepath, const char* fragment_filepath) {
+void shader_init(shader_t* shader, const char* vertex_filepath,
+                 const char* fragment_filepath) {
     shader->id = make_shader(vertex_filepath, fragment_filepath);
 }
 
@@ -31,7 +32,8 @@ void shader_set_float(const shader_t* shader, const char* name, const float valu
 }
 
 void shader_set_mat4(const shader_t* shader, const char* name, mat4 value) {
-    glUniformMatrix4fv(glGetUniformLocation(shader->id, name), 1, GL_FALSE, (float*)value);
+    glUniformMatrix4fv(glGetUniformLocation(shader->id, name), 1, GL_FALSE,
+                       (float*)value);
 }
 
 void shader_set_vec3(const shader_t* shader, const char* name, vec3 value) {

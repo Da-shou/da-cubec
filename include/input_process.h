@@ -15,8 +15,7 @@
  * @param config Game configuration to set the sensitivity.
  * @param camera Pointer to the camera that will be updated.
  */
-void handle_camera_mouse(GLFWwindow* window, game_config_t* config,
-                         camera_t* camera);
+void handle_camera_mouse(GLFWwindow* window, game_config_t* config, camera_t* camera);
 
 /**
  * @brief managing inputs for breaking and placing blocks.
@@ -29,9 +28,9 @@ void handle_camera_mouse(GLFWwindow* window, game_config_t* config,
  * @param neighbour_chunk Pointer to the chunk that contains the neighbour block.
  * @return 0 on success, -1 on chunk building failure.
  */
-int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, vec3 target_block,
-                   vec3 neighbour, chunk_t* target_chunk,
-                   chunk_t* neighbour_chunk);
+int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
+                  vec3 target_block, vec3 neighbour, chunk_t* target_chunk,
+                  chunk_t* neighbour_chunk);
 
 /**
  * @brief Polls keyboard state and computes player movement wishes.
@@ -43,8 +42,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player, ve
  * @param[out] sprint        True if CTRL is pressed.
  * @param[out] dt            Delta time for this frame.
  */
-void handle_player_input(GLFWwindow* window, float* wish_forward,
-                         float* wish_right, bool* jump_pressed,
-                         bool* sprint, float* dt);
+void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_right,
+                         bool* jump_pressed, bool* sprint);
 
 #endif
