@@ -184,6 +184,7 @@ int main(void) {
                                                 player.camera->position[1] -
                                                     player.eye_offset,
                                                 player.camera->position[2]};
+                glm_vec3_copy(GLM_VEC3_ZERO, player.velocity);
                 glm_vec3_copy(player_updated_position, player.position);
             } else {
                 handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,

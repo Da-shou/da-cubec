@@ -19,7 +19,6 @@ void handle_freecam_switch(GLFWwindow* window, game_config_t* config) {
 
     if (tab_state == GLFW_PRESS && last_tab_state == GLFW_RELEASE) {
         config->free_camera = !config->free_camera;
-        printf("Toggle free camera to %d\n", config->free_camera);
     }
 
     last_tab_state = tab_state;
