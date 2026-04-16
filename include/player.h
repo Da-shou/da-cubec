@@ -30,7 +30,7 @@ typedef struct {
  * @param config Pointer to the current configuration of the game to get the player's attributes.
  * @param spawn Spawn position of the player.
  */
-void player_init(player_t* player, const game_config_t* config, const camera_t* camera, vec3 spawn);
+void player_init(player_t* player, const game_config_t* config, camera_t* camera, vec3 spawn);
 
 /**
  * Updates the player each frame, processing the wished movements of the player.

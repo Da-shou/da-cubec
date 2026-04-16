@@ -6,12 +6,13 @@
 #include "world/blocks.h"
 #include "camera.h"
 
-void player_init(player_t* player, const game_config_t* config, vec3 spawn) {
+void player_init(player_t* player, const game_config_t* config, camera_t* camera, vec3 spawn) {
     glm_vec3_copy(spawn, player->position);
     glm_vec3_zero(player->velocity);
     player->width = config->player_width;
     player->height = config->player_height;
     player->eye_offset = config->player_eye_offset;
+    player->camera = camera;
     player->on_ground = false;
 }
 
