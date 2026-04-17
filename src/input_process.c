@@ -11,17 +11,37 @@
 #include <math.h>
 #include <stdio.h>
 
-void handle_freecam_switch(GLFWwindow* window, game_config_t* config) {
+
+void handle_debug_inputs(GLFWwindow* window, game_config_t* config) {
     static int last_tab_state = GLFW_RELEASE;
-
     const int tab_state = glfwGetKey(window, GLFW_KEY_TAB);
-    if (last_tab_state == tab_state) { return; }
-
-    if (tab_state == GLFW_PRESS && last_tab_state == GLFW_RELEASE) {
+    if (last_tab_state != tab_state && tab_state == GLFW_PRESS &&
+        last_tab_state == GLFW_RELEASE) {
         config->free_camera = !config->free_camera;
     }
-
     last_tab_state = tab_state;
+
+    static int last_pgup_state = GLFW_RELEASE;
+    const int pgup_state = glfwGetKey(window, GLFW_KEY_PAGE_UP);
+    if (last_pgup_state != pgup_state && pgup_state == GLFW_PRESS &&
+        last_pgup_state == GLFW_RELEASE) {
+        if (config->render_distance < MAX_RENDER_DISTANCE) {
+            ++(config->render_distance);
+            printf("Increasing render distance to %d\n", config->render_distance);
+        }
+    }
+    last_pgup_state = pgup_state;
+
+    static int last_pgdown_state = GLFW_RELEASE;
+    const int pgdown_state = glfwGetKey(window, GLFW_KEY_PAGE_DOWN);
+    if (last_pgdown_state != pgdown_state && pgdown_state == GLFW_PRESS &&
+        last_pgdown_state == GLFW_RELEASE) {
+        if (config->render_distance > 1) {
+            --(config->render_distance);
+            printf("Decreasing render distance to %d\n", config->render_distance);
+        }
+    }
+    last_pgdown_state = pgdown_state;
 }
 
 /**

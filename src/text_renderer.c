@@ -38,6 +38,7 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path,
                              TEXT_RENDERER_NUM_CHARS, cdata);
 
     free((void*)font_data);
+    renderer->font_size = font_size;
 
     if (rows_used < 0) {
         (void)fprintf(stderr,
@@ -79,14 +80,23 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path,
 }
 
 void text_renderer_draw(const text_renderer_t* renderer, const char* text,
-                        const float text_x, const float text_y, const float text_color_r,
-                        const float text_color_g, const float text_color_b) {
+                        const vec2 text_pos, const vec3 text_color,
+                        const bool draw_background, const vec3 bg_color,
+                        const float bg_alpha) {
+    if (draw_background == false) { bg_color = NULL; }
+
     /* Build a batch of quads for all printable characters. */
     float vertices[TEXT_RENDERER_MAX_CHARS * 6 * 4];
     int quad_count = 0;
-    float coord_x = text_x;
-    float coord_y = text_y;
+    float coord_x = text_pos[0];
+    float coord_y = text_pos[1];
     const stbtt_bakedchar* const cdata = (const stbtt_bakedchar*)renderer->cdata;
+
+    /* Track bounding box for the background. */
+    float min_x = coord_x;
+    float max_x = coord_x;
+    float min_y = coord_y;
+    float max_y = coord_y;
 
     /* For each character in text that we want to draw, we will create a quad with two
      * triangles to store the single letter. */
@@ -98,7 +108,13 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
             stbtt_aligned_quad quad;
             stbtt_GetBakedQuad(
                 cdata, TEXT_RENDERER_BITMAP_SIZE, TEXT_RENDERER_BITMAP_SIZE,
-                (int)(letter - TEXT_RENDERER_FIRST_CHAR), &coord_x, &coord_y, &quad, 1);
+                (letter - TEXT_RENDERER_FIRST_CHAR), &coord_x, &coord_y, &quad, 1);
+
+            /* Expand bounding box. */
+            if (quad.x0 < min_x) { min_x = quad.x0; }
+            if (quad.x1 > max_x) { max_x = quad.x1; }
+            if (quad.y0 < min_y) { min_y = quad.y0; }
+            if (quad.y1 > max_y) { max_y = quad.y1; }
 
             float* vertex = &vertices[(ptrdiff_t)(quad_count * 24)];
             /* Triangle 1 */
@@ -138,21 +154,43 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-    shader_use(&renderer->shader);
-    shader_set_vec3(&renderer->shader, "text_color",
-                    (vec3) {text_color_r, text_color_g, text_color_b});
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderer->texture_id);
-
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0,
                     (GLsizeiptr)((size_t)(quad_count * 24) * sizeof(float)), vertices);
+
+    if (draw_background) {
+        const float padding = 4.0F;
+        const float background[24] = {
+            min_x - padding, min_y - padding, 0.0F, 0.0F,
+            max_x + padding, min_y - padding, 0.0F, 0.0F,
+            max_x + padding, max_y + padding, 0.0F, 0.0F,
+            max_x + padding, max_y + padding, 0.0F, 0.0F,
+            min_x - padding, max_y + padding, 0.0F, 0.0F,
+            min_x - padding, min_y - padding, 0.0F, 0.0F,
+        };
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(background), background);
+        shader_use(&renderer->shader);
+        /* Temporarily pass bg color as text_color, alpha via a new uniform. */
+        shader_set_vec3(&renderer->shader, "text_color", (float*)bg_color);
+        shader_set_float(&renderer->shader, "force_alpha", bg_alpha);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        /* Re-upload the real text vertices. */
+        glBufferSubData(GL_ARRAY_BUFFER, 0,
+                        (GLsizeiptr)((size_t)(quad_count * 24) * sizeof(float)),
+                        vertices);
+    }
+
+    shader_use(&renderer->shader);
+    shader_set_vec3(&renderer->shader, "text_color", (float*)text_color);
+    shader_set_float(&renderer->shader, "force_alpha", -1.0F); // -1 = sample from texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderer->texture_id);
     glDrawArrays(GL_TRIANGLES, 0, quad_count * 6);
+
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);

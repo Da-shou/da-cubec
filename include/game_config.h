@@ -41,6 +41,9 @@ typedef struct {
     /* World settings */
     float max_reach;
     float sky_color[4];
+
+    /* HUD */
+    float debug_font_size;
 } game_config_t;
 
 /**

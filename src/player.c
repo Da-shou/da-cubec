@@ -154,8 +154,29 @@ void player_update(player_t* player, const game_config_t* config, world_t* world
         player_z = new_pz;
     }
 
-    /* Commit position and sync camera */
+    /* Commit position  */
     glm_vec3_copy((vec3) {player_x, player_y, player_z}, player->position);
+
+    /* Check if player has fallen under the map */
+    if (player->position[1] < 0.0F) {
+        for (int16_t by = CHUNK_SIZE_Y; by > 0; --by) {
+            switch (world_get_block(world, 0, by, 0)) {
+            case BLOCK_AIR: continue;
+            default:
+                glm_vec3_copy(
+                    (vec3) {
+                        0.0F,
+                        (float)by + 1.0F,
+                        0.0F,
+                    },
+                    player->position);
+                break;
+            }
+            if (player->position[1] > 0.0F) { break; }
+        }
+    }
+
+    /* Update camera to be at player position  */
     glm_vec3_copy(player->position, camera->position);
     camera->position[1] += player->eye_offset;
 }

@@ -8,7 +8,7 @@
 #define TEXT_RENDERER_BITMAP_SIZE 512
 #define TEXT_RENDERER_MAX_CHARS 256
 
-/* sizeof(stbtt_bakedchar) == 20 — verified in text_renderer.c */
+/* sizeof(stbtt_bakedchar) */
 #define TEXT_RENDERER_BAKED_CHAR_SIZE 20
 
 /** Stores all attributes necessary for drawing text on the screen. */
@@ -19,6 +19,7 @@ typedef struct {
     unsigned int vbo;
     /* Opaque storage for stbtt_bakedchar[TEXT_RENDERER_NUM_CHARS]. */
     unsigned char cdata[TEXT_RENDERER_NUM_CHARS * TEXT_RENDERER_BAKED_CHAR_SIZE];
+    float font_size;
 } text_renderer_t;
 
 /**
@@ -39,14 +40,14 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path,
  * @brief Draws a string at the given screen position.
  * @param renderer Text renderer to use.
  * @param text Null-terminated string to draw.
- * @param text_x Horizontal position of the text baseline start (pixels from left).
- * @param text_y Vertical position of the text baseline (pixels from top).
- * @param text_color_r Red component of the text color (0–1).
- * @param text_color_g Green component of the text color (0–1).
- * @param text_color_b Blue component of the text color (0–1). */
-void text_renderer_draw(const text_renderer_t* renderer, const char* text, float text_x,
-                        float text_y, float text_color_r, float text_color_g,
-                        float text_color_b);
+ * @param text_pos Position of the text in XY coordinates.
+ * @param text_color color of the text in RGB format.
+ * @param draw_background if the text should have a background
+ * @param bg_color color of the background in RGB format. NULL if no background.
+ * @param bg_alpha tranparancy of the background. */
+void text_renderer_draw(const text_renderer_t* renderer, const char* text,
+                        const vec2 text_pos, const vec3 text_color, bool draw_background,
+                        const vec3 bg_color, float bg_alpha);
 
 /**
  * @brief Frees GPU resources held by a text renderer.

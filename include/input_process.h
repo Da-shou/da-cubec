@@ -49,6 +49,6 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
  * @param window Pointer to the window polling the inputs.
  * @param config Pointer to the config to edit to set the free_camera value.
  */
-void handle_freecam_switch(GLFWwindow* window, game_config_t* config);
+void handle_debug_inputs(GLFWwindow* window, game_config_t* config);
 
 #endif

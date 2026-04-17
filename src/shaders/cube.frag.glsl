@@ -5,12 +5,15 @@ in vec2 texture_coordinates;
 in float camera_distance;
 
 uniform sampler2D current_texture;
-uniform vec3  fog_color;
-uniform float fog_near; // distance where fog starts
-uniform float fog_far; // distance where fog is 100%
-uniform float fog_density;
+uniform int max_render_distance;
+uniform int render_distance;
+uniform vec3 fog_color;
 
 void main() {
+	float fog_far = max_render_distance;
+	float fog_near = max_render_distance * 0.75F;
+	float fog_density = 2.0F;
+
 	vec4 color = texture(current_texture, texture_coordinates);
 
 	/* Normalize distance (0.0 at fog_near, 1.0 at fog_far) */

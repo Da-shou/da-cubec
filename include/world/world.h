@@ -26,6 +26,7 @@ typedef struct {
     chunk_t chunks[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
     int slot_cx[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
     int slot_cz[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
+    bool dirty[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
     int last_player_cx;
     int last_player_cz;
     uint8_t render_distance;
@@ -132,5 +133,12 @@ typedef struct {
  * userdata. Produces stone/sand/dirt/grass columns at heights driven by 2D
  * perlin noise. */
 void world_generator_perlin(chunk_t* chunk, int world_cx, int world_cz, const void* userdata);
+
+/**
+ * @brief Reloads the world in case of a change in render distance
+ * @param world Pointer to the world being reloaded.
+ * @param render_distance The new render distance.
+ */
+void world_reload(world_t* world, int render_distance);
 
 #endif // WORLD_H

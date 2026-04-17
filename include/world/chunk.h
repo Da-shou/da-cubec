@@ -41,7 +41,8 @@ typedef struct {
     uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
     chunk_mesh_t mesh;
     vec3 position;
-    bool modified;
+    bool modified; /* Chunk has been modified and will be saved */
+    bool ready; /* Chunk is ready to draw if true */
 } chunk_t;
 
 /**

@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include <stdbool.h>
+
 #include <cglm/types.h>
 
 #include "camera.h"

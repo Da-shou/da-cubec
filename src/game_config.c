@@ -14,7 +14,7 @@ game_config_t game_config_default(void) {
                             .sensitivity = 0.05F,
                             .speed = 25.0F,
                             .fov = 70.0F,
-                            .free_camera = false,
+                            .free_camera = true,
                             .player_walk_speed = 5.0F,
                             .player_sprint_speed = 10.0F,
                             .player_jump_velocity = 8.5F,
@@ -25,5 +25,6 @@ game_config_t game_config_default(void) {
                             .terminal_velocity = 50.0F,
                             .max_reach = 6.0F,
                             .sky_color = {0.85F, 0.85F, 1.0F, 1.0F},
-                            .render_distance = 16};
+                            .render_distance = 8,
+                            .debug_font_size = 28.0F};
 }

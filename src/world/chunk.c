@@ -34,6 +34,8 @@ void chunk_init(chunk_t* chunk, vec3 position) {
     glm_vec3_copy(position, chunk->position);
     memset(chunk->blocks, 0, sizeof(chunk->blocks));
     chunk_mesh_init(&chunk->mesh);
+    chunk->modified = false;
+    chunk->ready = false;
 }
 
 void chunk_mesh_init(chunk_mesh_t* mesh) {
@@ -62,6 +64,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
             realloc(mesh->vertices, mesh->vertex_capacity * sizeof(chunk_vertex_t));
         if (new_space == NULL) {
             free(mesh->vertices);
+            mesh->vertices = NULL;
             return -1;
         }
         mesh->vertices = new_space;
@@ -73,6 +76,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
             realloc(mesh->indices, mesh->index_capacity * sizeof(unsigned int));
         if (new_space == NULL) {
             free(mesh->indices);
+            mesh->indices = NULL;
             return -1;
         }
         mesh->indices = new_space;
