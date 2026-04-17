@@ -140,7 +140,7 @@ int world_update(world_t* world, const vec3 player_pos) {
     int best_sz = -1;
     int best_dist = INT_MAX;
 
-    /** Getting the closest clean chunk that has not yet been drawn */
+    /* Getting the closest dirty chunk that has not yet been drawn */
     for (int sx = 0; sx < max_loaded_chunk_size; sx++) {
         for (int sz = 0; sz < max_loaded_chunk_size; sz++) {
             if (!world->dirty[sx][sz]) { continue; }

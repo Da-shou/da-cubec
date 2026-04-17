@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef GAME_CONFIG_H
+#define GAME_CONFIG_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -52,4 +52,4 @@ typedef struct {
  */
 game_config_t game_config_default(void);
 
-#endif // CONFIG_H
+#endif // GAME_CONFIG_H

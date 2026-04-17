@@ -48,7 +48,8 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
  * @brief Switches between player view and freecam
  * @param window Pointer to the window polling the inputs.
  * @param config Pointer to the config to edit to set the free_camera value.
+ * @param world Pointer to world to allow world reloading.
  */
-void handle_debug_inputs(GLFWwindow* window, game_config_t* config);
+void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world);
 
 #endif

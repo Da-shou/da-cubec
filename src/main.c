@@ -154,7 +154,7 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        handle_debug_inputs(app_window, &config);
+        handle_debug_inputs(app_window, &config, &world);
 
         const float current_frame = (float)glfwGetTime();
         const float delta_time = current_frame - last_frame;

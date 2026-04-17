@@ -11,8 +11,7 @@
 #include <math.h>
 #include <stdio.h>
 
-
-void handle_debug_inputs(GLFWwindow* window, game_config_t* config) {
+void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world) {
     static int last_tab_state = GLFW_RELEASE;
     const int tab_state = glfwGetKey(window, GLFW_KEY_TAB);
     if (last_tab_state != tab_state && tab_state == GLFW_PRESS &&
@@ -35,11 +34,17 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config) {
     const int pgdown_state = glfwGetKey(window, GLFW_KEY_PAGE_DOWN);
     if (last_pgdown_state != pgdown_state && pgdown_state == GLFW_PRESS &&
         last_pgdown_state == GLFW_RELEASE) {
-        if (config->render_distance > 1) {
-            --(config->render_distance);
-        }
+        if (config->render_distance > 1) { --(config->render_distance); }
     }
     last_pgdown_state = pgdown_state;
+
+    static int last_f3_state = GLFW_RELEASE;
+    const int f3_state = glfwGetKey(window, GLFW_KEY_F3);
+    if (last_f3_state != f3_state && f3_state == GLFW_PRESS &&
+        last_f3_state == GLFW_RELEASE) {
+        world_reload(world, config->render_distance);
+    }
+    last_f3_state = f3_state;
 }
 
 /**
