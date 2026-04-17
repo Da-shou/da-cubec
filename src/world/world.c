@@ -93,7 +93,7 @@ int world_update(world_t* world, const vec3 player_pos) {
                 if (world->slot_cx[sx][sz] == target_cx &&
                     world->slot_cz[sx][sz] == target_cz) {
                     continue;
-                    }
+                }
 
                 chunk_t* slot = &world->chunks[sx][sz];
 
@@ -120,9 +120,10 @@ int world_update(world_t* world, const vec3 player_pos) {
                 if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
                                       slot->blocks)) {
                     if (world->generate) {
-                        world->generate(slot, target_cx, target_cz, world->generator_data);
+                        world->generate(slot, target_cx, target_cz,
+                                        world->generator_data);
                     }
-                                      }
+                }
 
                 world->dirty[sx][sz] = true;
             }
@@ -226,7 +227,7 @@ void world_draw(world_t* world, const shader_t* shader, const material_t* atlas,
     for (int sx = 0; sx < max_loaded_chunk_size; sx++) {
         for (int sz = 0; sz < max_loaded_chunk_size; sz++) {
             /* Making a cube out of the chunks position by using the
-            * furthest separated vertices. */
+             * furthest separated vertices. */
             chunk_t* chunk = &world->chunks[sx][sz];
             if (world->slot_cx[sx][sz] == INT_MIN || !chunk->ready) { continue; }
 
@@ -312,16 +313,38 @@ void world_generator_perlin(chunk_t* chunk, const int world_cx, const int world_
 
 void world_reload(world_t* world, const int render_distance) {
     world->render_distance = render_distance;
+
+    /* Reset dirty flags so we don't try to build meshes for evicted slots */
     memset(world->dirty, 0, sizeof(world->dirty));
+
     const int max_loaded_chunks_size = (world->render_distance * 2) + 1;
-    vec3 dummy;
-    glm_vec3_copy(GLM_VEC3_ZERO, dummy);
     for (int sx = 0; sx < max_loaded_chunks_size; sx++) {
         for (int sz = 0; sz < max_loaded_chunks_size; sz++) {
-            chunk_destroy(&world->chunks[sx][sz]);
-            chunk_init(&world->chunks[sx][sz], dummy);
+            chunk_t* const current_chunk = &world->chunks[sx][sz];
+
+            /* If modified, save the blocks to the store so we don't lose progress */
+            if (current_chunk->modified && world->slot_cx[sx][sz] != INT_MIN) {
+                chunk_store_save(&world->chunk_store, world->slot_cx[sx][sz],
+                                 world->slot_cz[sx][sz], current_chunk->blocks);
+            }
+
+            /* ALWAYS destroy the mesh buffers to prevent memory leaks
+             * and free up OpenGL names. */
+            chunk_destroy(current_chunk);
+
+            /* Re-initialize the chunk structure */
+            chunk_init(current_chunk, GLM_VEC3_ZERO);
+
+            /* Reset the slot trackers. This forces world_update to see these slots as
+               "empty" (INT_MIN), triggering them to reload from the store or re-generate.
+             */
             world->slot_cx[sx][sz] = INT_MIN;
             world->slot_cz[sx][sz] = INT_MIN;
         }
     }
+
+    /* Reset player last known position to force world_update to recalculate everything
+     * immediately on the next frame. */
+    world->last_player_cx = INT_MIN;
+    world->last_player_cz = INT_MIN;
 }
