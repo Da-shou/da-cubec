@@ -27,7 +27,6 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config) {
         last_pgup_state == GLFW_RELEASE) {
         if (config->render_distance < MAX_RENDER_DISTANCE) {
             ++(config->render_distance);
-            printf("Increasing render distance to %d\n", config->render_distance);
         }
     }
     last_pgup_state = pgup_state;
@@ -38,7 +37,6 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config) {
         last_pgdown_state == GLFW_RELEASE) {
         if (config->render_distance > 1) {
             --(config->render_distance);
-            printf("Decreasing render distance to %d\n", config->render_distance);
         }
     }
     last_pgdown_state = pgdown_state;

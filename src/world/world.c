@@ -117,6 +117,8 @@ int world_update(world_t* world, const vec3 player_pos) {
                 world->slot_cx[sx][sz] = target_cx;
                 world->slot_cz[sx][sz] = target_cz;
 
+                /* Checking if there is a chunk stored for these coordinates,
+                 * otherwise generate it using the generator logic */
                 if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
                                       slot->blocks)) {
                     if (world->generate) {
@@ -312,39 +314,36 @@ void world_generator_perlin(chunk_t* chunk, const int world_cx, const int world_
 }
 
 void world_reload(world_t* world, const int render_distance) {
-    world->render_distance = render_distance;
-
-    /* Reset dirty flags so we don't try to build meshes for evicted slots */
-    memset(world->dirty, 0, sizeof(world->dirty));
-
-    const int max_loaded_chunks_size = (world->render_distance * 2) + 1;
-    for (int sx = 0; sx < max_loaded_chunks_size; sx++) {
-        for (int sz = 0; sz < max_loaded_chunks_size; sz++) {
-            chunk_t* const current_chunk = &world->chunks[sx][sz];
-
-            /* If modified, save the blocks to the store so we don't lose progress */
-            if (current_chunk->modified && world->slot_cx[sx][sz] != INT_MIN) {
-                chunk_store_save(&world->chunk_store, world->slot_cx[sx][sz],
-                                 world->slot_cz[sx][sz], current_chunk->blocks);
+    /* Before reloading the world, we check each chunk under the old render distance
+     * to see if some need to be saved before deleting their content */
+    const uint8_t old_max = (world->render_distance * 2) + 1;
+    for (uint8_t sx = 0; sx < old_max; sx++) {
+        for (uint8_t sz = 0; sz < old_max; sz++) {
+            chunk_t* current_chunk = &world->chunks[sx][sz];
+            // Only save if it's a valid modified chunk
+            if (world->slot_cx[sx][sz] != INT_MIN && current_chunk->modified) {
+                chunk_store_save(&world->chunk_store,
+                                 world->slot_cx[sx][sz],
+                                 world->slot_cz[sx][sz],
+                                 current_chunk->blocks);
             }
-
-            /* ALWAYS destroy the mesh buffers to prevent memory leaks
-             * and free up OpenGL names. */
+            /* Safely destroy the meshes of the chunks */
             chunk_destroy(current_chunk);
-
-            /* Re-initialize the chunk structure */
-            chunk_init(current_chunk, GLM_VEC3_ZERO);
-
-            /* Reset the slot trackers. This forces world_update to see these slots as
-               "empty" (INT_MIN), triggering them to reload from the store or re-generate.
-             */
-            world->slot_cx[sx][sz] = INT_MIN;
-            world->slot_cz[sx][sz] = INT_MIN;
         }
     }
 
-    /* Reset player last known position to force world_update to recalculate everything
-     * immediately on the next frame. */
-    world->last_player_cx = INT_MIN;
-    world->last_player_cz = INT_MIN;
+    /* Setting the new render_distance and updating the maximum chunk that can be
+     * rendered */
+    world->render_distance = render_distance;
+    const uint8_t new_max = (render_distance * 2) + 1;
+
+    /* Re-initialize the slots */
+    for (uint8_t sx = 0; sx < new_max; sx++) {
+        for (uint8_t sz = 0; sz < new_max; sz++) {
+            chunk_init(&world->chunks[sx][sz], GLM_VEC3_ZERO);
+            world->slot_cx[sx][sz] = INT_MIN;
+            world->slot_cz[sx][sz] = INT_MIN;
+            world->dirty[sx][sz] = false;
+        }
+    }
 }

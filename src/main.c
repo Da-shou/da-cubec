@@ -331,7 +331,11 @@ void draw_debug_info(const text_renderer_t* text_renderer) {
     (void)snprintf(y_coordinates, sizeof(y_coordinates), "Y : %.3f", player.position[1]);
     char z_coordinates[64];
     (void)snprintf(z_coordinates, sizeof(z_coordinates), "Z : %.3f", player.position[2]);
-    char* coordinates[3] = {x_coordinates, y_coordinates, z_coordinates};
+    char render_distance_text[64];
+    (void)snprintf(render_distance_text, sizeof(render_distance_text),
+                   "Render distance : %d", config.render_distance);
+    char* coordinates[4] = {render_distance_text, x_coordinates, y_coordinates,
+                            z_coordinates};
 
     const float line_spacing = text_renderer->font_size * 1.25F;
     const float margin_bottom = line_spacing - 20.0F;
@@ -344,7 +348,7 @@ void draw_debug_info(const text_renderer_t* text_renderer) {
         (vec2) {10.0F, (float)config.height - margin_bottom - line_spacing}, GLM_VEC3_ONE,
         true, GLM_VEC3_ZERO, 0.33F);
 
-    for (int8_t i = 0; i < 3; i++) {
+    for (int8_t i = 0; i < 4; i++) {
         const float margin_top = 5.0F;
         text_renderer_draw(text_renderer, coordinates[i],
                            (vec2) {10.0F, text_renderer->font_size + margin_top +
