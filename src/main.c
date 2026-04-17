@@ -8,6 +8,8 @@
 #include "shader.h"
 #include "camera.h"
 #include "game_config.h"
+#include "game_context.h"
+#include "callbacks.h"
 #include "input_process.h"
 #include "material.h"
 #include "player.h"
@@ -17,33 +19,6 @@
 #include "world/pointer.h"
 #include "world/world.h"
 
-/* Defining the view and projection matrices. */
-static mat4 view;
-static mat4 projection;
-
-static game_config_t config;
-
-/* First-person camera */
-static camera_t main_camera;
-
-/* target_block is the block currently being pointed at by the player and
- * the one that will be destroyed if left click is pressed. */
-static vec3 target_block;
-static chunk_t* target_chunk;
-/* Neighbour contains the coordinates of the block that will be placed if
- * right click is pressed. */
-static vec3 neighbour;
-static chunk_t* neighbour_chunk;
-
-/* World structure that will contain all of the chunk and block infos */
-static world_t world;
-static player_t player;
-static GLFWwindow* app_window;
-
-/* If focused is true, the mouse is locked and camera movement is enabled.
- */
-static bool focused = false;
-
 /**
  * @brief Draws the name of the executable, version and GLFW/OpenGL version with a
  * text renderer.
@@ -51,43 +26,60 @@ static bool focused = false;
 void draw_debug_info(const text_renderer_t* text_renderer);
 
 /**
- * @brief Called every time a key is pressed. */
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-/**
- * @brief Rotates camera if mouse is locked in the window. */
-static void mouse_callback(GLFWwindow* window, double x_pos, double y_pos);
-
-/**
- * @brief Lock mouse if a left-clicked is performed on the window */
-static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-/**
- * @brief Called every time the window is resized */
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-/**
  * @brief Initializes OpenGL/GLFW features needed to start the game. */
-static void glfw_gl_init();
-
+static GLFWwindow* glfw_gl_init(void);
 static void reload_fog(const shader_t* shader);
 
 int main(void) {
+    static GLFWwindow* game_window;
+
+    /* Defining the view and projection matrices. */
+    static mat4 view;
+    static mat4 projection;
+
+    static game_config_t config;
     config = game_config_default();
 
-    glfw_gl_init();
+    /* First-person camera */
+    static camera_t main_camera;
+
+    /* target_block is the block currently being pointed at by the player and
+     * the one that will be destroyed if left click is pressed. */
+    static vec3 target_block;
+    static chunk_t* target_chunk;
+    /* Neighbour contains the coordinates of the block that will be placed if
+     * right click is pressed. */
+    static vec3 neighbour_block;
+    static chunk_t* neighbour_chunk;
+
+    /* World structure that will contain all of the chunk and block infos */
+    static world_t world;
+    static player_t player;
+
+    /* Text renderer for the HUD debug overlay */
+    text_renderer_t debug_text_renderer;
 
     /* Creating our texture atlas */
     material_t atlas;
-    material_create(&atlas, config.texture_atlas_path);
-
     /* Initalizing our shader */
-    shader_t basic_shader;
-    shader_init(&basic_shader, config.basic_vertex_shader_path,
+    shader_t cube_shader;
+
+    static game_context_t ctx;
+    ctx.focused = false;
+    ctx.main_camera = &main_camera;
+    ctx.config = &config;
+    ctx.target_block = &target_block;
+    ctx.neighbour_block = &neighbour_block;
+    ctx.player = &player;
+    ctx.cube_shader = &cube_shader;
+    set_game_context(&ctx);
+
+    game_window = glfw_gl_init();
+
+    material_create(&atlas, config.texture_atlas_path);
+    shader_init(&cube_shader, config.basic_vertex_shader_path,
                 config.basic_fragment_shader_path);
-
-    reload_fog(&basic_shader);
-
-    /* Text renderer for the HUD debug overlay */
-    static text_renderer_t debug_text_renderer;
+    reload_fog(&cube_shader);
     text_renderer_init(&debug_text_renderer, config.font_path,
                        config.text_vertex_shader_path, config.text_fragment_shader_path,
                        config.debug_font_size, config.width, config.height);
@@ -120,8 +112,8 @@ int main(void) {
     /* Getting the location of our uniform view and projection matrices
      * so that we can acces them in the render loop so we don't ask
      * OpenGL to give us the location each time. */
-    const int view_location = glGetUniformLocation(basic_shader.id, "view");
-    const int projection_location = glGetUniformLocation(basic_shader.id, "projection");
+    const int view_location = glGetUniformLocation(cube_shader.id, "view");
+    const int projection_location = glGetUniformLocation(cube_shader.id, "projection");
 
     /* Replace the camera spawn height with player spawn */
     /* The camera init position will be overwritten by player_update,
@@ -139,7 +131,7 @@ int main(void) {
     static int last_render_distance = MAX_RENDER_DISTANCE;
 
     /* Main window loop */
-    while (!glfwWindowShouldClose(app_window)) {
+    while (!glfwWindowShouldClose(game_window)) {
         /* Calling this function allows us to gather all inputs
          * from the user such as mouse or keyboard. */
         glfwPollEvents();
@@ -154,7 +146,7 @@ int main(void) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        handle_debug_inputs(app_window, &config, &world);
+        handle_debug_inputs(game_window, &config, &world);
 
         const float current_frame = (float)glfwGetTime();
         const float delta_time = current_frame - last_frame;
@@ -163,17 +155,17 @@ int main(void) {
         pov_origin = config.free_camera ? &main_camera.position : &player.position;
 
         /* Apply the view and projection matrices */
-        shader_use(&basic_shader);
+        shader_use(&cube_shader);
         glUniformMatrix4fv(view_location, 1, GL_FALSE, (float*)view);
         glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
-        shader_set_vec3(&basic_shader, "camera_position", (float*)*pov_origin);
+        shader_set_vec3(&cube_shader, "camera_position", (float*)*pov_origin);
 
         if (config.render_distance != last_render_distance) {
             glm_perspective(
                 glm_rad(config.fov), ((float)config.width / (float)config.height), 0.1F,
                 (float)(config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
             world_reload(&world, config.render_distance);
-            reload_fog(&basic_shader);
+            reload_fog(&cube_shader);
         }
         last_render_distance = config.render_distance;
 
@@ -185,7 +177,7 @@ int main(void) {
         glm_mat4_mul(projection, view, view_projection);
         vec4 frustum_planes[6];
         glm_frustum_planes(view_projection, frustum_planes);
-        world_draw(&world, &basic_shader, &atlas, frustum_planes);
+        world_draw(&world, &cube_shader, &atlas, frustum_planes);
 
         /* Stream in/out chunks based on player position. */
 
@@ -201,7 +193,7 @@ int main(void) {
         /* The freecam still updates the player's position so that the world
          * can keep loading. */
         if (config.free_camera) {
-            handle_camera_mouse(app_window, &config, &player, delta_time);
+            handle_camera_mouse(game_window, &config, &player, delta_time);
             vec3 player_updated_position = {player.camera->position[0],
                                             player.camera->position[1] -
                                                 player.eye_offset,
@@ -209,17 +201,17 @@ int main(void) {
             glm_vec3_copy(GLM_VEC3_ZERO, player.velocity);
             glm_vec3_copy(player_updated_position, player.position);
         } else {
-            handle_player_input(app_window, &wish_forward, &wish_right, &jump_pressed,
+            handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
                                 &sprint);
             player_update(&player, &config, &world, player.camera, wish_forward,
                           wish_right, jump_pressed, sprint, delta_time);
 
             const uint8_t block =
                 get_pointed_block(&world, &main_camera, config.max_reach, &target_block,
-                                  &neighbour, &target_chunk, &neighbour_chunk);
+                                  &neighbour_block, &target_chunk, &neighbour_chunk);
             if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(app_window, &world, &player, target_block, neighbour,
-                                  target_chunk, neighbour_chunk)) {
+                if (handle_clicks(game_window, &world, &player, target_block,
+                                  neighbour_block, target_chunk, neighbour_chunk)) {
                     (void)fprintf(stderr,
                                   "Chunk building failed after handle_click, exiting.\n");
                     break;
@@ -231,45 +223,48 @@ int main(void) {
 
         /* Swapping the buffers is a necessary step and I forgot
          * why. */
-        glfwSwapBuffers(app_window);
+        glfwSwapBuffers(game_window);
     }
 
-    shader_destroy(&basic_shader);
+    shader_destroy(&cube_shader);
     text_renderer_destroy(&debug_text_renderer);
     material_destroy(&atlas);
     world_destroy(&world);
 
-    glfwDestroyWindow(app_window);
+    glfwDestroyWindow(game_window);
     glfwTerminate();
 
     printf("%s\n", "Exiting now...");
     return EXIT_SUCCESS;
 }
-
-void glfw_gl_init() {
-    /* Creating window */
+GLFWwindow* glfw_gl_init(void) {
     if (!glfwInit()) {
-        (void)fprintf(stderr, "%s\n", "GLFW could not initialize. Exiting...");
+        (void)fprintf(stderr, "GLFW could not initialize. Exiting...\n");
         exit(EXIT_FAILURE);
     }
 
-    app_window = glfwCreateWindow(config.width, config.height, config.title, NULL, NULL);
-    if (app_window == NULL) {
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    const game_context_t* const context = get_game_context();
+    const game_config_t config = *context->config;
+
+    GLFWwindow* game_window = glfwCreateWindow(config.width, config.height, config.title, NULL, NULL);
+    if (game_window == NULL) {
         (void)fprintf(stderr, "%s\n", "Failed to create GLFW window.");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(app_window);
+    glfwMakeContextCurrent(game_window);
+
     /* Setting all of our callbacks for various events such as moving
      * the cursor, clicking on the window, or resizing the window.*/
-    glfwSetKeyCallback(app_window, key_callback);
-    glfwSetCursorPosCallback(app_window, mouse_callback);
-    glfwSetMouseButtonCallback(app_window, mouse_button_callback);
-    glfwSetFramebufferSizeCallback(app_window, framebuffer_size_callback);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwSetKeyCallback(game_window, key_callback);
+    glfwSetCursorPosCallback(game_window, mouse_callback);
+    glfwSetMouseButtonCallback(game_window, mouse_button_callback);
+    glfwSetFramebufferSizeCallback(game_window, framebuffer_size_callback);
 
     /* Printing compilation and runtime infos */
     const int version = gladLoadGL(glfwGetProcAddress);
@@ -289,7 +284,7 @@ void glfw_gl_init() {
      * from window size on HiDPI/Wayland displays) */
     int fb_width;
     int fb_height;
-    glfwGetFramebufferSize(app_window, &fb_width, &fb_height);
+    glfwGetFramebufferSize(game_window, &fb_width, &fb_height);
     glViewport(0, 0, fb_width, fb_height);
 
     /* Set drawing mode (wireframe or full polygons) */
@@ -299,12 +294,17 @@ void glfw_gl_init() {
     prioritze drawings vertices that are closer to the camera. */
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+
+    return game_window;
 }
 
 void reload_fog(const shader_t* shader) {
     /* Setting our fog variables and sending them to the shader. The fog color will be the
      * same as the sky, fog_near is the distance from the camera from which the fog will
      * start, fog_far is when the fog will be at maximum density.*/
+    const game_context_t* const ctx = get_game_context();
+    const game_config_t config = *ctx->config;
+
     shader_set_vec3(
         shader, "fog_color",
         (vec3) {config.sky_color[0], config.sky_color[1], config.sky_color[2]});
@@ -315,6 +315,10 @@ void reload_fog(const shader_t* shader) {
 
 void draw_debug_info(const text_renderer_t* text_renderer) {
     /* Draw game title in the bottom-left corner */
+
+    const game_context_t* const ctx = get_game_context();
+    const player_t player = *ctx->player;
+    const game_config_t config = *ctx->config;
 
     static int version = 0;
     if (version == 0) { version = gladLoadGL(glfwGetProcAddress); }
@@ -355,43 +359,4 @@ void draw_debug_info(const text_renderer_t* text_renderer) {
                                               (line_spacing * (float)i)},
                            GLM_VEC3_ONE, true, GLM_VEC3_ZERO, 0.33F);
     }
-}
-
-void key_callback(GLFWwindow* window, const int key, const int scancode, const int action,
-                  const int mode) {
-    (void)scancode;
-    (void)mode;
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        const int current = glfwGetInputMode(window, GLFW_CURSOR);
-        if (current == GLFW_CURSOR_DISABLED) {
-            focused = false;
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            camera_reset_mouse();
-        }
-    } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-}
-
-// ReSharper disable once CppParameterMayBeConstPtrOrRef
-void mouse_callback(GLFWwindow* window, const double x_pos, const double y_pos) {
-    (void)window;
-    if (focused) { camera_rotate(&main_camera, (float)x_pos, (float)y_pos, GL_TRUE); }
-}
-
-// ReSharper disable once CppParameterMayBeConstPtrOrRef
-void mouse_button_callback(GLFWwindow* window, const int button, const int action,
-                           const int mods) {
-    (void)mods;
-    if (button != GLFW_MOUSE_BUTTON_LEFT) { return; }
-    if (!focused && action == GLFW_PRESS) {
-        focused = true;
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    }
-}
-
-// ReSharper disable once CppParameterMayBeConstPtrOrRef
-void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
-    (void)window;
-    glViewport(0, 0, width, height);
 }
