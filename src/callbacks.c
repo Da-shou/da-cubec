@@ -42,8 +42,7 @@ void mouse_button_callback(GLFWwindow* window, const int button, const int actio
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
-void framebuffer_size_callback(GLFWwindow* window, const int width,
-                               const int height) {
+void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
     (void)window;
     glViewport(0, 0, width, height);
 }

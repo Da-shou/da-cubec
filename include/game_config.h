@@ -14,8 +14,8 @@ typedef struct {
     const char* version;
 
     /* Filepath for assets */
-    const char* basic_vertex_shader_path;
-    const char* basic_fragment_shader_path;
+    const char* cube_vertex_shader_path;
+    const char* cube_fragment_shader_path;
     const char* text_vertex_shader_path;
     const char* text_fragment_shader_path;
     const char* font_path;

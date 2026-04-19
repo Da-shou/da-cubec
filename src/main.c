@@ -34,19 +34,47 @@ static mat4 s_projection_matrix;
 /**
  * @brief Draws the name of the executable, version and GLFW/OpenGL version with a
  * text renderer.
+ *
+ * @return void
  */
 void draw_debug_info(const text_renderer_t* text_renderer,
                      const game_state_t* game_state);
 
+/**
+ * @brief Initalizes a new game state and returns it.
+ *
+ * @return Returns the static game state that will be used throughout.
+ */
 static game_state_t game_state_init(void);
 
+/**
+ * @brief Main render loop of the game.
+ *
+ * @param game_window Pointer to GLFW window in which the game will be rendered.
+ * @param state Pointer to the static game state containing information which all
+ * functions inside the loop will need and share.
+ */
 static void game_loop(GLFWwindow* game_window, game_state_t* state);
+
+/**
+ * @brief Shutdowns the game, frees all reserved memory and terminates GLFW.
+ *
+ * @param window Pointer to the window to destroy.
+ * @param game_state Pointer to the game state to destroy.
+ */
 static void game_shutdown(GLFWwindow* window, const game_state_t* game_state);
 
 /**
- * @brief Initializes OpenGL/GLFW features needed to start the game. */
+ * @brief Initializes OpenGL/GLFW features needed to start the game.
+ */
 GLFWwindow* glfw_gl_init(int width, int height, const char* title);
 
+/**
+ * @brief Main function of the game. Initializes the game window using GLFW, then creates
+ * a base state for the game. Finally, launches the game render loop with the created
+ * state. Shutsdown when the loop is exited.
+ * @return void
+ */
 int main(void) {
     const game_config_t preconfig = game_config_default();
     GLFWwindow* game_window =
@@ -68,23 +96,21 @@ static game_state_t game_state_init(void) {
     state.player = &s_player;
     state.main_camera = &s_main_camera;
 
-    // Shaders and assets
-    shader_init(&state.cube_shader, state.config.basic_vertex_shader_path,
-                state.config.basic_fragment_shader_path);
+    /* Shader and material creation */
+    shader_init(&state.cube_shader, state.config.cube_vertex_shader_path,
+                state.config.cube_fragment_shader_path);
     material_create(&state.atlas, state.config.texture_atlas_path);
-    reload_fog(&state);
 
-    // Text renderer
+    /* Debug text renderer initalization */
     text_renderer_init(
         &state.debug_text_renderer, state.config.font_path,
         state.config.text_vertex_shader_path, state.config.text_fragment_shader_path,
         state.config.debug_font_size, state.config.width, state.config.height);
 
-    // Camera — initialized twice intentionally, second sets actual spawn
-    camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 127.0F, 0.0F});
+    /* Camera initalization at same position as player */
     camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
-    // Player
+    /* Player initalization */
     player_init(state.player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
     // World
@@ -146,7 +172,7 @@ GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
 
     /* Printing compilation and runtime infos */
     const int version = gladLoadGL(glfwGetProcAddress);
-    printf("\nNow launching application...\n");
+    printf("\nStarting GLFW\n");
     printf("Running on OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version),
            GLAD_VERSION_MINOR(version));
     printf("Compiled against GLFW %i.%i.%i\n", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR,
@@ -156,7 +182,30 @@ GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
     int revision;
     glfwGetVersion(&major, &minor, &revision);
     printf("Running against GLFW %i.%i.%i\n", major, minor, revision);
-    printf("Platform ID %d\n", glfwGetPlatform());
+
+    const char* platform;
+    switch (glfwGetPlatform()) {
+    case GLFW_PLATFORM_WIN32: platform = "Windows"; break;
+    case GLFW_PLATFORM_WAYLAND: platform = "Linux (Wayland)"; break;
+    case GLFW_PLATFORM_X11: platform = "Linux (X11)"; break;
+    case GLFW_PLATFORM_COCOA: platform = "MacOS"; break;
+    default: platform = "Unrecognized"; break;
+    }
+    printf("Platform is %s\n", platform);
+
+    const GLubyte* gpu_vendor = glGetString(GL_VENDOR);
+    const GLubyte* gpu_renderer = glGetString(GL_RENDERER);
+    const GLubyte* gpu_version = glGetString(GL_VERSION);
+    const GLubyte* glsl_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    printf("GPU Vendor is %s\n", gpu_vendor);
+    printf("GPU Renderer is %s\n", gpu_renderer);
+    printf("GPU OpenGL Version is %s\n", gpu_version);
+    printf("GLSL Version is %s\n", glsl_version);
+
+    int extensions_count;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &extensions_count);
+    printf("Loaded %d OpenGL extensions\n", extensions_count);
 
     /* Fix initial viewport using actual framebuffer size (may differ
      * from window size on HiDPI/Wayland displays) */
@@ -219,9 +268,10 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
         shader_set_vec3(&state->cube_shader, "camera_position", (float*)*pov_origin);
 
         if (config->render_distance != last_render_distance) {
-            glm_perspective(
-                glm_rad(config->fov), ((float)config->width / (float)config->height), 0.1F,
-                (float)(config->render_distance + 1) * CHUNK_SIZE_XZ, s_projection_matrix);
+            glm_perspective(glm_rad(config->fov),
+                            ((float)config->width / (float)config->height), 0.1F,
+                            (float)(config->render_distance + 1) * CHUNK_SIZE_XZ,
+                            s_projection_matrix);
             world_reload(&s_world, config->render_distance);
             reload_fog(state);
             last_render_distance = config->render_distance;
