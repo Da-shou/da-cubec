@@ -9,7 +9,6 @@
 #include "cglm/box.h"
 
 #include <math.h>
-#include <stdio.h>
 
 void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world) {
     static int last_tab_state = GLFW_RELEASE;

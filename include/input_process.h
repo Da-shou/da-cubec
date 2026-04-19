@@ -45,7 +45,8 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
                          bool* jump_pressed, bool* sprint);
 
 /**
- * @brief Switches between player view and freecam
+ * @brief Allows the player to reload the chunks, switch between player view and freecam
+ * and allows reloading the chunks.
  * @param window Pointer to the window polling the inputs.
  * @param config Pointer to the config to edit to set the free_camera value.
  * @param world Pointer to world to allow world reloading.

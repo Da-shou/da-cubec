@@ -2,16 +2,15 @@
 #include <cglm/cglm.h>
 
 #include "world/pointer.h"
+#include "game_state.h"
 #include "world/world.h"
 #include "world/blocks.h"
 
-uint8_t get_pointed_block(world_t* world, camera_t* camera, const float max_distance,
-                          vec3* pointed_block, vec3* neighbour_block,
-                          chunk_t** pointed_chunk, chunk_t** neighbour_chunk) {
+uint8_t get_pointed_block(game_state_t* game_state, float max_distance) {
     vec3 pos;
     vec3 dir;
-    glm_vec3_copy(camera->position, pos);
-    glm_vec3_copy(camera->front, dir);
+    glm_vec3_copy(game_state->main_camera->position, pos);
+    glm_vec3_copy(game_state->main_camera->front, dir);
 
     axis_t last_pointed_to = X;
 
@@ -54,22 +53,25 @@ uint8_t get_pointed_block(world_t* world, camera_t* camera, const float max_dist
         const int local_z = camera_z - (chunk_z * CHUNK_SIZE_XZ);
 
         if (camera_y >= 0 && camera_y < CHUNK_SIZE_Y) {
-            chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
+            chunk_t* chunk = world_get_chunk(game_state->world, chunk_x, chunk_z);
             if (chunk == NULL) { continue; }
             const uint8_t block = chunk->blocks[local_x][camera_y][local_z];
             if (block != (uint8_t)BLOCK_AIR) {
                 process_block((vec3) {(float)camera_x, (float)camera_y, (float)camera_z},
-                              last_pointed_to, pointed_block, neighbour_block, step_x,
-                              step_y, step_z);
+                              last_pointed_to, &game_state->target_block,
+                              &game_state->neighbour_block, step_x, step_y, step_z);
 
                 /* Setting the chunk pointer for the targeted block chunk
                  * and for it's neighbour, in case the neighbour is in
                  * a different chunk.*/
-                *pointed_chunk = chunk;
-                const int nb_chunk_x = (int)floorf((*neighbour_block)[0] / CHUNK_SIZE_XZ);
-                const int nb_chunk_z = (int)floorf((*neighbour_block)[2] / CHUNK_SIZE_XZ);
+                game_state->target_chunk = chunk;
+                const int nb_chunk_x =
+                    (int)floorf((game_state->neighbour_block)[0] / CHUNK_SIZE_XZ);
+                const int nb_chunk_z =
+                    (int)floorf((game_state->neighbour_block)[2] / CHUNK_SIZE_XZ);
 
-                *neighbour_chunk = world_get_chunk(world, nb_chunk_x, nb_chunk_z);
+                game_state->neighbour_chunk =
+                    world_get_chunk(game_state->world, nb_chunk_x, nb_chunk_z);
                 return block;
             }
         }

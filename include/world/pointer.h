@@ -1,9 +1,7 @@
 #ifndef POINTER_H
 #define POINTER_H
 
-#include "camera.h"
-#include "world.h"
-#include "chunk.h"
+#include "game_state.h"
 
 typedef enum { X, Y, Z } axis_t;
 
@@ -20,10 +18,7 @@ typedef enum { X, Y, Z } axis_t;
  * @param neighbour_block Pointer to a vec3 that will be filled with the
  * virtual coordinate of the block that could be place. of the block.
  * @returns ID of the block from the block_type_t enum. */
-uint8_t get_pointed_block(world_t* world, camera_t* camera,
-                          float max_distance, vec3* pointed_block,
-                          vec3* neighbour_block, chunk_t** pointed_chunk,
-                          chunk_t** neighbour_chunk);
+uint8_t get_pointed_block(game_state_t* game_state, float max_distance);
 
 /**
  * @brief Takes XYZ coordinates of a block through block_position and an

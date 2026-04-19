@@ -87,11 +87,10 @@ int main(void) {
 }
 
 static game_state_t game_state_init(void) {
+    /* Zero initalization of our state object */
     game_state_t state = {0};
 
     state.config = game_config_default();
-
-    // Point to file-scope structs for large objects
     state.world = &s_world;
     state.player = &s_player;
     state.main_camera = &s_main_camera;
@@ -113,14 +112,15 @@ static game_state_t game_state_init(void) {
     /* Player initalization */
     player_init(state.player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
-    // World
-    static perlin_params_t terrain = {0.01F, 64, 32};
+    /* World generation using perlin noise for the hills */
     world_init(state.world, &state.config);
+    static perlin_params_t terrain = {0.01F, 64, 32};
     state.world->generate = world_generator_perlin;
     state.world->generator_data = &terrain;
     world_update(state.world, GLM_VEC3_ZERO);
 
-    // Matrices
+    /* View and projection matrices calculations, setting the FOV and the min/max drawing
+     * distance. */
     glm_mat4_identity(s_view_matrix);
     glm_translate(s_view_matrix, GLM_VEC3_ZERO);
     glm_mat4_identity(s_projection_matrix);
@@ -129,7 +129,8 @@ static game_state_t game_state_init(void) {
                     (float)(state.config.render_distance + 1) * CHUNK_SIZE_XZ,
                     s_projection_matrix);
 
-    // Cache uniform locations
+    /* Caching uniform locations of the view and projections matrices in the cube shader.
+     */
     state.view_location = glGetUniformLocation(state.cube_shader.id, "view");
     state.projection_location = glGetUniformLocation(state.cube_shader.id, "projection");
 
@@ -252,12 +253,17 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
          * useful ! */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        /* Handling the different debug inputs such as freecam
+         * toggle or reloading chunks */
         handle_debug_inputs(game_window, config, &s_world);
 
+        /* Calculating the delta_time */
         const float current_frame = (float)glfwGetTime();
         const float delta_time = current_frame - last_frame;
-
         last_frame = current_frame;
+
+        /* Setting the correct origin from which to render the world, either the camera or
+         * the player depending on the free_camera boolean in the config */
         pov_origin = config->free_camera ? &s_main_camera.position : &s_player.position;
 
         /* Apply the view and projection matrices */
@@ -267,12 +273,15 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
                            (float*)s_projection_matrix);
         shader_set_vec3(&state->cube_shader, "camera_position", (float*)*pov_origin);
 
+        /* If the render distance was changed by the user, the world needs to be reloaded,
+         * as well as the projection matrix and the fog since they all depend on the
+         * render distance value.*/
         if (config->render_distance != last_render_distance) {
             glm_perspective(glm_rad(config->fov),
                             ((float)config->width / (float)config->height), 0.1F,
                             (float)(config->render_distance + 1) * CHUNK_SIZE_XZ,
                             s_projection_matrix);
-            world_reload(&s_world, config->render_distance);
+            world_reload(state->world, config->render_distance);
             reload_fog(state);
             last_render_distance = config->render_distance;
         }
@@ -285,7 +294,7 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
         glm_mat4_mul(s_projection_matrix, s_view_matrix, view_projection);
         vec4 frustum_planes[6];
         glm_frustum_planes(view_projection, frustum_planes);
-        world_draw(&s_world, &state->cube_shader, &state->atlas, frustum_planes);
+        world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
 
         /* Stream in/out chunks based on player position. */
         const int memcheck = world_update(&s_world, *pov_origin);
@@ -295,6 +304,8 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
             break;
         }
 
+        /* Creates the direction vector depending on the current front vector of the
+         * camera and updates the view matrix according to it. */
         camera_update_view(&s_main_camera, s_view_matrix);
 
         /* The freecam still updates the player's position so that the world
@@ -308,14 +319,18 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
             glm_vec3_copy(GLM_VEC3_ZERO, s_player.velocity);
             glm_vec3_copy(player_updated_position, s_player.position);
         } else {
+            /* Gets the input about the player movement and
+             * updates the direction integers */
             handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
                                 &sprint);
+
+            /* Applies gravity, movement vectors, checks collisions */
             player_update(&s_player, config, &s_world, s_player.camera, wish_forward,
                           wish_right, jump_pressed, sprint, delta_time);
 
-            const uint8_t block = get_pointed_block(
-                &s_world, &s_main_camera, config->max_reach, &state->target_block,
-                &state->neighbour_block, &state->target_chunk, &state->neighbour_chunk);
+            /* Checks what block is currently being pointer at */
+            const uint8_t block = get_pointed_block(state, state->config.max_reach);
+            /* Only handling clicks if the block pointed to is not air. */
             if (block != (uint8_t)BLOCK_AIR) {
                 if (handle_clicks(game_window, &s_world, &s_player, state->target_block,
                                   state->neighbour_block, state->target_chunk,
