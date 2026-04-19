@@ -8,7 +8,7 @@
 #include "shader.h"
 #include "camera.h"
 #include "game_config.h"
-#include "game_context.h"
+#include "game_state.h"
 #include "callbacks.h"
 #include "input_process.h"
 #include "material.h"
@@ -16,228 +16,109 @@
 #include "text_renderer.h"
 #include "world/blocks.h"
 #include "world/chunk.h"
+#include "world/fog.h"
 #include "world/pointer.h"
 #include "world/world.h"
+
+/* World structure that will contain all of the chunk and block infos */
+static world_t s_world;
+static player_t s_player;
+
+/* First-person camera */
+static camera_t s_main_camera;
+
+/* Defining the view and projection matrices. */
+static mat4 s_view_matrix;
+static mat4 s_projection_matrix;
 
 /**
  * @brief Draws the name of the executable, version and GLFW/OpenGL version with a
  * text renderer.
  */
-void draw_debug_info(const text_renderer_t* text_renderer);
+void draw_debug_info(const text_renderer_t* text_renderer,
+                     const game_state_t* game_state);
+
+static game_state_t game_state_init(void);
+
+static void game_loop(GLFWwindow* game_window, game_state_t* state);
+static void game_shutdown(GLFWwindow* window, const game_state_t* game_state);
 
 /**
  * @brief Initializes OpenGL/GLFW features needed to start the game. */
-static GLFWwindow* glfw_gl_init(void);
-static void reload_fog(const shader_t* shader);
+GLFWwindow* glfw_gl_init(int width, int height, const char* title);
 
 int main(void) {
-    static GLFWwindow* game_window;
+    const game_config_t preconfig = game_config_default();
+    GLFWwindow* game_window =
+        glfw_gl_init(preconfig.width, preconfig.height, preconfig.title);
+    game_state_t state = game_state_init();
+    glfwSetWindowUserPointer(game_window, &state);
+    game_loop(game_window, &state);
+    game_shutdown(game_window, &state);
+    return EXIT_SUCCESS;
+}
 
-    /* Defining the view and projection matrices. */
-    static mat4 view;
-    static mat4 projection;
+static game_state_t game_state_init(void) {
+    game_state_t state = {0};
 
-    static game_config_t config;
-    config = game_config_default();
+    state.config = game_config_default();
 
-    /* First-person camera */
-    static camera_t main_camera;
+    // Point to file-scope structs for large objects
+    state.world = &s_world;
+    state.player = &s_player;
+    state.main_camera = &s_main_camera;
 
-    /* target_block is the block currently being pointed at by the player and
-     * the one that will be destroyed if left click is pressed. */
-    static vec3 target_block;
-    static chunk_t* target_chunk;
-    /* Neighbour contains the coordinates of the block that will be placed if
-     * right click is pressed. */
-    static vec3 neighbour_block;
-    static chunk_t* neighbour_chunk;
+    // Shaders and assets
+    shader_init(&state.cube_shader, state.config.basic_vertex_shader_path,
+                state.config.basic_fragment_shader_path);
+    material_create(&state.atlas, state.config.texture_atlas_path);
+    reload_fog(&state);
 
-    /* World structure that will contain all of the chunk and block infos */
-    static world_t world;
-    static player_t player;
+    // Text renderer
+    text_renderer_init(
+        &state.debug_text_renderer, state.config.font_path,
+        state.config.text_vertex_shader_path, state.config.text_fragment_shader_path,
+        state.config.debug_font_size, state.config.width, state.config.height);
 
-    /* Text renderer for the HUD debug overlay */
-    text_renderer_t debug_text_renderer;
+    // Camera — initialized twice intentionally, second sets actual spawn
+    camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 127.0F, 0.0F});
+    camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
-    /* Creating our texture atlas */
-    material_t atlas;
-    /* Initalizing our shader */
-    shader_t cube_shader;
+    // Player
+    player_init(state.player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
-    static game_context_t ctx;
-    ctx.focused = false;
-    ctx.main_camera = &main_camera;
-    ctx.config = &config;
-    ctx.target_block = &target_block;
-    ctx.neighbour_block = &neighbour_block;
-    ctx.player = &player;
-    ctx.cube_shader = &cube_shader;
-    set_game_context(&ctx);
-
-    game_window = glfw_gl_init();
-
-    material_create(&atlas, config.texture_atlas_path);
-    shader_init(&cube_shader, config.basic_vertex_shader_path,
-                config.basic_fragment_shader_path);
-    reload_fog(&cube_shader);
-    text_renderer_init(&debug_text_renderer, config.font_path,
-                       config.text_vertex_shader_path, config.text_fragment_shader_path,
-                       config.debug_font_size, config.width, config.height);
-
-    camera_init(&config, &main_camera, (vec3) {0.0F, 127.0F, 0.0F});
-
+    // World
     static perlin_params_t terrain = {0.01F, 64, 32};
+    world_init(state.world, &state.config);
+    state.world->generate = world_generator_perlin;
+    state.world->generator_data = &terrain;
+    world_update(state.world, GLM_VEC3_ZERO);
 
-    world_init(&world, &config);
-    world.generate = world_generator_perlin;
-    world.generator_data = &terrain;
-    world_update(&world, GLM_VEC3_ZERO);
+    // Matrices
+    glm_mat4_identity(s_view_matrix);
+    glm_translate(s_view_matrix, GLM_VEC3_ZERO);
+    glm_mat4_identity(s_projection_matrix);
+    glm_perspective(glm_rad(state.config.fov),
+                    (float)state.config.width / (float)state.config.height, 0.1F,
+                    (float)(state.config.render_distance + 1) * CHUNK_SIZE_XZ,
+                    s_projection_matrix);
 
-    /* We need a view matrix. To move around the world,
-     * moving the camera is the same as moving the entire
-     * world. Moving backwards = moving the entire scene
-     * forward, etc. */
-    glm_mat4_identity(view);
-    glm_translate(view, GLM_VEC3_ZERO);
-
-    /* Then, we need a projection matrix to make the
-     * perspective appear correctly. Since the calculation are
-     * pretty complex, cglm provides us with the correct and
-     * optimized functions*/
-    glm_mat4_identity(projection);
-    glm_perspective(glm_rad(config.fov), ((float)config.width / (float)config.height),
-                    0.1F, (float)(config.render_distance + 1) * CHUNK_SIZE_XZ,
-                    projection);
-
-    /* Getting the location of our uniform view and projection matrices
-     * so that we can acces them in the render loop so we don't ask
-     * OpenGL to give us the location each time. */
-    const int view_location = glGetUniformLocation(cube_shader.id, "view");
-    const int projection_location = glGetUniformLocation(cube_shader.id, "projection");
+    // Cache uniform locations
+    state.view_location = glGetUniformLocation(state.cube_shader.id, "view");
+    state.projection_location = glGetUniformLocation(state.cube_shader.id, "projection");
 
     /* Replace the camera spawn height with player spawn */
     /* The camera init position will be overwritten by player_update,
        but we still need it for initial vector setup */
-    camera_init(&config, &main_camera, (vec3) {0.0F, 80.0F, 0.0F});
+    camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
     /* Initalizing the global player variables */
-    player_init(&player, &config, &main_camera, (vec3) {0.0F, 80.0F, 0.0F});
-    static float wish_forward = 0.0F;
-    static float wish_right = 0.0F;
-    static float last_frame = 0.0F;
-    static bool jump_pressed = false;
-    static bool sprint = false;
-    static vec3* pov_origin;
-    static int last_render_distance = MAX_RENDER_DISTANCE;
+    player_init(&s_player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
-    /* Main window loop */
-    while (!glfwWindowShouldClose(game_window)) {
-        /* Calling this function allows us to gather all inputs
-         * from the user such as mouse or keyboard. */
-        glfwPollEvents();
-
-        /* Background color */
-        glClearColor(config.sky_color[0], config.sky_color[1], config.sky_color[2],
-                     config.sky_color[3]);
-
-        /* When clearing, we need to clear the buffer bit and also
-         * the depth buffer bit so that information does not stack.
-         * We can use a bitwise OR to do both in one call. Very
-         * useful ! */
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        handle_debug_inputs(game_window, &config, &world);
-
-        const float current_frame = (float)glfwGetTime();
-        const float delta_time = current_frame - last_frame;
-
-        last_frame = current_frame;
-        pov_origin = config.free_camera ? &main_camera.position : &player.position;
-
-        /* Apply the view and projection matrices */
-        shader_use(&cube_shader);
-        glUniformMatrix4fv(view_location, 1, GL_FALSE, (float*)view);
-        glUniformMatrix4fv(projection_location, 1, GL_FALSE, (float*)projection);
-        shader_set_vec3(&cube_shader, "camera_position", (float*)*pov_origin);
-
-        if (config.render_distance != last_render_distance) {
-            glm_perspective(
-                glm_rad(config.fov), ((float)config.width / (float)config.height), 0.1F,
-                (float)(config.render_distance + 1) * CHUNK_SIZE_XZ, projection);
-            world_reload(&world, config.render_distance);
-            reload_fog(&cube_shader);
-        }
-        last_render_distance = config.render_distance;
-
-        /* Calculating the planes that make up the frustum of
-         * the camera then culling everything that is outside the
-         * frustum of the camera. Fortunately the CGLM libraries
-         * has useful functions for this. */
-        mat4 view_projection;
-        glm_mat4_mul(projection, view, view_projection);
-        vec4 frustum_planes[6];
-        glm_frustum_planes(view_projection, frustum_planes);
-        world_draw(&world, &cube_shader, &atlas, frustum_planes);
-
-        /* Stream in/out chunks based on player position. */
-
-        const int memcheck = world_update(&world, *pov_origin);
-        if (memcheck < 0) {
-            (void)fprintf(stderr,
-                          "Memory allocation failure in world_update, exiting.\n");
-            break;
-        }
-
-        camera_update_view(&main_camera, view);
-
-        /* The freecam still updates the player's position so that the world
-         * can keep loading. */
-        if (config.free_camera) {
-            handle_camera_mouse(game_window, &config, &player, delta_time);
-            vec3 player_updated_position = {player.camera->position[0],
-                                            player.camera->position[1] -
-                                                player.eye_offset,
-                                            player.camera->position[2]};
-            glm_vec3_copy(GLM_VEC3_ZERO, player.velocity);
-            glm_vec3_copy(player_updated_position, player.position);
-        } else {
-            handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
-                                &sprint);
-            player_update(&player, &config, &world, player.camera, wish_forward,
-                          wish_right, jump_pressed, sprint, delta_time);
-
-            const uint8_t block =
-                get_pointed_block(&world, &main_camera, config.max_reach, &target_block,
-                                  &neighbour_block, &target_chunk, &neighbour_chunk);
-            if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(game_window, &world, &player, target_block,
-                                  neighbour_block, target_chunk, neighbour_chunk)) {
-                    (void)fprintf(stderr,
-                                  "Chunk building failed after handle_click, exiting.\n");
-                    break;
-                };
-            }
-        }
-
-        draw_debug_info(&debug_text_renderer);
-
-        /* Swapping the buffers is a necessary step and I forgot
-         * why. */
-        glfwSwapBuffers(game_window);
-    }
-
-    shader_destroy(&cube_shader);
-    text_renderer_destroy(&debug_text_renderer);
-    material_destroy(&atlas);
-    world_destroy(&world);
-
-    glfwDestroyWindow(game_window);
-    glfwTerminate();
-
-    printf("%s\n", "Exiting now...");
-    return EXIT_SUCCESS;
+    return state;
 }
-GLFWwindow* glfw_gl_init(void) {
+
+GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
     if (!glfwInit()) {
         (void)fprintf(stderr, "GLFW could not initialize. Exiting...\n");
         exit(EXIT_FAILURE);
@@ -247,10 +128,7 @@ GLFWwindow* glfw_gl_init(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    const game_context_t* const context = get_game_context();
-    const game_config_t config = *context->config;
-
-    GLFWwindow* game_window = glfwCreateWindow(config.width, config.height, config.title, NULL, NULL);
+    GLFWwindow* game_window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (game_window == NULL) {
         (void)fprintf(stderr, "%s\n", "Failed to create GLFW window.");
         glfwTerminate();
@@ -298,27 +176,121 @@ GLFWwindow* glfw_gl_init(void) {
     return game_window;
 }
 
-void reload_fog(const shader_t* shader) {
-    /* Setting our fog variables and sending them to the shader. The fog color will be the
-     * same as the sky, fog_near is the distance from the camera from which the fog will
-     * start, fog_far is when the fog will be at maximum density.*/
-    const game_context_t* const ctx = get_game_context();
-    const game_config_t config = *ctx->config;
+static void game_loop(GLFWwindow* game_window, game_state_t* state) {
+    static float wish_forward = 0.0F;
+    static float wish_right = 0.0F;
+    static float last_frame = 0.0F;
+    static bool jump_pressed = false;
+    static bool sprint = false;
+    static vec3* pov_origin;
+    static int last_render_distance = MAX_RENDER_DISTANCE;
 
-    shader_set_vec3(
-        shader, "fog_color",
-        (vec3) {config.sky_color[0], config.sky_color[1], config.sky_color[2]});
-    const int max_render_distance = config.render_distance * CHUNK_SIZE_XZ;
-    shader_set_int(shader, "max_render_distance", max_render_distance);
-    shader_set_int(shader, "render_distance", config.render_distance);
+    game_config_t* config = &state->config;
+
+    /* Main window loop */
+    while (!glfwWindowShouldClose(game_window)) {
+        /* Calling this function allows us to gather all inputs
+         * from the user such as mouse or keyboard. */
+        glfwPollEvents();
+
+        /* Background color */
+        glClearColor(config->sky_color[0], config->sky_color[1], config->sky_color[2],
+                     config->sky_color[3]);
+
+        /* When clearing, we need to clear the buffer bit and also
+         * the depth buffer bit so that information does not stack.
+         * We can use a bitwise OR to do both in one call. Very
+         * useful ! */
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        handle_debug_inputs(game_window, config, &s_world);
+
+        const float current_frame = (float)glfwGetTime();
+        const float delta_time = current_frame - last_frame;
+
+        last_frame = current_frame;
+        pov_origin = config->free_camera ? &s_main_camera.position : &s_player.position;
+
+        /* Apply the view and projection matrices */
+        shader_use(&state->cube_shader);
+        glUniformMatrix4fv(state->view_location, 1, GL_FALSE, (float*)s_view_matrix);
+        glUniformMatrix4fv(state->projection_location, 1, GL_FALSE,
+                           (float*)s_projection_matrix);
+        shader_set_vec3(&state->cube_shader, "camera_position", (float*)*pov_origin);
+
+        if (config->render_distance != last_render_distance) {
+            glm_perspective(
+                glm_rad(config->fov), ((float)config->width / (float)config->height), 0.1F,
+                (float)(config->render_distance + 1) * CHUNK_SIZE_XZ, s_projection_matrix);
+            world_reload(&s_world, config->render_distance);
+            reload_fog(state);
+            last_render_distance = config->render_distance;
+        }
+
+        /* Calculating the planes that make up the frustum of
+         * the camera then culling everything that is outside the
+         * frustum of the camera. Fortunately the CGLM libraries
+         * has useful functions for this. */
+        mat4 view_projection;
+        glm_mat4_mul(s_projection_matrix, s_view_matrix, view_projection);
+        vec4 frustum_planes[6];
+        glm_frustum_planes(view_projection, frustum_planes);
+        world_draw(&s_world, &state->cube_shader, &state->atlas, frustum_planes);
+
+        /* Stream in/out chunks based on player position. */
+        const int memcheck = world_update(&s_world, *pov_origin);
+        if (memcheck < 0) {
+            (void)fprintf(stderr,
+                          "Memory allocation failure in world_update, exiting.\n");
+            break;
+        }
+
+        camera_update_view(&s_main_camera, s_view_matrix);
+
+        /* The freecam still updates the player's position so that the world
+         * can keep loading. */
+        if (config->free_camera) {
+            handle_camera_mouse(game_window, config, &s_player, delta_time);
+            vec3 player_updated_position = {s_player.camera->position[0],
+                                            s_player.camera->position[1] -
+                                                s_player.eye_offset,
+                                            s_player.camera->position[2]};
+            glm_vec3_copy(GLM_VEC3_ZERO, s_player.velocity);
+            glm_vec3_copy(player_updated_position, s_player.position);
+        } else {
+            handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
+                                &sprint);
+            player_update(&s_player, config, &s_world, s_player.camera, wish_forward,
+                          wish_right, jump_pressed, sprint, delta_time);
+
+            const uint8_t block = get_pointed_block(
+                &s_world, &s_main_camera, config->max_reach, &state->target_block,
+                &state->neighbour_block, &state->target_chunk, &state->neighbour_chunk);
+            if (block != (uint8_t)BLOCK_AIR) {
+                if (handle_clicks(game_window, &s_world, &s_player, state->target_block,
+                                  state->neighbour_block, state->target_chunk,
+                                  state->neighbour_chunk)) {
+                    (void)fprintf(stderr,
+                                  "Chunk building failed after handle_click, exiting.\n");
+                    break;
+                };
+            }
+        }
+
+        draw_debug_info(&state->debug_text_renderer, state);
+
+        /* Swapping the buffers is a necessary step and I forgot
+         * why. */
+        glfwSwapBuffers(game_window);
+    }
 }
 
-void draw_debug_info(const text_renderer_t* text_renderer) {
+void draw_debug_info(const text_renderer_t* text_renderer,
+                     const game_state_t* game_state) {
     /* Draw game title in the bottom-left corner */
 
-    const game_context_t* const ctx = get_game_context();
-    const player_t player = *ctx->player;
-    const game_config_t config = *ctx->config;
+    const player_t player = *game_state->player;
+    const game_config_t config = game_state->config;
 
     static int version = 0;
     if (version == 0) { version = gladLoadGL(glfwGetProcAddress); }
@@ -359,4 +331,13 @@ void draw_debug_info(const text_renderer_t* text_renderer) {
                                               (line_spacing * (float)i)},
                            GLM_VEC3_ONE, true, GLM_VEC3_ZERO, 0.33F);
     }
+}
+
+static void game_shutdown(GLFWwindow* window, const game_state_t* game_state) {
+    shader_destroy(&game_state->cube_shader);
+    text_renderer_destroy(&game_state->debug_text_renderer);
+    material_destroy(&game_state->atlas);
+    world_destroy(game_state->world);
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }
