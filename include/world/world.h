@@ -139,6 +139,6 @@ void world_generator_perlin(chunk_t* chunk, int world_cx, int world_cz, const vo
  * @param world Pointer to the world being reloaded.
  * @param render_distance The new render distance.
  */
-void world_reload(world_t* world, int render_distance);
+void world_reload(world_t* world, uint8_t render_distance);
 
 #endif // WORLD_H

@@ -15,7 +15,7 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Defining compilations flags
-set(COMPILATION_FLAGS "-Wall -Wextra -O3")
+set(COMPILATION_FLAGS "-Wall -Wextra -Wconversion -Wpedantic -O3")
 set(BUILD_SHARED_LIBS OFF)
 
 # Adding all .c files in src
@@ -23,7 +23,8 @@ file(GLOB_RECURSE SOURCES "src/*.c")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Setting the compile flags just for da-cubec executable
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${COMPILATION_FLAGS})
+set_target_properties(${PROJECT_NAME} 
+	PROPERTIES COMPILE_FLAGS ${COMPILATION_FLAGS})
 
 # Including our own header files to the project
 target_include_directories(${PROJECT_NAME} PRIVATE include)
@@ -42,7 +43,7 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw OpenGL::GL)
 
 # stb_image.h
-target_include_directories(${PROJECT_NAME} PUBLIC external/stb)
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC external/stb)
 
 # cglm.h
 # From documentation

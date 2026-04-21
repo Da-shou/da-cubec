@@ -22,7 +22,7 @@ static int chunk_to_slot(const int coord, const int max_load) {
 }
 
 void world_init(world_t* world, const game_config_t* config) {
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
     world->last_player_cx = INT_MIN;
     world->last_player_cz = INT_MIN;
     world->render_distance = config->render_distance;
@@ -100,7 +100,7 @@ int world_update(world_t* world, const vec3 player_pos) {
                 /* Persist modified chunks before evicting. */
                 if (slot->modified && world->slot_cx[sx][sz] != INT_MIN) {
                     chunk_store_save(&world->chunk_store, world->slot_cx[sx][sz],
-                                     world->slot_cz[sx][sz], slot->blocks);
+                                     world->slot_cz[sx][sz], (void*)slot->blocks);
                 }
 
                 /* Clear blocks and reset mesh counters. */
@@ -313,13 +313,13 @@ void world_generator_perlin(chunk_t* chunk, const int world_cx, const int world_
     }
 }
 
-void world_reload(world_t* world, const int render_distance) {
+void world_reload(world_t* world, const uint8_t render_distance) {
     /* Before reloading the world, we check each chunk under the old render distance
      * to see if some need to be saved before deleting their content */
-    const uint8_t old_max = (world->render_distance * 2) + 1;
+    const uint8_t old_max = (uint8_t)((world->render_distance * 2) + 1);
     for (uint8_t sx = 0; sx < old_max; sx++) {
         for (uint8_t sz = 0; sz < old_max; sz++) {
-            chunk_t* current_chunk = &world->chunks[sx][sz];
+            const chunk_t* current_chunk = &world->chunks[sx][sz];
             // Only save if it's a valid modified chunk
             if (world->slot_cx[sx][sz] != INT_MIN && current_chunk->modified) {
                 chunk_store_save(&world->chunk_store,
@@ -328,14 +328,14 @@ void world_reload(world_t* world, const int render_distance) {
                                  current_chunk->blocks);
             }
             /* Safely destroy the meshes of the chunks */
-            chunk_destroy(current_chunk);
+            chunk_destroy((void*)current_chunk);
         }
     }
 
     /* Setting the new render_distance and updating the maximum chunk that can be
      * rendered */
     world->render_distance = render_distance;
-    const uint8_t new_max = (render_distance * 2) + 1;
+    const uint8_t new_max = (uint8_t)((render_distance * 2) + 1);
 
     /* Re-initialize the slots */
     for (uint8_t sx = 0; sx < new_max; sx++) {
