@@ -1,65 +1,18 @@
 /* gl has to be included before GLFW */
+#include "material.h"
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
-#include "shader.h"
-#include "camera.h"
-#include "game_config.h"
-#include "game_state.h"
 #include "callbacks.h"
 #include "input_process.h"
-#include "material.h"
-#include "player.h"
-#include "text_renderer.h"
 #include "hud/debug_ui.h"
-#include "world/blocks.h"
-#include "world/chunk.h"
-#include "world/fog.h"
 #include "world/pointer.h"
-#include "world/world.h"
-
-/* World structure that will contain all of the chunk and block infos */
-static world_t s_world;
-static player_t s_player;
-
-/* First-person camera */
-static camera_t s_main_camera;
-
-/* Defining the view and projection matrices. */
-static mat4 s_view_matrix;
-static mat4 s_projection_matrix;
-
-/**
- * @brief Initalizes a new game state and returns it.
- *
- * @return Returns the static game state that will be used throughout.
- */
-static game_state_t game_state_init(void);
-
-/**
- * @brief Main render loop of the game.
- *
- * @param game_window Pointer to GLFW window in which the game will be rendered.
- * @param state Pointer to the static game state containing information which all
- * functions inside the loop will need and share.
- */
-static void game_loop(GLFWwindow* game_window, game_state_t* state);
-
-/**
- * @brief Shutdowns the game, frees all reserved memory and terminates GLFW.
- *
- * @param window Pointer to the window to destroy.
- * @param game_state Pointer to the game state to destroy.
- */
-static void game_shutdown(GLFWwindow* window, const game_state_t* game_state);
-
-/**
- * @brief Initializes OpenGL/GLFW features needed to start the game.
- */
-GLFWwindow* glfw_gl_init(int width, int height, const char* title);
+#include "world/fog.h"
+#include "world/blocks.h"
+#include "main.h"
 
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
@@ -68,9 +21,8 @@ GLFWwindow* glfw_gl_init(int width, int height, const char* title);
  * @return void
  */
 int main(void) {
-    const game_config_t preconfig = game_config_default();
     GLFWwindow* game_window =
-        glfw_gl_init(preconfig.width, preconfig.height, preconfig.title);
+        glfw_gl_init(INITIAL_WIDTH, INITIAL_HEIGHT, INITIAL_WINDOW_TITLE);
     game_state_t state = game_state_init();
     glfwSetWindowUserPointer(game_window, &state);
     game_loop(game_window, &state);
