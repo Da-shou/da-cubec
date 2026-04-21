@@ -23,7 +23,7 @@ file(GLOB_RECURSE SOURCES "src/*.c")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Setting the compile flags just for da-cubec executable
-set_target_properties(${PROJECT_NAME} 
+set_target_properties(${PROJECT_NAME}
 	PROPERTIES COMPILE_FLAGS ${COMPILATION_FLAGS})
 
 # Including our own header files to the project
@@ -54,6 +54,24 @@ option(CGLM_USE_TEST "Enable Tests" OFF)
 add_subdirectory(external/cglm)
 target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
 
+find_package(Doxygen REQUIRED)
+if (DOXYGEN_FOUND)
+	set(DOXYGEN_PROJECT_NAME ${PROJECT_NAME})
+	set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/docs")
+	set(DOXYGEN_GENERATE_HTML YES)
+	set(DOXYGEN_GENERATE_LATEX YES)
+	set(DOXYGEN_EXTRACT_ALL YES)
+	set(DOXYGEN_EXTRACT_STATIC YES)
+	set(DOXYGEN_RECURSIVE YES)
+
+	doxygen_add_docs(
+		doc
+		${PROJECT_SOURCE_DIR}/src
+		${PROJECT_SOURCE_DIR}/include
+		COMMENT "Generating API documentation with Doxygen"
+	)
+endif()
+
 if(UNIX)
-        target_link_libraries(${PROJECT_NAME} PRIVATE pthread dl X11)
+	target_link_libraries(${PROJECT_NAME} PRIVATE pthread dl X11)
 endif()

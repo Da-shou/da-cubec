@@ -12,8 +12,10 @@ fi
 # Compile project using CMake
 if [[ "$OSTYPE" == "msys" ]]; then
 	cmake -G "MinGW Makefiles" -S . -B "$BUILD"
+	cmake -B "$BUILD" --target doc
 elif [[ "$OSTYPE" == "linux-gnu" ]]; then
 	cmake -S . -B "$BUILD"
+	cmake --build "$BUILD" --target doc
 fi
 
 # Clean files if asked to
