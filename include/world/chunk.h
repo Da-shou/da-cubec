@@ -1,5 +1,17 @@
+/**
+ * @file chunk.h
+ * Header file containing all structs and functions used to create, build and display
+ * chunks in a game world. Chunks are first made of an 3-dimensional array of blocks,
+ * which are then compiled into a single mesh that is rendered at once by the GPU. This
+ * allows for much faster rendering as the GPU doesn't need to draw each block and has
+ * to check for much less face culling when two block face each other.
+ * @authors {Da-shou}
+ */
+
 #ifndef CHUNK_H
 #define CHUNK_H
+
+#include <glad/gl.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -17,32 +29,40 @@ static const size_t starting_chunk_capacity = 1024;
  * total amount depends on the number of blocks in the chunk. The values
  * are packed into a signle uint32_t and are then unpacked in the vertex
  * shader to lighten the rendering process by lightening the buffer data
- * sent to the GPU. */
+ * sent to the GPU.
+ */
 typedef uint32_t chunk_vertex_t;
 
 /**
  * @brief Represents the mesh of a chunk. This is then rendered by OpenGL
- * in a single call to draw all elements. */
+ * in a single call to draw all elements.
+ */
 typedef struct {
-    chunk_vertex_t* vertices;
-    unsigned int* indices;
-    size_t vertex_count;
-    size_t index_count;
-    size_t vertex_capacity;
-    size_t index_capacity;
-    unsigned int vao, vbo, eao;
+    chunk_vertex_t* vertices; /**< Contains all vertices of the chunk. */
+    unsigned int* indices;    /**< Contains all indices to be reused when drawing */
+    size_t vertex_count;      /**< Size of the vertices array */
+    size_t index_count;       /**< Size of the indices array */
+    size_t vertex_capacity;   /**< Capacity of the indices array */
+    size_t index_capacity;    /**< Capacity of the indices array */
+    GLuint vao; /**< ID of the Vertex Array Obejct used to draw this chunk */
+    GLuint vbo; /**< ID of the Vertex Buffer Object used to draw this chunk */
+    GLuint eao; /**< ID of the Element Buffer Array used to draw this chunk */
 } chunk_mesh_t;
 
 /**
  * @brief A chunk stores CHUNK_SIZE_XZ * 2 * CHUNK_SIZE_Y blocks. This
  * allows us to create a big mesh made out of these blocks and render it
- * with one call instead of multiple calls. */
+ * with one call instead of multiple calls.
+ */
 typedef struct {
-    uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ];
-    chunk_mesh_t mesh;
-    vec3 position;
-    bool modified; /* Chunk has been modified and will be saved */
-    bool ready; /* Chunk is ready to draw if true */
+    uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]; /**< 3-dimensional
+    array storing the id of each block (is it air, grass, stone, etc..) Each position
+    correspond to the local position of the block in the chunk. */
+
+    chunk_mesh_t mesh; /** Informations about the 3D mesh of the chunk */
+    vec3 position;     /**< Position of the chunk in world-space coordinates */
+    bool modified;     /**< True if chunk has been modified and will be saved */
+    bool ready;        /**< True if chunk is ready to draw */
 } chunk_t;
 
 /**
@@ -51,22 +71,24 @@ typedef struct {
  * on different chunks.
  */
 typedef struct {
-    const chunk_t* west;  // x-1
-    const chunk_t* east;  // x+1
-    const chunk_t* south; // z-1
-    const chunk_t* north; // z+1
+    const chunk_t* west;  /**< Pointer to the chunk at x-1 */
+    const chunk_t* east;  /**< Pointer to the chunk at x+1 */
+    const chunk_t* south; /**< Pointer to the chunk at z-1 */
+    const chunk_t* north; /**< Pointer to the chunk at z+1 */
 } chunk_neighbours_t;
 
 /**
  * @brief Initializes a chunk to be full of air.
  * @param chunk Pointer to the chunk that will be initalized.
- * @param position Where the chunk will be positioned. */
+ * @param position Where the chunk will be positioned.
+ */
 void chunk_init(chunk_t* chunk, vec3 position);
 
 /**
  * @brief Initalizes the chunk with a base size and allocates memory for
  * the vertices and indices arrays.
- * @param mesh Pointer to the chunk mesh that will be initailized. */
+ * @param mesh Pointer to the chunk mesh that will be initailized.
+ */
 void chunk_mesh_init(chunk_mesh_t* mesh);
 
 /**

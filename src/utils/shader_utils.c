@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>
-
+#include "gl_glfw_include.h"
 #include "utils/shader_utils.h"
 #include "utils/io_utils.h"
 

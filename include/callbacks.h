@@ -1,6 +1,7 @@
 #ifndef CALLBACKS_H
 #define CALLBACKS_H
-#include <GLFW/glfw3.h>
+
+#include "gl_glfw_include.h"
 
 /**
  * @brief Function to pass as callback to GLFW window. Allows to use escape

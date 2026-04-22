@@ -1,10 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <GLFW/glfw3.h>
 #include <cglm/types.h>
-
 #include "game_config.h"
+#include "gl_glfw_include.h"
 
 /**
  * @brief Helper enum to make the moving of the camera more readable. */

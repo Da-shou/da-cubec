@@ -10,9 +10,9 @@ if [[ $2 == tidy ]] || [[ $1 == tidy ]]; then
 fi
 
 # Compile project using CMake
-if [[ "$OSTYPE" == "msys" ]]; then
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
 	cmake -G "MinGW Makefiles" -S . -B "$BUILD"
-	cmake -B "$BUILD" --target doc
+	cmake --build "$BUILD" --target doc
 elif [[ "$OSTYPE" == "linux-gnu" ]]; then
 	cmake -S . -B "$BUILD"
 	cmake --build "$BUILD" --target doc

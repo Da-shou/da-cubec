@@ -1,5 +1,6 @@
 #ifndef GAME_STATE_H
 #define GAME_STATE_H
+
 #include "material.h"
 #include "player.h"
 #include "text_renderer.h"

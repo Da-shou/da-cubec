@@ -1,5 +1,3 @@
-#include <GLFW/glfw3.h>
-
 #include "callbacks.h"
 #include "game_state.h"
 #include "camera.h"

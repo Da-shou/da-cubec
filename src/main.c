@@ -1,11 +1,7 @@
-/* gl has to be included before GLFW */
-#include "material.h"
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>
-
-#include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 
+#include "material.h"
+#include "gl_glfw_include.h"
 #include "callbacks.h"
 #include "input_process.h"
 #include "hud/debug_ui.h"

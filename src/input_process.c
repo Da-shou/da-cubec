@@ -1,5 +1,4 @@
-#include <GLFW/glfw3.h>
-
+#include "gl_glfw_include.h"
 #include "camera.h"
 #include "world/blocks.h"
 #include "world/chunk.h"

@@ -1,7 +1,6 @@
 #include <stdbool.h>
 
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>
+#include "gl_glfw_include.h"
 
 #include "shader.h"
 #include "utils/shader_utils.h"

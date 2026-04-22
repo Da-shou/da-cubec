@@ -8,6 +8,7 @@ AlignTrailingComments:
   OverEmptyLines: 2
 
 AlignArrayOfStructures: None
+AlignConsecutiveAssignments: Consecutive
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseExpressionOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true

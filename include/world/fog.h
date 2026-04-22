@@ -2,7 +2,6 @@
 #define WORLD_FOG_H
 
 #include "game_state.h"
-#include "shader.h"
 
 /**
  * @brief Reload the fog values based on the render distance in the configuration.
