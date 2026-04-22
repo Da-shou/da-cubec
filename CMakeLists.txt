@@ -54,7 +54,7 @@ option(CGLM_USE_TEST "Enable Tests" OFF)
 add_subdirectory(external/cglm)
 target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
 
-find_package(Doxygen REQUIRED)
+find_package(Doxygen REQUIRED dot)
 if (DOXYGEN_FOUND)
 	set(DOXYGEN_PROJECT_NAME ${PROJECT_NAME})
 	set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/docs")
@@ -63,6 +63,14 @@ if (DOXYGEN_FOUND)
 	set(DOXYGEN_EXTRACT_ALL YES)
 	set(DOXYGEN_EXTRACT_STATIC YES)
 	set(DOXYGEN_RECURSIVE YES)
+	set(DOXYGEN_HAVE_DOT YES)
+        set(DOXYGEN_CALL_GRAPH YES)        # who this function calls
+        set(DOXYGEN_CALLER_GRAPH YES)      # who calls this function
+        set(DOXYGEN_CLASS_GRAPH YES)       # class hierarchy
+        set(DOXYGEN_INCLUDE_GRAPH YES)     # #include dependencies
+        set(DOXYGEN_INCLUDED_BY_GRAPH YES)
+        set(DOXYGEN_COLLABORATION_GRAPH YES)
+        set(DOXYGEN_DOT_IMAGE_FORMAT svg)  # svg looks sharper than png
 
 	doxygen_add_docs(
 		doc
@@ -70,6 +78,14 @@ if (DOXYGEN_FOUND)
 		${PROJECT_SOURCE_DIR}/include
 		COMMENT "Generating API documentation with Doxygen"
 	)
+
+    add_custom_target(doc_pdf
+            WORKING_DIRECTORY "${DOXYGEN_OUTPUT_DIRECTORY}/latex"
+            COMMAND "make"
+            DEPENDS doc
+            COMMENT "Compiling LaTeX documentation to PDF"
+            VERBATIM
+    )
 endif()
 
 if(UNIX)

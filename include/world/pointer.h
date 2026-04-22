@@ -8,15 +8,8 @@ typedef enum { X, Y, Z } axis_t;
 /**
  * @brief Returns the type of block that has been scanned using a raycast
  * in the chunk array. Uses the Fast Voxel Traversal Algorithm.
- * @param world Pointer to the world to look up in.
- * @param camera Pointer to the camera that the raycast will start from
- * @param max_distance Max length of the raycast
- * @param pointed_block Pointer to a vec3 that will be filled with the
- * coordinates
- * @param pointed_chunk Pointer of chunk that the block is in.
- * @param neighbour_chunk Pointer of the chunk that the neighbour is in.
- * @param neighbour_block Pointer to a vec3 that will be filled with the
- * virtual coordinate of the block that could be place. of the block.
+ * @param game_state Pointer to current game_state
+ * @param max_distance How far the pointed block can be
  * @returns ID of the block from the block_type_t enum. */
 uint8_t get_pointed_block(game_state_t* game_state, float max_distance);
 
@@ -33,7 +26,7 @@ uint8_t get_pointed_block(game_state_t* game_state, float max_distance);
  * with the coordinates of the neighbouring block once found.
  * @param step_x, step_y, step_z Distances to travel to get to the
  * neighbour block.
- * @returns void */
+ */
 void process_block(vec3 block_position, axis_t last, vec3* pointed_block,
                    vec3* neighbour_block, int step_x, int step_y,
                    int step_z);

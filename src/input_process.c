@@ -11,7 +11,7 @@
 
 void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world) {
     static int last_tab_state = GLFW_RELEASE;
-    const int tab_state = glfwGetKey(window, GLFW_KEY_TAB);
+    const int tab_state       = glfwGetKey(window, GLFW_KEY_TAB);
     if (last_tab_state != tab_state && tab_state == GLFW_PRESS &&
         last_tab_state == GLFW_RELEASE) {
         config->free_camera = !config->free_camera;
@@ -19,7 +19,7 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     last_tab_state = tab_state;
 
     static int last_pgup_state = GLFW_RELEASE;
-    const int pgup_state = glfwGetKey(window, GLFW_KEY_PAGE_UP);
+    const int pgup_state       = glfwGetKey(window, GLFW_KEY_PAGE_UP);
     if (last_pgup_state != pgup_state && pgup_state == GLFW_PRESS &&
         last_pgup_state == GLFW_RELEASE) {
         if (config->render_distance < MAX_RENDER_DISTANCE) {
@@ -29,7 +29,7 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     last_pgup_state = pgup_state;
 
     static int last_pgdown_state = GLFW_RELEASE;
-    const int pgdown_state = glfwGetKey(window, GLFW_KEY_PAGE_DOWN);
+    const int pgdown_state       = glfwGetKey(window, GLFW_KEY_PAGE_DOWN);
     if (last_pgdown_state != pgdown_state && pgdown_state == GLFW_PRESS &&
         last_pgdown_state == GLFW_RELEASE) {
         if (config->render_distance > 1) { --(config->render_distance); }
@@ -37,7 +37,7 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     last_pgdown_state = pgdown_state;
 
     static int last_f3_state = GLFW_RELEASE;
-    const int f3_state = glfwGetKey(window, GLFW_KEY_F3);
+    const int f3_state       = glfwGetKey(window, GLFW_KEY_F3);
     if (last_f3_state != f3_state && f3_state == GLFW_PRESS &&
         last_f3_state == GLFW_RELEASE) {
         world_reload(world, config->render_distance);
@@ -82,7 +82,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
                   chunk_t* neighbour_chunk) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
-    static int memcheck = 0;
+    static int memcheck      = 0;
 
     const int lc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     const int rc_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
@@ -96,7 +96,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
         const int local_z = (int)floorf(target_block[2]) - (chunk_z * CHUNK_SIZE_XZ);
 
         target_chunk->blocks[local_x][local_y][local_z] = (uint8_t)BLOCK_AIR;
-        target_chunk->modified = true;
+        target_chunk->modified                          = true;
         world_rebuild_after_change(world, chunk_x, chunk_z, local_x, local_z);
     }
 
@@ -105,20 +105,20 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
         if (!world_valid_position(world, neighbour)) { return 0; }
 
-        const int chunk_x = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
-        const int chunk_z = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
+        const int chunk_x   = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
+        const int chunk_z   = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
         const int n_local_x = (int)floorf(neighbour[0]) - (chunk_x * CHUNK_SIZE_XZ);
         const int n_local_y = (int)floorf(neighbour[1]);
         const int n_local_z = (int)floorf(neighbour[2]) - (chunk_z * CHUNK_SIZE_XZ);
 
         /* Player AABB */
         const float player_half_width = player->width / 2.0F;
-        vec3 player_aabb[2] = {{player->position[0] - player_half_width,
-                                player->position[1],
-                                player->position[2] - player_half_width},
-                               {player->position[0] + player_half_width,
-                                player->position[1] + player->height,
-                                player->position[2] + player_half_width}};
+        vec3 player_aabb[2]           = {{player->position[0] - player_half_width,
+                                          player->position[1],
+                                          player->position[2] - player_half_width},
+                                         {player->position[0] + player_half_width,
+                                          player->position[1] + player->height,
+                                          player->position[2] + player_half_width}};
 
         /* Block AABB */
         vec3 block_aabb[2] = {
@@ -152,9 +152,9 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
 void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_right,
                          bool* jump_pressed, bool* sprint) {
     *wish_forward = 0.0F;
-    *wish_right = 0.0F;
+    *wish_right   = 0.0F;
     *jump_pressed = false;
-    *sprint = false;
+    *sprint       = false;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) { *wish_forward += 1.0F; }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) { *wish_forward -= 1.0F; }

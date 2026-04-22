@@ -20,7 +20,7 @@ void text_renderer_init(text_renderer_t* renderer, const char* font_path,
                         const float font_size, const int screen_width,
                         const int screen_height) {
     /* Load the TTF file into memory. */
-    long font_size_bytes = 0;
+    long font_size_bytes           = 0;
     const unsigned char* font_data = NULL;
     read_file_bytes(font_path, &font_data, &font_size_bytes);
 
@@ -87,9 +87,9 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
 
     /* Build a batch of quads for all printable characters. */
     float vertices[TEXT_RENDERER_MAX_CHARS * 6 * 4];
-    int quad_count = 0;
-    float coord_x = text_pos[0];
-    float coord_y = text_pos[1];
+    int quad_count                     = 0;
+    float coord_x                      = text_pos[0];
+    float coord_y                      = text_pos[1];
     const stbtt_bakedchar* const cdata = (const stbtt_bakedchar*)renderer->cdata;
 
     /* Track bounding box for the background. */
@@ -118,16 +118,16 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
 
             float* vertex = &vertices[(ptrdiff_t)(quad_count * 24)];
             /* Triangle 1 */
-            vertex[0] = quad.x0;
-            vertex[1] = quad.y0;
-            vertex[2] = quad.s0;
-            vertex[3] = quad.t0;
-            vertex[4] = quad.x1;
-            vertex[5] = quad.y0;
-            vertex[6] = quad.s1;
-            vertex[7] = quad.t0;
-            vertex[8] = quad.x1;
-            vertex[9] = quad.y1;
+            vertex[0]  = quad.x0;
+            vertex[1]  = quad.y0;
+            vertex[2]  = quad.s0;
+            vertex[3]  = quad.t0;
+            vertex[4]  = quad.x1;
+            vertex[5]  = quad.y0;
+            vertex[6]  = quad.s1;
+            vertex[7]  = quad.t0;
+            vertex[8]  = quad.x1;
+            vertex[9]  = quad.y1;
             vertex[10] = quad.s1;
             vertex[11] = quad.t1;
             /* Triangle 2 */
@@ -160,7 +160,7 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
                     (GLsizeiptr)((size_t)(quad_count * 24) * sizeof(float)), vertices);
 
     if (draw_background) {
-        const float padding = 4.0F;
+        const float padding        = 4.0F;
         const float background[24] = {
             min_x - padding, min_y - padding, 0.0F, 0.0F,
             max_x + padding, min_y - padding, 0.0F, 0.0F,

@@ -10,11 +10,11 @@ void player_init(player_t* player, const game_config_t* config, camera_t* camera
                  vec3 spawn) {
     glm_vec3_copy(spawn, player->position);
     glm_vec3_zero(player->velocity);
-    player->width = config->player_width;
-    player->height = config->player_height;
+    player->width      = config->player_width;
+    player->height     = config->player_height;
     player->eye_offset = config->player_eye_offset;
-    player->camera = camera;
-    player->on_ground = false;
+    player->camera     = camera;
+    player->on_ground  = false;
 }
 
 /**
@@ -51,14 +51,14 @@ void player_update(player_t* player, const game_config_t* config, world_t* world
                    const bool jump_pressed, const bool sprint, const float delta_time) {
     /* Horizontal velocity from input. We need to make flat vectors from the front vector
      * of the camera, putting the y axis at 0.0F.*/
-    vec3 flat_front = {camera->front[0], 0.0F, camera->front[2]};
+    vec3 flat_front       = {camera->front[0], 0.0F, camera->front[2]};
     const float front_len = glm_vec3_norm(flat_front);
     if (front_len > COLLISION_EPSILON) {
         glm_vec3_scale(flat_front, 1.0F / front_len, flat_front);
     }
 
     /* Same for the right vector */
-    vec3 flat_right = {camera->right[0], 0.0F, camera->right[2]};
+    vec3 flat_right       = {camera->right[0], 0.0F, camera->right[2]};
     const float right_len = glm_vec3_norm(flat_right);
     if (right_len > COLLISION_EPSILON) {
         glm_vec3_scale(flat_right, 1.0F / right_len, flat_right);
@@ -88,7 +88,7 @@ void player_update(player_t* player, const game_config_t* config, world_t* world
     /* Jump */
     if (jump_pressed && player->on_ground) {
         player->velocity[1] = config->player_jump_velocity;
-        player->on_ground = false;
+        player->on_ground   = false;
     }
 
     /* Creating the gravity vector, and clamping the value on the player's terminal
@@ -102,9 +102,9 @@ void player_update(player_t* player, const game_config_t* config, world_t* world
 
     /* Per-axis collision resolution */
     const float half_w = player->width / 2.0F;
-    float player_x = player->position[0];
-    float player_y = player->position[1];
-    float player_z = player->position[2];
+    float player_x     = player->position[0];
+    float player_y     = player->position[1];
+    float player_z     = player->position[2];
 
     /* Y axis (resolve first to establish on_ground) */
     const float delta_y_velocity = player->velocity[1] * delta_time;
@@ -114,7 +114,7 @@ void player_update(player_t* player, const game_config_t* config, world_t* world
         float new_py = player_y + delta_y_velocity;
         if (player_collides(world, player_x, new_py, player_z, half_w, player->height)) {
             if (delta_y_velocity < 0.0F) {
-                new_py = floorf(new_py) + 1.0F;
+                new_py            = floorf(new_py) + 1.0F;
                 player->on_ground = true;
             } else {
                 new_py = floorf(new_py + player->height) - player->height;

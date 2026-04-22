@@ -4,7 +4,7 @@
 /**
  * @brief Reads an entire file and returns a pointer to a
  * dynamically allocated character array.
- * @warn THE RETURNED POINTER NEEDS TO BE FREED MANUALLY.
+ * @attention THE RETURNED POINTER NEEDS TO BE FREED MANUALLY.
  * @param filepath Path to the file
  * @param out_text pointer to be modified with pointer to content of file.
  **/
@@ -13,7 +13,7 @@ int read_file(const char* filepath, const char** out_text);
 /**
  * @brief Reads an entire file and returns a pointer to a
  * dynamically allocated character array.
- * @warn THE RETURNED POINTER NEEDS TO BE FREED MANUALLY.
+ * @attention THE RETURNED POINTER NEEDS TO BE FREED MANUALLY.
  * @param filepath Path to the file
  * @param out_text pointer to be modified with pointer to content of file.
  * @param out_size size in bytes of the file.

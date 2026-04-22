@@ -30,9 +30,9 @@ static game_state_t game_state_init(void) {
     /* Zero initalization of our state object */
     game_state_t state = {0};
 
-    state.config = game_config_default();
-    state.world = &s_world;
-    state.player = &s_player;
+    state.config      = game_config_default();
+    state.world       = &s_world;
+    state.player      = &s_player;
     state.main_camera = &s_main_camera;
 
     /* Shader and material creation */
@@ -55,8 +55,8 @@ static game_state_t game_state_init(void) {
     /* World generation using perlin noise for the hills */
     world_init(state.world, &state.config);
     static perlin_params_t terrain = {0.01F, 64, 32};
-    state.world->generate = world_generator_perlin;
-    state.world->generator_data = &terrain;
+    state.world->generate          = world_generator_perlin;
+    state.world->generator_data    = &terrain;
     world_update(state.world, GLM_VEC3_ZERO);
 
     /* View and projection matrices calculations, setting the FOV and the min/max drawing
@@ -71,7 +71,7 @@ static game_state_t game_state_init(void) {
 
     /* Caching uniform locations of the view and projections matrices in the cube shader.
      */
-    state.view_location = glGetUniformLocation(state.cube_shader.id, "view");
+    state.view_location       = glGetUniformLocation(state.cube_shader.id, "view");
     state.projection_location = glGetUniformLocation(state.cube_shader.id, "projection");
 
     /* Replace the camera spawn height with player spawn */
@@ -134,9 +134,9 @@ GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
     }
     printf("Platform is %s\n", platform);
 
-    const GLubyte* gpu_vendor = glGetString(GL_VENDOR);
+    const GLubyte* gpu_vendor   = glGetString(GL_VENDOR);
     const GLubyte* gpu_renderer = glGetString(GL_RENDERER);
-    const GLubyte* gpu_version = glGetString(GL_VERSION);
+    const GLubyte* gpu_version  = glGetString(GL_VERSION);
     const GLubyte* glsl_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
     printf("GPU Vendor is %s\n", gpu_vendor);
@@ -168,10 +168,10 @@ GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
 
 static void game_loop(GLFWwindow* game_window, game_state_t* state) {
     static float wish_forward = 0.0F;
-    static float wish_right = 0.0F;
-    static float last_frame = 0.0F;
-    static bool jump_pressed = false;
-    static bool sprint = false;
+    static float wish_right   = 0.0F;
+    static float last_frame   = 0.0F;
+    static bool jump_pressed  = false;
+    static bool sprint        = false;
     static vec3* pov_origin;
     static int last_render_distance = MAX_RENDER_DISTANCE;
 
@@ -199,8 +199,8 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Calculating the delta_time */
         const float current_frame = (float)glfwGetTime();
-        const float delta_time = current_frame - last_frame;
-        last_frame = current_frame;
+        const float delta_time    = current_frame - last_frame;
+        last_frame                = current_frame;
 
         /* Setting the correct origin from which to render the world, either the camera or
          * the player depending on the free_camera boolean in the config */

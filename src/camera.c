@@ -6,13 +6,13 @@
 
 #include "gl_glfw_include.h"
 
-static const float camera_yaw = -90.0F;
+static const float camera_yaw   = -90.0F;
 static const float camera_pitch = 0.0F;
-static const float camera_zoom = 45.0F;
+static const float camera_zoom  = 45.0F;
 
 static float last_mouse_x = 0;
 static float last_mouse_y = 0;
-static bool first_mouse = true;
+static bool first_mouse   = true;
 
 void camera_init(const game_config_t* config, camera_t* camera, vec3 position) {
     /* Setting up the camera's intial position.*/
@@ -22,11 +22,11 @@ void camera_init(const game_config_t* config, camera_t* camera, vec3 position) {
     glm_vec3_copy((vec3) {0.0F, 0.0F, -1.0F}, camera->front);
 
     /* Setting the default parameter of the camera */
-    camera->yaw = camera_yaw;
-    camera->pitch = camera_pitch;
-    camera->movement_speed = config->speed;
+    camera->yaw               = camera_yaw;
+    camera->pitch             = camera_pitch;
+    camera->movement_speed    = config->speed;
     camera->mouse_sensitivity = config->sensitivity;
-    camera->zoom = camera_zoom;
+    camera->zoom              = camera_zoom;
 
     glm_vec3_copy((vec3) {0.0F, 1.0F, 0.0F}, camera->world_up);
 
@@ -102,7 +102,7 @@ void camera_rotate(camera_t* camera, const float x_pos, const float y_pos,
     if (first_mouse) {
         last_mouse_x = x_pos;
         last_mouse_y = y_pos;
-        first_mouse = false;
+        first_mouse  = false;
     }
 
     float x_offset = x_pos - last_mouse_x;
