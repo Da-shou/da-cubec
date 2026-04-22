@@ -8,31 +8,35 @@
  * @brief Configuration constants and runtime settings for the application.
  */
 typedef struct {
-    /* Window settings */
-    uint16_t width, height;
-    const char* title;
-    const char* version;
+    /* Window Settings */
+    uint16_t width;      /**< Width of the game window. */
+    uint16_t height;     /**< Height of the game window. */
+    const char* title;   /**< Title of the game window. */
+    const char* version; /**< Version of the game. */
 
-    /* Filepath for assets */
-    const char* cube_vertex_shader_path;
-    const char* cube_fragment_shader_path;
-    const char* text_vertex_shader_path;
-    const char* text_fragment_shader_path;
-    const char* font_path;
-    const char* texture_atlas_path;
+    /* External files settings */
+    const char* cube_vertex_shader_path;   /**< Cube vertex shader filepath. */
+    const char* cube_fragment_shader_path; /**< Cube fragment shader filepath. */
+    const char* text_vertex_shader_path;   /**< Text vertex shader filepath. */
+    const char* text_fragment_shader_path; /**< Text fragment shader filepath. */
+    const char* debug_font_path;           /**< Debug font filepath. */
+    const char* texture_atlas_path;        /**< Texture image atlas. */
 
     /* Camera settings */
-    float sensitivity;
-    float speed;
-    float fov;
-    bool free_camera;
-    uint8_t render_distance;
+    float sensitivity;       /**< Sensitivity of the camera. */
+    float speed;             /**< Movement speed of the camera. */
+    float fov;               /**< FOV of the camera. */
+    bool free_camera;        /**< If true, game will be in freecam mode. */
+    uint8_t render_distance; /**< Render distance in chunk radius. */
 
     /* Player physics settings */
-    float player_walk_speed;
-    float player_sprint_speed;
-    float player_jump_velocity;
-    float gravity;
+    float player_walk_speed;    /**< Speed of the player when walking. */
+    float player_sprint_speed;  /**< Speed of the player when sprinting. */
+    float player_jump_velocity; /**< Vertical speed added when jumping. */
+
+    float gravity;              /**< Vertical vector to add each frame to a player not
+    touching the ground. */
+
     float player_width;
     float player_height;
     float player_eye_offset;

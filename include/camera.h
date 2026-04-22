@@ -1,3 +1,10 @@
+/**
+ * @file camera.h
+ * @authors Da-shou
+ * Header file containing all of the declaration of the functions and enums controlling
+ * a camera. Also describes the camera_t structure and all of its properties.
+ */
+
 #ifndef CAMERA_H
 #define CAMERA_H
 
@@ -19,30 +26,19 @@ typedef enum {
 /**
  * @brief Camera structure storing all of its important vectors. The values
  * of the camera are usually not manually modified. The helper functions
- * are there for that purpose.
- * @param up Normalized up vector going from camera.
- * @param world_up Constant normalized vector indicating the world's up.
- * @param right Normalized right vector going from camera.
- * @param front Normalized front vector going from camera. Can also be seen
- * as the "direction of the camera".
- * @param position Position of the camera in global space.
- * @param yaw Rotation of the camera on the Z axis.
- * @param pitch Rotation of the camera on the Y axis.
- * @param movement_speed Defines the speed of the camera.
- * @param mouse_sensitivity Defines how much the camera rotates on mouse
- * movement.
- * @param zoom Zoom to apply to the camera if needed. */
+ * are there for that purpose. */
 typedef struct {
-    vec3 up;
-    vec3 world_up;
-    vec3 right;
-    vec3 front;
-    vec3 position;
-    float yaw;
-    float pitch;
-    float movement_speed;
-    float mouse_sensitivity;
-    float zoom;
+    vec3 up;              /**< Direction vector pointing up from the camera. */
+    vec3 world_up;        /**< Direction vector pointing up from the world's origin. */
+    vec3 right;           /**< Direction vector pointing right from the camera. */
+    vec3 front;           /**< Direction vector pointing at the camera target. */
+    vec3 position;        /**< Coordinates of the camera in world coordinates. */
+    float yaw;            /**< Yaw value of the rotation of the camera. */
+    float pitch;          /**< Pitch value of the rotation of the camera. */
+    float movement_speed; /**< Movement speed used when the camera is in freecam mode. */
+    float mouse_sensitivity; /**< Sensitivity of the camera rotation using the mouse
+    controls */
+    float zoom;              /** How much the camera is zoomed in. */
 } camera_t;
 
 /**
@@ -50,20 +46,23 @@ typedef struct {
  * orgin of the world.
  * @param config Settings to be applied to the camera
  * @param camera Camera struct to be initalized.
- * @param position Initial position of the camera in 3D space. */
+ * @param position Initial position of the camera in 3D space.
+ */
 void camera_init(const game_config_t* config, camera_t* camera, vec3 position);
 
 /**
  * @brief Updates the right, front and up vectors of the camera. Has to be
  * called every time the camera is rotated, and not when the camera is
  * moved on these axis because they do not change.
- * @param camera Camera to be moved. */
+ * @param camera Camera to be moved.
+ */
 void camera_update_vectors(camera_t* camera);
 
 /**
  * @brief Updates the view matrix using the camera's attributes
  * @param camera Camera to be used in the update
- * @param view View matrix to be modified */
+ * @param view View matrix to be modified
+ */
 void camera_update_view(camera_t* camera, mat4 view);
 
 /**
@@ -82,8 +81,9 @@ void camera_move(camera_t* camera, CAMERA_DIRECTION direction, float delta_time)
  * @param x_pos X Offset to apply to the yaw
  * @param y_pos Y Offset to apply to the pitch
  * @param constrain_pitch If the pitch needs to be contrained or not. This
- * is very much recommanded to be set as true to forbid the camera to
- * rotate vertically.*/
+ * @attention is very much recommanded to be set as true to forbid the camera to
+ * rotate vertically.
+ */
 void camera_rotate(camera_t* camera, float x_pos, float y_pos, GLboolean constrain_pitch);
 
 /**

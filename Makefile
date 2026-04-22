@@ -1,7 +1,10 @@
 BUILD    := build
 EXE      := da-cubec
 OSTYPE   := $(shell uname -s)
-CMAKE_FLAGS :=
+
+ifeq ($(OS), Windows_NT)
+    CMAKE_FLAGS := -G "MinGW Makefiles"
+endif
 
 .PHONY: all clean docs tidy format configure
 

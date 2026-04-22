@@ -1,3 +1,9 @@
+/**
+ * @file world/fog.h
+ * @authors Da-shou
+ * Header file for the functions designed to handle the fog calculations.
+ */
+
 #ifndef WORLD_FOG_H
 #define WORLD_FOG_H
 
@@ -5,7 +11,7 @@
 
 /**
  * @brief Reload the fog values based on the render distance in the configuration.
- * @param game_state State of the game at the moment
+ * @param game_state Pointer to the state of the game
  */
 void reload_fog(const game_state_t* game_state);
 

@@ -1,3 +1,10 @@
+/**
+ * @file world/world.h
+ * @authors Da-shou
+ * Header file regrouping the struct and functions needed to initialize,
+ * create and draw the main world in which the player roams around.
+ */
+
 #ifndef WORLD_H
 #define WORLD_H
 
@@ -5,7 +12,12 @@
 #include "chunk_store.h"
 #include "../game_config.h"
 
+/** Maximum render distance in chunk radius. Needs to be a macro to initalize the
+ * arrays storing the chunks. */
 #define MAX_RENDER_DISTANCE 60
+
+/** Maximum number of chunks loaded at the same time Needs to be a macro to initalize the
+ * memory storing the chunks. */
 #define MAX_LOADED_CHUNKS_SIZE ((2 * MAX_RENDER_DISTANCE) + 1)
 
 /**
@@ -18,22 +30,38 @@
 typedef void (*chunk_generator_t)(chunk_t* chunk, int world_cx, int world_cz,
                                   const void* userdata);
 
-/** @brief Struct containing all the data needed to draw the entire world.
+/**
+ * Contains all the data needed to draw the entire world.
  * Uses a toroidal buffer: a fixed (2*RENDER_DISTANCE+1)^2 grid of chunk
  * slots centered on the player. slot_cx/slot_cz record which world chunk
  * each slot holds (INT_MIN = empty). world_get_chunk performs an O(1)
- * lookup. */
+ * lookup.
+ */
 typedef struct {
-    chunk_t chunks[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
-    int slot_cx[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
-    int slot_cz[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
-    bool dirty[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];
-    int last_player_cx;
-    int last_player_cz;
-    uint8_t render_distance;
-    chunk_generator_t generate;
-    void* generator_data;
-    chunk_store_t chunk_store;
+    chunk_t chunks[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE]; /**< Main chunk
+    storage, containing the position and mesh of each chunk */
+
+    int slot_cx[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];    /**< Holds the X
+       coordinates of the loaded chunks in world coordinates. */
+    int slot_cz[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];    /**< Holds the Z
+        coordinates of the loaded chunks in world coordinates. */
+
+    bool dirty[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE]; /**< Allows marking any
+    chunks around the player that needs rebuilding. */
+
+    int last_player_cx; /**< Last X known chunk coordinates in which the player was. */
+    int last_player_cz; /**< Last Z known chunk coordinates in which the player was. */
+
+    uint8_t render_distance;    /**< The render distance the world is currenlty getting
+       drawn at. This allows checking against the config render distance and reloading
+       automatically if a change is detected. */
+
+    chunk_generator_t generate; /**< Pointer to the chunk generator function. */
+    void* generator_data;       /**< World generator parameters. Depends on the chosen
+          generator */
+
+    chunk_store_t chunk_store;  /**< Chunk hashmap used to store a chunk whenever a chunk
+     is modified by the player. */
 } world_t;
 
 /**

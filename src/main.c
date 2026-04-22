@@ -13,7 +13,7 @@
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
  * a base state for the game. Finally, launches the game render loop with the created
- * state. Shutsdown when the loop is exited.
+ * state. Shutdowns when the loop is exited.
  * @return void
  */
 int main(void) {
@@ -27,7 +27,7 @@ int main(void) {
 }
 
 static game_state_t game_state_init(void) {
-    /* Zero initalization of our state object */
+    /* Zero initialization of our state object */
     game_state_t state = {0};
 
     state.config      = game_config_default();
@@ -42,7 +42,7 @@ static game_state_t game_state_init(void) {
 
     /* Debug text renderer initalization */
     text_renderer_init(
-        &state.debug_text_renderer, state.config.font_path,
+        &state.debug_text_renderer, state.config.debug_font_path,
         state.config.text_vertex_shader_path, state.config.text_fragment_shader_path,
         state.config.debug_font_size, state.config.width, state.config.height);
 
@@ -139,10 +139,10 @@ GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
     const GLubyte* gpu_version  = glGetString(GL_VERSION);
     const GLubyte* glsl_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    printf("GPU Vendor is %s\n", gpu_vendor);
-    printf("GPU Renderer is %s\n", gpu_renderer);
-    printf("GPU OpenGL Version is %s\n", gpu_version);
-    printf("GLSL Version is %s\n", glsl_version);
+    printf("GPU Vendor is %s\n", (const char*)gpu_vendor);
+    printf("GPU Renderer is %s\n", (const char*)gpu_renderer);
+    printf("GPU OpenGL Version is %s\n", (const char*)gpu_version);
+    printf("GLSL Version is %s\n", (const char*)glsl_version);
 
     int extensions_count;
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions_count);

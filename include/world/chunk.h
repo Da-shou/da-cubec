@@ -1,11 +1,11 @@
 /**
  * @file chunk.h
+ * @authors Da-shou
  * Header file containing all structs and functions used to create, build and display
  * chunks in a game world. Chunks are first made of an 3-dimensional array of blocks,
  * which are then compiled into a single mesh that is rendered at once by the GPU. This
  * allows for much faster rendering as the GPU doesn't need to draw each block and has
  * to check for much less face culling when two block face each other.
- * @authors {Da-shou}
  */
 
 #ifndef CHUNK_H

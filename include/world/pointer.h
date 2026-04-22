@@ -1,3 +1,10 @@
+/**
+ * @file world/pointer.h
+ * @authors Da-shou
+ * Header file providing the functions needed to get the
+ * block in front of the player's camera at a variable distance.
+ */
+
 #ifndef POINTER_H
 #define POINTER_H
 
