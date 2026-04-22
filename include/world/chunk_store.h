@@ -1,13 +1,13 @@
 /**
-* @file chunk_store.h
-* Header file for storage struct and functions. They are used to store
-* modified chunks somewhere in memory and each chunk that is going to be loaded is
-* checked in this storage if its hash exists, and if it does, its blocks will be pulled
-* from this storage instead of being regenerated following the world generator logic.
-* This allows for the player to place blocks, step away from their construction until
-* it unloads, then come back and still see their construction.
-* @authors {Da-shou}
-*/
+ * @file chunk_store.h
+ * Header file for storage struct and functions. They are used to store
+ * modified chunks somewhere in memory and each chunk that is going to be loaded is
+ * checked in this storage if its hash exists, and if it does, its blocks will be pulled
+ * from this storage instead of being regenerated following the world generator logic.
+ * This allows for the player to place blocks, step away from their construction until
+ * it unloads, then come back and still see their construction.
+ * @authors {Da-shou}
+ */
 
 #ifndef CHUNK_STORE_H
 #define CHUNK_STORE_H
@@ -27,10 +27,10 @@
  * @brief Represents an entry in the chunk store hashmap.
  */
 typedef struct {
-    int cx; /**< X coordinate of the chunk in chunk coordinates. */
-    int cz; /**< Z coordinate of the chunk in chunk coordinates. */
-    bool occupied; /**< If true, signals that an entry has that hash and that the entry
-    colliding with that hash must use another hash. */
+    int cx;          /**< X coordinate of the chunk in chunk coordinates. */
+    int cz;          /**< Z coordinate of the chunk in chunk coordinates. */
+    bool occupied;   /**< If true, signals that an entry has that hash and that the entry
+      colliding with that hash must use another hash. */
     uint8_t* blocks; /**< ID blocks array to keep in storage if the chunks needs to be
     redrawn. */
 } chunk_store_entry_t;
@@ -58,9 +58,8 @@ void chunk_store_destroy(const chunk_store_t* store);
  * @param chunk_z Z Coordinate of the chunk
  * @param blocks The blocks to save into the hashmap entry.
  */
-void chunk_store_save(
-    chunk_store_t* store, int chunk_x, int chunk_z,
-    const uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]);
+void chunk_store_save(chunk_store_t* store, int chunk_x, int chunk_z,
+                      const uint8_t blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]);
 
 /** @brief Copy saved blocks into out_blocks. Returns true if an entry was
  * found.
@@ -70,8 +69,7 @@ void chunk_store_save(
  * @param out_blocks The blocks from the hashmap entry will be copied
  * into this buffer.
  */
-bool chunk_store_load(
-    const chunk_store_t* store, int chunk_x, int chunk_z,
-    uint8_t out_blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]);
+bool chunk_store_load(const chunk_store_t* store, int chunk_x, int chunk_z,
+                      uint8_t out_blocks[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]);
 
 #endif /* CHUNK_STORE_H */

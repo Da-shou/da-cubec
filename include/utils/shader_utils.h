@@ -15,7 +15,6 @@ unsigned int make_module(const char* filepath, unsigned int module_type);
  * @param fragment_filepath Type of shader to compile
  * @returns ID of shader program created. 0 if compilation failed.
  **/
-unsigned int make_shader(const char* vertex_filepath,
-                         const char* fragment_filepath);
+unsigned int make_shader(const char* vertex_filepath, const char* fragment_filepath);
 
 #endif // SHADER_UTILS_H

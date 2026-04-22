@@ -82,24 +82,24 @@ uint8_t get_pointed_block(game_state_t* game_state, float max_distance) {
             if (side_x < side_z) {
                 side_x += delta_x;
                 camera_x += step_x;
-                distance = side_x;
+                distance        = side_x;
                 last_pointed_to = X;
             } else {
                 side_z += delta_z;
                 camera_z += step_z;
-                distance = side_z;
+                distance        = side_z;
                 last_pointed_to = Z;
             }
         } else {
             if (side_y < side_z) {
                 side_y += delta_y;
                 camera_y += step_y;
-                distance = side_y;
+                distance        = side_y;
                 last_pointed_to = Y;
             } else {
                 side_z += delta_z;
                 camera_z += step_z;
-                distance = side_z;
+                distance        = side_z;
                 last_pointed_to = Z;
             }
         }

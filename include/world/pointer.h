@@ -28,6 +28,5 @@ uint8_t get_pointed_block(game_state_t* game_state, float max_distance);
  * neighbour block.
  */
 void process_block(vec3 block_position, axis_t last, vec3* pointed_block,
-                   vec3* neighbour_block, int step_x, int step_y,
-                   int step_z);
+                   vec3* neighbour_block, int step_x, int step_y, int step_z);
 #endif

@@ -6,7 +6,7 @@
 #include "utils/io_utils.h"
 
 unsigned int make_module(const char* filepath, const unsigned int module_type) {
-    const char* source = NULL;
+    const char* source    = NULL;
     const int read_status = read_file(filepath, &source);
     if (read_status == -1) {
         (void)fprintf(stderr, "%s\n", "Shader source file could not be read.");

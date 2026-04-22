@@ -39,10 +39,10 @@ void chunk_store_save(chunk_store_t* store, const int chunk_x, const int chunk_z
             /* If the space is not occupied, allocate the space and
              * save the entire chunk into memory. */
             if (!entry->occupied) {
-                entry->blocks = malloc((size_t)BLOCKS_SIZE);
+                entry->blocks   = malloc((size_t)BLOCKS_SIZE);
                 entry->occupied = true;
-                entry->cx = chunk_x;
-                entry->cz = chunk_z;
+                entry->cx       = chunk_x;
+                entry->cz       = chunk_z;
             }
             /* Copy all blocks from blocks to the hash map entry. */
             memcpy(entry->blocks, blocks, (size_t)BLOCKS_SIZE);

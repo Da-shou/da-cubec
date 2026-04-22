@@ -1,5 +1,5 @@
 /**
-* @file blocks.h
+ * @file blocks.h
  * Header file defining the ID list of each block type as well as the struct used to
  * describe a UV coordinate for a block. Each block has 6 sets of uv coordinates, for
  * each face of the block. Each set is two coordinates floats between 0 and 1. All block

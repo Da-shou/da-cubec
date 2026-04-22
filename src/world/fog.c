@@ -6,7 +6,7 @@ void reload_fog(const game_state_t* game_state) {
      * same as the sky, fog_near is the distance from the camera from which the fog will
      * start, fog_far is when the fog will be at maximum density.*/
     const game_config_t config = game_state->config;
-    const shader_t* shader = &game_state->cube_shader;
+    const shader_t* shader     = &game_state->cube_shader;
 
     shader_set_vec3(
         shader, "fog_color",

@@ -35,14 +35,14 @@ void chunk_init(chunk_t* chunk, vec3 position) {
     memset(chunk->blocks, 0, sizeof(chunk->blocks));
     chunk_mesh_init(&chunk->mesh);
     chunk->modified = false;
-    chunk->ready = false;
+    chunk->ready    = false;
 }
 
 void chunk_mesh_init(chunk_mesh_t* mesh) {
     mesh->vertex_capacity = starting_chunk_capacity;
-    mesh->index_capacity = starting_chunk_capacity;
-    mesh->vertex_count = 0;
-    mesh->index_count = 0;
+    mesh->index_capacity  = starting_chunk_capacity;
+    mesh->vertex_count    = 0;
+    mesh->index_count     = 0;
     mesh->vertices =
         (chunk_vertex_t*)malloc(mesh->vertex_capacity * sizeof(chunk_vertex_t));
     mesh->indices = (unsigned int*)malloc(mesh->vertex_capacity * sizeof(unsigned int));
@@ -117,7 +117,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                      const chunk_neighbours_t neighbors) {
     mesh->vertex_count = 0;
-    mesh->index_count = 0;
+    mesh->index_count  = 0;
     /* Big ass check on ALL cubes and sending each facing that face
      * BLOCK_AIR to the chunk mesh to be built. */
     for (uint8_t block_x = 0; block_x < CHUNK_SIZE_XZ; ++block_x) {
@@ -287,12 +287,12 @@ void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas)
 void chunk_mesh_destroy(chunk_mesh_t* mesh) {
     free(mesh->vertices);
     free(mesh->indices);
-    mesh->vertices = NULL;
-    mesh->indices = NULL;
-    mesh->vertex_count = 0;
-    mesh->index_count = 0;
+    mesh->vertices        = NULL;
+    mesh->indices         = NULL;
+    mesh->vertex_count    = 0;
+    mesh->index_count     = 0;
     mesh->vertex_capacity = 0;
-    mesh->index_capacity = 0;
+    mesh->index_capacity  = 0;
     glDeleteVertexArrays(1, &mesh->vao);
     glDeleteBuffers(1, &mesh->vbo);
     glDeleteBuffers(1, &mesh->eao);

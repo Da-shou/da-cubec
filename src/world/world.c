@@ -23,11 +23,11 @@ static int chunk_to_slot(const int coord, const int max_load) {
 
 void world_init(world_t* world, const game_config_t* config) {
     srand((unsigned int)time(NULL));
-    world->last_player_cx = INT_MIN;
-    world->last_player_cz = INT_MIN;
+    world->last_player_cx  = INT_MIN;
+    world->last_player_cz  = INT_MIN;
     world->render_distance = config->render_distance;
-    world->generate = NULL;
-    world->generator_data = NULL;
+    world->generate        = NULL;
+    world->generator_data  = NULL;
     memset(world->dirty, 0, sizeof(world->dirty));
     const int max_loaded_chunks_size = (world->render_distance * 2) + 1;
     vec3 dummy;
@@ -44,8 +44,8 @@ void world_init(world_t* world, const game_config_t* config) {
 
 chunk_t* world_get_chunk(world_t* world, const int chunk_x, const int chunk_z) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
-    const int slot_x = chunk_to_slot(chunk_x, max_loaded_chunk_size);
-    const int slot_z = chunk_to_slot(chunk_z, max_loaded_chunk_size);
+    const int slot_x                = chunk_to_slot(chunk_x, max_loaded_chunk_size);
+    const int slot_z                = chunk_to_slot(chunk_z, max_loaded_chunk_size);
     if (world->slot_cx[slot_x][slot_z] == chunk_x &&
         world->slot_cz[slot_x][slot_z] == chunk_z) {
         return &world->chunks[slot_x][slot_z];
@@ -78,13 +78,13 @@ int world_update(world_t* world, const vec3 player_pos) {
                  * to get the target chunk's x coordinate.
                  * Same logic for the z coordinate.
                  */
-                const int base_cx = pcx - render_distance;
-                const int base_sx = chunk_to_slot(base_cx, max_loaded_chunk_size);
+                const int base_cx   = pcx - render_distance;
+                const int base_sx   = chunk_to_slot(base_cx, max_loaded_chunk_size);
                 const int target_cx = base_cx + ((sx - base_sx + max_loaded_chunk_size) %
                                                  max_loaded_chunk_size);
 
-                const int base_cz = pcz - render_distance;
-                const int base_sz = chunk_to_slot(base_cz, max_loaded_chunk_size);
+                const int base_cz   = pcz - render_distance;
+                const int base_sz   = chunk_to_slot(base_cz, max_loaded_chunk_size);
                 const int target_cz = base_cz + ((sz - base_sz + max_loaded_chunk_size) %
                                                  max_loaded_chunk_size);
 
@@ -106,8 +106,8 @@ int world_update(world_t* world, const vec3 player_pos) {
                 /* Clear blocks and reset mesh counters. */
                 memset(slot->blocks, 0, sizeof(slot->blocks));
                 slot->mesh.vertex_count = 0;
-                slot->mesh.index_count = 0;
-                slot->modified = false;
+                slot->mesh.index_count  = 0;
+                slot->modified          = false;
 
                 /* Update the world-space position used by chunk_draw. */
                 slot->position[0] = (float)(target_cx * CHUNK_SIZE_XZ);
@@ -136,8 +136,8 @@ int world_update(world_t* world, const vec3 player_pos) {
     world->last_player_cz = pcz;
 
     /* Only rebuilding the dirty meshes that have just been built. */
-    int best_sx = -1;
-    int best_sz = -1;
+    int best_sx   = -1;
+    int best_sz   = -1;
     int best_dist = INT_MAX;
 
     /* Getting the closest dirty chunk that has not yet been drawn */
@@ -148,12 +148,12 @@ int world_update(world_t* world, const vec3 player_pos) {
 
             const int dist_x = world->slot_cx[sx][sz] - pcx;
             const int dist_z = world->slot_cz[sx][sz] - pcz;
-            const int dist = (dist_x * dist_x) + (dist_z * dist_z);
+            const int dist   = (dist_x * dist_x) + (dist_z * dist_z);
 
             if (dist < best_dist) {
                 best_dist = dist;
-                best_sx = sx;
-                best_sz = sz;
+                best_sx   = sx;
+                best_sz   = sz;
             }
         }
     }
@@ -163,7 +163,7 @@ int world_update(world_t* world, const vec3 player_pos) {
     if (best_sx != -1) {
         const int memcheck = world_build_chunk(world, best_sx, best_sz);
         if (memcheck < 0) { return -1; }
-        world->dirty[best_sx][best_sz] = false;
+        world->dirty[best_sx][best_sz]        = false;
         world->chunks[best_sx][best_sz].ready = true;
     }
 
@@ -171,15 +171,15 @@ int world_update(world_t* world, const vec3 player_pos) {
 }
 
 int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
-    const int chunk_x = world->slot_cx[slot_x][slot_z];
-    const int chunk_z = world->slot_cz[slot_x][slot_z];
+    const int chunk_x                  = world->slot_cx[slot_x][slot_z];
+    const int chunk_z                  = world->slot_cz[slot_x][slot_z];
     const chunk_neighbours_t neighbors = {
-        .west = world_get_chunk(world, chunk_x - 1, chunk_z),
-        .east = world_get_chunk(world, chunk_x + 1, chunk_z),
+        .west  = world_get_chunk(world, chunk_x - 1, chunk_z),
+        .east  = world_get_chunk(world, chunk_x + 1, chunk_z),
         .south = world_get_chunk(world, chunk_x, chunk_z - 1),
         .north = world_get_chunk(world, chunk_x, chunk_z + 1),
     };
-    chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
+    chunk_t* chunk     = world_get_chunk(world, chunk_x, chunk_z);
     const int memcheck = chunk_build_mesh(chunk, &chunk->mesh, neighbors);
     return memcheck;
 }
@@ -193,9 +193,9 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
  */
 static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_z) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
-    const int slot_x = chunk_to_slot(chunk_x, max_loaded_chunk_size);
-    const int slot_z = chunk_to_slot(chunk_z, max_loaded_chunk_size);
-    int memcheck = 0;
+    const int slot_x                = chunk_to_slot(chunk_x, max_loaded_chunk_size);
+    const int slot_z                = chunk_to_slot(chunk_z, max_loaded_chunk_size);
+    int memcheck                    = 0;
     if (world->slot_cx[slot_x][slot_z] == chunk_x &&
         world->slot_cz[slot_x][slot_z] == chunk_z) {
         memcheck = world_build_chunk(world, slot_x, slot_z);
@@ -261,8 +261,8 @@ void world_destroy(world_t* world) {
 uint8_t world_get_block(world_t* world, const int block_x, const int block_y,
                         const int block_z) {
     if (block_y < 0 || block_y >= CHUNK_SIZE_Y) { return BLOCK_AIR; }
-    const int chunk_x = (int)floorf((float)block_x / (float)CHUNK_SIZE_XZ);
-    const int chunk_z = (int)floorf((float)block_z / (float)CHUNK_SIZE_XZ);
+    const int chunk_x    = (int)floorf((float)block_x / (float)CHUNK_SIZE_XZ);
+    const int chunk_z    = (int)floorf((float)block_z / (float)CHUNK_SIZE_XZ);
     const chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
     if (chunk == NULL) { return BLOCK_AIR; }
     const int local_x = block_x - (chunk_x * CHUNK_SIZE_XZ);
@@ -322,10 +322,8 @@ void world_reload(world_t* world, const uint8_t render_distance) {
             const chunk_t* current_chunk = &world->chunks[sx][sz];
             // Only save if it's a valid modified chunk
             if (world->slot_cx[sx][sz] != INT_MIN && current_chunk->modified) {
-                chunk_store_save(&world->chunk_store,
-                                 world->slot_cx[sx][sz],
-                                 world->slot_cz[sx][sz],
-                                 current_chunk->blocks);
+                chunk_store_save(&world->chunk_store, world->slot_cx[sx][sz],
+                                 world->slot_cz[sx][sz], current_chunk->blocks);
             }
             /* Safely destroy the meshes of the chunks */
             chunk_destroy((void*)current_chunk);
@@ -335,7 +333,7 @@ void world_reload(world_t* world, const uint8_t render_distance) {
     /* Setting the new render_distance and updating the maximum chunk that can be
      * rendered */
     world->render_distance = render_distance;
-    const uint8_t new_max = (uint8_t)((render_distance * 2) + 1);
+    const uint8_t new_max  = (uint8_t)((render_distance * 2) + 1);
 
     /* Re-initialize the slots */
     for (uint8_t sx = 0; sx < new_max; sx++) {
@@ -343,7 +341,7 @@ void world_reload(world_t* world, const uint8_t render_distance) {
             chunk_init(&world->chunks[sx][sz], GLM_VEC3_ZERO);
             world->slot_cx[sx][sz] = INT_MIN;
             world->slot_cz[sx][sz] = INT_MIN;
-            world->dirty[sx][sz] = false;
+            world->dirty[sx][sz]   = false;
         }
     }
 }

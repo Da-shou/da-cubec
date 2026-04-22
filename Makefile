@@ -1,13 +1,7 @@
 BUILD    := build
 EXE      := da-cubec
 OSTYPE   := $(shell uname -s)
-
-# Detect OS and set CMake generator
-ifeq ($(OS), Windows_NT)
-    CMAKE_FLAGS := -G "MinGW Makefiles"
-else
-    CMAKE_FLAGS :=
-endif
+CMAKE_FLAGS :=
 
 .PHONY: all clean docs tidy format configure
 

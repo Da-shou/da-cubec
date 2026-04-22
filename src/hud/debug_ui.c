@@ -11,7 +11,7 @@ void draw_debug_info(const text_renderer_t* text_renderer,
                      const game_state_t* game_state) {
     /* Draw game title in the bottom-left corner */
 
-    const player_t player = *game_state->player;
+    const player_t player      = *game_state->player;
     const game_config_t config = game_state->config;
 
     static int version = 0;
@@ -35,7 +35,7 @@ void draw_debug_info(const text_renderer_t* text_renderer,
     char* coordinates[4] = {render_distance_text, x_coordinates, y_coordinates,
                             z_coordinates};
 
-    const float line_spacing = text_renderer->font_size * 1.25F;
+    const float line_spacing  = text_renderer->font_size * 1.25F;
     const float margin_bottom = line_spacing - 20.0F;
     text_renderer_draw(text_renderer, title_text,
                        (vec2) {10.0F, (float)config.height - margin_bottom}, GLM_VEC3_ONE,

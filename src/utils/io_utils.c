@@ -56,7 +56,7 @@ int read_file(const char* filepath, const char** const out_text) {
 
     // Null terminate the buffer
     buffer[fsize] = '\0';
-    *out_text = buffer;
+    *out_text     = buffer;
 
     return 0;
 }
