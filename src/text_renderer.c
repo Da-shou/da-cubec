@@ -1,14 +1,13 @@
-#include <stddef.h>
+#include "text_renderer.h"
+#include "gl_glfw_include.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
-
-#include <glad/gl.h>
 #include <cglm/cglm.h>
 
-#include "text_renderer.h"
 #include "utils/io_utils.h"
 
 /* Ensure our opaque buffer matches the real struct size. */

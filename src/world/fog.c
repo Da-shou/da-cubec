@@ -1,4 +1,5 @@
 #include "world/fog.h"
+
 #include "game_state.h"
 
 void reload_fog(const game_state_t* game_state) {

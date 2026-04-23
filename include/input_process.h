@@ -8,8 +8,7 @@
 #ifndef INPUT_PROCESS_H
 #define INPUT_PROCESS_H
 
-#include <GLFW/glfw3.h>
-
+#include "gl_glfw_include.h"
 #include "game_config.h"
 #include "player.h"
 #include "world/chunk.h"
@@ -22,8 +21,8 @@
  * @param player Pointer to the player that will be updated.
  * @param delta_time delta time calculated in the main render loop
  */
-void handle_camera_mouse(GLFWwindow* window, game_config_t* config, player_t* player,
-                         float delta_time);
+void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
+                         const player_t* player, float delta_time);
 
 /**
  * @brief managing inputs for breaking and placing blocks.

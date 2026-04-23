@@ -1,8 +1,8 @@
+#include "camera.h"
+
 #include <stdbool.h>
 #include <cglm/cam.h>
 #include <cglm/vec3.h>
-
-#include "camera.h"
 
 #include "gl_glfw_include.h"
 

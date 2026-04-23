@@ -1,12 +1,11 @@
-#include <cglm/cglm.h>
+#include "world/world.h"
+
 #include <limits.h>
 #include <math.h>
 #include <string.h>
 
-#include "cglm/vec3.h"
+#include <cglm/cglm.h>
 #include "world/blocks.h"
-#include "world/world.h"
-
 #include "game_config.h"
 
 #include <time.h>

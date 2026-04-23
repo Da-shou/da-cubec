@@ -1,8 +1,8 @@
+#include "shader.h"
+
 #include <stdbool.h>
 
 #include "gl_glfw_include.h"
-
-#include "shader.h"
 #include "utils/shader_utils.h"
 
 void shader_init(shader_t* shader, const char* vertex_filepath,

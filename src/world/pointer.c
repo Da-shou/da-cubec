@@ -1,7 +1,8 @@
+#include "world/pointer.h"
+
 #include <math.h>
 #include <cglm/cglm.h>
 
-#include "world/pointer.h"
 #include "game_state.h"
 #include "world/world.h"
 #include "world/blocks.h"

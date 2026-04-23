@@ -12,9 +12,6 @@
 #ifndef CHUNK_STORE_H
 #define CHUNK_STORE_H
 
-#define GLFW_INCLUDE_NONE
-#include <glad/gl.h>
-
 #include <stdbool.h>
 #include <stdint.h>
 

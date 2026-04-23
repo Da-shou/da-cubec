@@ -14,7 +14,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "gl_glfw_include.h"
 #include "shader.h"
 #include "material.h"
 

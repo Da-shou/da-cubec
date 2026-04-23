@@ -8,6 +8,7 @@
 #ifndef TEXT_RENDERER_H
 #define TEXT_RENDERER_H
 
+#include "gl_glfw_include.h"
 #include "shader.h"
 
 #define TEXT_RENDERER_FIRST_CHAR 32
@@ -21,9 +22,9 @@
 /** Stores all attributes necessary for drawing text on the screen. */
 typedef struct {
     shader_t shader;
-    unsigned int texture_id;
-    unsigned int vao;
-    unsigned int vbo;
+    GLuint texture_id;
+    GLuint vao;
+    GLuint vbo;
     /* Opaque storage for stbtt_bakedchar[TEXT_RENDERER_NUM_CHARS]. */
     unsigned char cdata[TEXT_RENDERER_NUM_CHARS * TEXT_RENDERER_BAKED_CHAR_SIZE];
     float font_size;

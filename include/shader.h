@@ -15,7 +15,7 @@
  * @brief Structure to represent an OpenGL shader
  * @param ID unsigned integer locating the shader. */
 typedef struct {
-    GLuint id; /**< OpenGL ID of the created shader program */
+    unsigned int id; /**< OpenGL ID of the created shader program */
 } shader_t;
 
 /**

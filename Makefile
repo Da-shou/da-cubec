@@ -13,7 +13,7 @@ all: format configure
 	@if [ -f $(BUILD)/compile_commands.json ]; then mv $(BUILD)/compile_commands.json .; fi
 
 configure:
-	@if [! -f $(BUILD) ]; then 	cmake $(CMAKE_FLAGS) -S . -B $(BUILD); fi
+	@if [ ! -d $(BUILD) ]; then 	cmake $(CMAKE_FLAGS) -S . -B $(BUILD); fi
 
 format:
 	clang-format -i src/*.*

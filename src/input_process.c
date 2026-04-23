@@ -1,12 +1,13 @@
-#include "gl_glfw_include.h"
+#include "input_process.h"
+
 #include "camera.h"
 #include "world/blocks.h"
 #include "world/chunk.h"
 #include "world/world.h"
 #include "game_config.h"
 #include "player.h"
-#include "cglm/box.h"
 
+#include <cglm/box.h>
 #include <math.h>
 
 void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world) {
@@ -45,8 +46,6 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     last_f3_state = f3_state;
 }
 
-/**
- * @brief Managing inputs for mouse and keyboard. */
 void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
                          const player_t* player, const float delta_time) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {

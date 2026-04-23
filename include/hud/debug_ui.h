@@ -7,7 +7,6 @@
 #ifndef DEBUG_UI_H
 #define DEBUG_UI_H
 
-#include "text_renderer.h"
 #include "game_state.h"
 
 /**

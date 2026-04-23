@@ -1,9 +1,5 @@
-#define GLAD_GL_IMPLEMENTATION
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
-#include "glad/gl.h"
-
 #include "hud/debug_ui.h"
+
 #include <cglm/cglm.h>
 #include <stdio.h>
 

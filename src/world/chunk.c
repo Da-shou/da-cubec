@@ -1,10 +1,9 @@
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>
+#include "world/chunk.h"
+
 #include <cglm/cglm.h>
 #include <stdint.h>
 #include <string.h>
 
-#include "world/chunk.h"
 #include "world/blocks.h"
 #include "shader.h"
 #include "material.h"

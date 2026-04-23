@@ -1,7 +1,8 @@
+#include "player.h"
+
 #include <math.h>
 #include <cglm/cglm.h>
 
-#include "player.h"
 #include "world/world.h"
 #include "world/blocks.h"
 #include "camera.h"

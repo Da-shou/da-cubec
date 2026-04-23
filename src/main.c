@@ -1,3 +1,5 @@
+#include "main.h"
+
 #include <cglm/cglm.h>
 
 #include "material.h"
@@ -8,7 +10,6 @@
 #include "world/pointer.h"
 #include "world/fog.h"
 #include "world/blocks.h"
-#include "main.h"
 
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
