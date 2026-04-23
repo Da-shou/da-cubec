@@ -44,7 +44,7 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
     mesh->index_count     = 0;
     mesh->vertices =
         (chunk_vertex_t*)malloc(mesh->vertex_capacity * sizeof(chunk_vertex_t));
-    mesh->indices = (unsigned int*)malloc(mesh->vertex_capacity * sizeof(unsigned int));
+    mesh->indices = (GLuint*)malloc(mesh->vertex_capacity * sizeof(GLuint));
     glGenVertexArrays(1, &mesh->vao);
     glGenBuffers(1, &mesh->vbo);
     glGenBuffers(1, &mesh->eao);

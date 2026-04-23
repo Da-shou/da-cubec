@@ -91,3 +91,18 @@ endif ()
 if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE pthread dl X11)
 endif ()
+
+# Create a symbolic link (or copy) of compile_commands.json to the root directory
+if(EXISTS "${CMAKE_BINARY_DIR}/compile_commands.json")
+    if(UNIX)
+        # On Linux/macOS/WSL, a symbolic link is best
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+                "${CMAKE_BINARY_DIR}/compile_commands.json"
+                "${CMAKE_SOURCE_DIR}/compile_commands.json")
+    else()
+        # On Windows (native), a copy is usually more reliable
+        execute_process(COMMAND ${CMAKE_COMMAND} -E copy
+                "${CMAKE_BINARY_DIR}/compile_commands.json"
+                "${CMAKE_SOURCE_DIR}/compile_commands.json")
+    endif()
+endif()

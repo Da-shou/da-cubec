@@ -3,7 +3,6 @@
 #include <cglm/cglm.h>
 
 #include "material.h"
-#include "gl_glfw_include.h"
 #include "callbacks.h"
 #include "input_process.h"
 #include "hud/debug_ui.h"
@@ -39,6 +38,7 @@ static game_state_t game_state_init(void) {
     shader_init(&state.cube_shader, state.config.cube_vertex_shader_path,
                 state.config.cube_fragment_shader_path);
     material_create(&state.atlas, state.config.texture_atlas_path);
+
 
     /* Debug text renderer initalization */
     text_renderer_init(

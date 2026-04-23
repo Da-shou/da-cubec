@@ -6,7 +6,7 @@
 #include "gl_glfw_include.h"
 #include "utils/io_utils.h"
 
-unsigned int make_module(const char* filepath, const unsigned int module_type) {
+GLuint make_module(const char* filepath, const unsigned int module_type) {
     const char* source    = NULL;
     const int read_status = read_file(filepath, &source);
     if (read_status == -1) {
@@ -14,7 +14,7 @@ unsigned int make_module(const char* filepath, const unsigned int module_type) {
     }
 
     // Assigning shader and source code to module
-    const unsigned int shader_module = glCreateShader(module_type);
+    const GLuint shader_module = glCreateShader(module_type);
     glShaderSource(shader_module, 1, &source, NULL);
     glCompileShader(shader_module);
 
@@ -33,13 +33,13 @@ unsigned int make_module(const char* filepath, const unsigned int module_type) {
     return shader_module;
 }
 
-unsigned int make_shader(const char* vertex_filepath, const char* fragment_filepath) {
-    const unsigned int vertex_module = make_module(vertex_filepath, GL_VERTEX_SHADER);
-    const unsigned int fragment_module =
+GLuint make_shader(const char* vertex_filepath, const char* fragment_filepath) {
+    const GLuint vertex_module = make_module(vertex_filepath, GL_VERTEX_SHADER);
+    const GLuint fragment_module =
         make_module(fragment_filepath, GL_FRAGMENT_SHADER);
 
     // Create the shader program with both our modules
-    const unsigned int shader = glCreateProgram();
+    const GLuint shader = glCreateProgram();
     glAttachShader(shader, vertex_module);
     glAttachShader(shader, fragment_module);
 

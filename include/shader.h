@@ -11,11 +11,13 @@
 #include <stdbool.h>
 #include <cglm/types.h>
 
+#include "gl_glfw_include.h"
+
 /**
  * @brief Structure to represent an OpenGL shader
  * @param ID unsigned integer locating the shader. */
 typedef struct {
-    unsigned int id; /**< OpenGL ID of the created shader program */
+    GLuint id; /**< OpenGL ID of the created shader program */
 } shader_t;
 
 /**
