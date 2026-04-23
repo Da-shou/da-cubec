@@ -31,7 +31,7 @@ game_state_t game_state_init(void) {
     game_state_t state = {0};
 
     state.config = game_config_default();
-    state.world  = &s_world;
+    state.world  = world;
     state.player = &s_player;
 
     /* Shader and material creation */
@@ -46,7 +46,7 @@ game_state_t game_state_init(void) {
         state.config.debug_font_size, state.config.width, state.config.height);
 
     /* World generation using perlin noise for the hills */
-    world_init(state.world, &state.config);
+    world_init(&state.world, &state.config);
     static perlin_params_t terrain = {0.01F, 64, 32};
     state.world->generate          = world_generator_perlin;
     state.world->generator_data    = &terrain;
@@ -186,7 +186,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Handling the different debug inputs such as freecam
          * toggle or reloading chunks */
-        handle_debug_inputs(game_window, config, &s_world);
+        handle_debug_inputs(game_window, config, world);
 
         /* Calculating the delta_time */
         const float current_frame = (float)glfwGetTime();
@@ -230,7 +230,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
         world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
 
         /* Stream in/out chunks based on player position. */
-        const int memcheck = world_update(&s_world, *pov_origin);
+        const int memcheck = world_update(state->world, *pov_origin);
         if (memcheck < 0) {
             (void)fprintf(stderr,
                           "Memory allocation failure in world_update, exiting.\n");
@@ -257,14 +257,14 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                                 &sprint);
 
             /* Applies gravity, movement vectors, checks collisions */
-            player_update(&s_player, config, &s_world, s_player.camera, wish_forward,
+            player_update(&s_player, config, world, s_player.camera, wish_forward,
                           wish_right, jump_pressed, sprint, delta_time);
 
             /* Checks what block is currently being pointer at */
             const uint8_t block = get_pointed_block(state, state->config.max_reach);
             /* Only handling clicks if the block pointed to is not air. */
             if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(game_window, &s_world, &s_player, state->target_block,
+                if (handle_clicks(game_window, world, &s_player, state->target_block,
                                   state->neighbour_block, state->target_chunk,
                                   state->neighbour_chunk)) {
                     (void)fprintf(stderr,

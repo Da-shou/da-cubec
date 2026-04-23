@@ -1,8 +1,8 @@
 /**
  * @file material.h
  * @authors Da-shou
- * Header file declaring the material structure containing all elements needed to make
- * an OpenGL texture and stores its OpenGL ID.
+ * @brief Header file declaring the material structure containing all elements needed to
+ * make an OpenGL texture and stores its OpenGL ID.
  */
 
 #ifndef MATERIAL_H

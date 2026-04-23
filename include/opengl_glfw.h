@@ -1,7 +1,7 @@
 /**
  * @file opengl_glfw.h
  * @authors Da-shou
- * Helper header to include glad and GLFW in source files.
+ * @brief Helper header to include glad and GLFW in source files.
  */
 
 #ifndef OPENGL_GLFW_H

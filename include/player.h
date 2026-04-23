@@ -1,7 +1,7 @@
 /**
  * @file player.h
  * @authors Da-shou
- * Header file describing the player structure with useful members and functions
+ * @brief Header file describing the player structure with useful members and functions
  * allowing for player interaction with the in-game world.
  */
 

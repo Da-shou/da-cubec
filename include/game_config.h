@@ -1,7 +1,8 @@
 /**
  * @file game_config.h
  * @authors Da-shou
- * Header file describing a structure containing most attributes that can be modified
+ * @brief Header file describing a structure containing most attributes that can be
+ * modified
  * to alter the game's behaviour, as well as the file paths of all the external files
  * the games needs to load.
  */

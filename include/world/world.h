@@ -1,7 +1,7 @@
 /**
  * @file world/world.h
  * @authors Da-shou
- * Header file regrouping the struct and functions needed to initialize,
+ * @brief Header file regrouping the struct and functions needed to initialize,
  * create and draw the main world in which the player roams around.
  */
 
@@ -14,7 +14,7 @@
 
 /** Maximum render distance in chunk radius. Needs to be a macro to initalize the
  * arrays storing the chunks. */
-#define MAX_RENDER_DISTANCE 60
+#define MAX_RENDER_DISTANCE 64
 
 /** Maximum number of chunks loaded at the same time Needs to be a macro to initalize the
  * memory storing the chunks. */
@@ -71,7 +71,7 @@ typedef struct {
  * @param world Pointer to world structure to be initialized.
  * @param config Pointer to game configuration for render distance.
  */
-void world_init(world_t* world, const game_config_t* config);
+void world_init(world_t** world, const game_config_t* config);
 
 /**
  * @brief Per-frame streaming update. Evicts chunks outside render distance

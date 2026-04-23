@@ -1,7 +1,8 @@
 /**
  * @file io_utils.h
  * @authors Da-shou
- * Header file for helper functions wrapping all the necessary checks when reading the content of a file in C.
+ * @brief Header file for helper functions wrapping all the necessary checks when reading
+ * the content of a file in C.
  */
 
 #ifndef IO_UTILS_H

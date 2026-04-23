@@ -1,7 +1,7 @@
 /**
  * @file game_state.h
  * @authors Da-shou
- * Header file describing a structure that will only be initailized once
+ * @brief Header file describing a structure that will only be initailized once
  * statically and contains pointers and structs to the main elements of the game, such
  * as the world, the camera, the player and others.
  */

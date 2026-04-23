@@ -27,8 +27,8 @@ static bool player_collides(world_t* world, const float player_x, const float pl
                             const float player_z, const float half_w,
                             const float height) {
     /* Making a box around the player. So we can interate on each block
-     * afterwards and if at least one block is not BLOCK_AIR, then there is a collision.
-     */
+     * afterwards and if at least one block is not BLOCK_AIR,
+     * then there is a collision. */
     const int min_bx = (int)floorf(player_x - half_w);
     const int max_bx = (int)floorf(player_x + half_w - COLLISION_EPSILON);
     const int min_by = (int)floorf(player_y);

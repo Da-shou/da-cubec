@@ -1,7 +1,7 @@
 /**
  * @file text_renderer.h
  * @authors Da-shou
- * Header file declaring a struct containing all useful elements to create a
+ * @brief Header file declaring a struct containing all useful elements to create a
  * text_renderer, with a certain font and size.
  */
 

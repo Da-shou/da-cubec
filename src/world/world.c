@@ -39,25 +39,26 @@ static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_
     return memcheck;
 }
 
-void world_init(world_t* world, const game_config_t* config) {
+void world_init(world_t** world, const game_config_t* config) {
     srand((unsigned int)time(NULL));
-    world->last_player_cx  = INT_MIN;
-    world->last_player_cz  = INT_MIN;
-    world->render_distance = config->render_distance;
-    world->generate        = NULL;
-    world->generator_data  = NULL;
-    memset(world->dirty, 0, sizeof(world->dirty));
-    const int max_loaded_chunks_size = (world->render_distance * 2) + 1;
+    *world = malloc(sizeof(world_t));
+    (*world)->last_player_cx  = INT_MIN;
+    (*world)->last_player_cz  = INT_MIN;
+    (*world)->render_distance = config->render_distance;
+    (*world)->generate        = NULL;
+    (*world)->generator_data  = NULL;
+    memset((*world)->dirty, 0, sizeof((*world)->dirty));
+    const int max_loaded_chunks_size = ((*world)->render_distance * 2) + 1;
     vec3 dummy;
     glm_vec3_copy(GLM_VEC3_ZERO, dummy);
     for (int sx = 0; sx < max_loaded_chunks_size; sx++) {
         for (int sz = 0; sz < max_loaded_chunks_size; sz++) {
-            chunk_init(&world->chunks[sx][sz], dummy);
-            world->slot_cx[sx][sz] = INT_MIN;
-            world->slot_cz[sx][sz] = INT_MIN;
+            chunk_init(&((*world)->chunks[sx][sz]), dummy);
+            (*world)->slot_cx[sx][sz] = INT_MIN;
+            (*world)->slot_cz[sx][sz] = INT_MIN;
         }
     }
-    chunk_store_init(&world->chunk_store);
+    chunk_store_init(&(*world)->chunk_store);
 }
 
 chunk_t* world_get_chunk(world_t* world, const int chunk_x, const int chunk_z) {
@@ -264,6 +265,7 @@ void world_destroy(world_t* world) {
         }
     }
     chunk_store_destroy(&world->chunk_store);
+    free(world);
 }
 
 uint8_t world_get_block(world_t* world, const int block_x, const int block_y,

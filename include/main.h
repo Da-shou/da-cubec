@@ -1,7 +1,7 @@
 /**
  * @file main.h
  * @authors Da-shou
- * Header file for the main source file containing most static initalization of
+ * @brief Header file for the main source file containing most static initalization of
  * variables and signatures of pre-main loop helper functions and the main game loop
  * function as well.
  */
@@ -24,7 +24,7 @@
 #include "game_state.h"
 
 /** World structure that will contain all of the chunk and block infos */
-static world_t s_world;
+static world_t* world;
 
 /** Player structure to store all infos about the player in particular */
 static player_t s_player;

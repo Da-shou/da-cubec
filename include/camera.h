@@ -1,7 +1,8 @@
 /**
  * @file camera.h
  * @authors Da-shou
- * Header file containing all of the declaration of the functions and enums controlling
+ * @brief Header file containing all of the declaration of the functions and enums
+ * controlling
  * a camera. Also describes the camera_t structure and all of its properties.
  */
 

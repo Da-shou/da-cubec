@@ -1,7 +1,8 @@
 /**
  * @file callbacks.h
  * @authors Da-shou
- * Header file containing all of the declrations of the functions passes as callbacks
+ * @brief Header file containing all of the declrations of the functions passes as
+ * callbacks
  * to the GLFW window.
  */
 

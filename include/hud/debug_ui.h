@@ -1,7 +1,7 @@
 /**
  * @file debug_ui.h
  * @authors Da-shou
- * Header file for functions used to display debug informationn on the screen.
+ * @brief Header file for functions used to display debug informationn on the screen.
  */
 
 #ifndef DEBUG_UI_H

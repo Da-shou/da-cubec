@@ -1,7 +1,7 @@
 /**
  * @file chunk_store.h
  * @authors Da-shou
- * Header file for storage struct and functions. They are used to store
+ * @brief Header file for storage struct and functions. They are used to store
  * modified chunks somewhere in memory and each chunk that is going to be loaded is
  * checked in this storage if its hash exists, and if it does, its blocks will be pulled
  * from this storage instead of being regenerated following the world generator logic.

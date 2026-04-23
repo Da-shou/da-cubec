@@ -1,7 +1,7 @@
 /**
  * @file world/fog.h
  * @authors Da-shou
- * Header file for the functions designed to handle the fog calculations.
+ * @brief Header file for the functions designed to handle the fog calculations.
  */
 
 #ifndef WORLD_FOG_H
