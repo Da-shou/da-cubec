@@ -1,11 +1,11 @@
 /**
- * @file gl_glfw_include.h
+ * @file opengl_glfw.h
  * @authors Da-shou
  * Helper header to include glad and GLFW in source files.
  */
 
-#ifndef GL_GLFW_INCLUDE_H
-#define GL_GLFW_INCLUDE_H
+#ifndef OPENGL_GLFW_H
+#define OPENGL_GLFW_H
 
 #ifndef GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_NONE
@@ -14,4 +14,4 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-#endif // GL_GLFW_INCLUDE_H
+#endif // OPENGL_GLFW_H

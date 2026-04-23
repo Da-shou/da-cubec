@@ -1,5 +1,5 @@
 #include "text_renderer.h"
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 #include <stdio.h>
 #include <stdlib.h>

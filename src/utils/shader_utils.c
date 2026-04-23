@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 #include "utils/io_utils.h"
 
 GLuint make_module(const char* filepath, const unsigned int module_type) {

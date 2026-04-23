@@ -1,7 +1,7 @@
 #ifndef SHADER_UTILS_H
 #define SHADER_UTILS_H
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 /**
  * @brief Compiles a shader given a filepath and module_type

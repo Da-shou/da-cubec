@@ -4,7 +4,7 @@
 #include <cglm/cam.h>
 #include <cglm/vec3.h>
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 static const float camera_yaw   = -90.0F;
 static const float camera_pitch = 0.0F;

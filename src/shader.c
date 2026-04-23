@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 #include "utils/shader_utils.h"
 
 void shader_init(shader_t* shader, const char* vertex_filepath,

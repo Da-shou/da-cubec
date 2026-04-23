@@ -195,8 +195,8 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Setting the correct origin from which to render the world, either the camera or
          * the player depending on the free_camera boolean in the config */
-        pov_origin = config->free_camera ? &state->player->camera->position
-                                         : &state->player->position;
+        camera_t* pcamera = state->player->camera;
+        pov_origin = config->free_camera ? &pcamera->position : &state->player->position;
 
         /* Apply the view and projection matrices */
         shader_use(&state->cube_shader);
@@ -210,7 +210,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
          * render distance value.*/
         if (config->render_distance != last_render_distance) {
             glm_perspective(glm_rad(config->fov),
-                            ((float)config->width / (float)config->height), 0.1F,
+                            (float)config->width / (float)config->height, 0.1F,
                             (float)(config->render_distance + 1) * CHUNK_SIZE_XZ,
                             s_projection_matrix);
             world_reload(state->world, config->render_distance);
@@ -239,16 +239,15 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Creates the direction vector depending on the current front vector of the
          * camera and updates the view matrix according to it. */
-        camera_update_view(state->player->camera, s_view_matrix);
+        camera_update_view(pcamera, s_view_matrix);
 
         /* The freecam still updates the player's position so that the world
          * can keep loading. */
         if (config->free_camera) {
             handle_camera_mouse(game_window, config, state->player, delta_time);
-            vec3 player_updated_position = {state->player->camera->position[0],
-                                            state->player->camera->position[1] -
-                                                state->player->eye_offset,
-                                            state->player->camera->position[2]};
+            vec3 player_updated_position = {
+                pcamera->position[0], pcamera->position[1] - state->player->eye_offset,
+                pcamera->position[2]};
             glm_vec3_copy(GLM_VEC3_ZERO, state->player->velocity);
             glm_vec3_copy(player_updated_position, state->player->position);
         } else {

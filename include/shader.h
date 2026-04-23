@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <cglm/types.h>
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 /**
  * @brief Structure to represent an OpenGL shader

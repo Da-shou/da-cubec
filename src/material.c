@@ -1,6 +1,6 @@
 #include "material.h"
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

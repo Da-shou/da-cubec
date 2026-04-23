@@ -10,7 +10,7 @@
 
 #include <cglm/types.h>
 #include "game_config.h"
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 /**
  * @brief Helper enum to make the moving of the camera more readable. */

@@ -8,7 +8,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 
 /**
  * @brief Structure storing the important info about a material. For now,

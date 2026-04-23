@@ -8,7 +8,7 @@
 #ifndef INPUT_PROCESS_H
 #define INPUT_PROCESS_H
 
-#include "gl_glfw_include.h"
+#include "opengl_glfw.h"
 #include "game_config.h"
 #include "player.h"
 #include "world/chunk.h"
