@@ -16,18 +16,32 @@ To make building the project as easy as possible, all libraries are contained wi
 
 From the root folder, to build the executable located in the `build` folder :
 ```shell
-./build.sh
+make
 ```
 
 To clean all build files and remake CMake files :
 ```shell
-./build.sh clean
+make clean
 ```
 
-To build executable and run the project :
+To run clang-tidy on all sources files :
 ```shell
-./build.sh run
+make tidy
+```
+
+To build HTML & LaTeX PDF documentation (requires doxygen, pdflatex & graphviz)
+```shell
+make docs
 ```
 
 ### About
 This is a fun project I work on during my free time because I love GPU Programming and the C language. Feel free to use it to learn about OpenGL yourself or to correct anything you'd feel is badly made.
+
+### References
+- [LearnOpenGL](https://learnopengl.com/)
+- [GLFW Documentation](https://www.glfw.org/documentation)
+- [OpenGL 4.6 Documentation](https://registry.khronos.org/OpenGL-Refpages/es3/)
+- [clang-format Documentation](https://clang.llvm.org/docs/ClangFormat.html)
+- [CMake documentation](https://cmake.org/cmake/help/latest/)
+- [Voxel traversal algorithm](http://www.cse.yorku.ca/~amana/research/grid.pdf)
+- [Occasional Claude AI help](https://claude.ai/)
