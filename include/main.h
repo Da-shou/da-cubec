@@ -43,7 +43,7 @@ static mat4 s_projection_matrix;
  *
  * @return Returns the static game state that will be used throughout.
  */
-static game_state_t game_state_init(void);
+game_state_t game_state_init(void);
 
 /**
  * @brief Main render loop of the game.
@@ -52,7 +52,7 @@ static game_state_t game_state_init(void);
  * @param state Pointer to the static game state containing information which all
  * functions inside the loop will need and share.
  */
-static void game_loop(GLFWwindow* game_window, game_state_t* state);
+void game_loop(GLFWwindow* game_window, game_state_t* state);
 
 /**
  * @brief Shutdowns the game, frees all reserved memory and terminates GLFW.
@@ -60,7 +60,7 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state);
  * @param window Pointer to the window to destroy.
  * @param game_state Pointer to the game state to destroy.
  */
-static void game_shutdown(GLFWwindow* window, const game_state_t* game_state);
+void game_shutdown(GLFWwindow* window, const game_state_t* game_state);
 
 /**
  * @brief Initializes OpenGL/GLFW features needed to start the game.

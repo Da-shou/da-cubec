@@ -20,7 +20,7 @@ game_config_t game_config_default(void) {
                             .player_jump_velocity      = 8.5F,
                             .gravity                   = 25.0F,
                             .player_width              = 0.5F,
-                            .player_height             = 2.0F,
+                            .player_height             = 1.8F,
                             .player_eye_offset         = 1.5F,
                             .terminal_velocity         = 50.0F,
                             .max_reach                 = 6.0F,

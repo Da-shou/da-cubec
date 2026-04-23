@@ -26,7 +26,7 @@ int main(void) {
     return EXIT_SUCCESS;
 }
 
-static game_state_t game_state_init(void) {
+game_state_t game_state_init(void) {
     /* Zero initialization of our state object */
     game_state_t state = {0};
 
@@ -157,7 +157,7 @@ GLFWwindow* glfw_gl_init(const int width, const int height, const char* title) {
     return game_window;
 }
 
-static void game_loop(GLFWwindow* game_window, game_state_t* state) {
+void game_loop(GLFWwindow* game_window, game_state_t* state) {
     static float wish_forward = 0.0F;
     static float wish_right   = 0.0F;
     static float last_frame   = 0.0F;
@@ -285,7 +285,7 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
     }
 }
 
-static void game_shutdown(GLFWwindow* window, const game_state_t* game_state) {
+void game_shutdown(GLFWwindow* window, const game_state_t* game_state) {
     shader_destroy(&game_state->cube_shader);
     text_renderer_destroy(&game_state->debug_text_renderer);
     material_destroy(&game_state->atlas);
