@@ -1,3 +1,10 @@
+/**
+ * @file player.h
+ * @authors Da-shou
+ * Header file describing the player structure with useful members and functions
+ * allowing for player interaction with the in-game world.
+ */
+
 #ifndef PLAYER_H
 #define PLAYER_H
 
@@ -15,13 +22,13 @@
  * Defines all attributes of a player.
  */
 typedef struct {
-    vec3 position;    /* Feet position (bottom-center of AABB) */
-    vec3 velocity;    /* Current velocity (x, y, z) */
-    float width;      /* AABB width and depth (centered on position XZ) */
-    float height;     /* AABB height (extends upward from position.y) */
-    float eye_offset; /* Eye height above feet */
-    camera_t* camera;
-    bool on_ground;   /* True when standing on a solid surface */
+    vec3 position;    /**< Feet position (bottom-center of AABB) */
+    vec3 velocity;    /**< Current velocity (x, y, z) */
+    float width;      /**< AABB width and depth (centered on position XZ) */
+    float height;     /**< AABB height (extends upward from position.y) */
+    float eye_offset; /**< Eye height above feet */
+    camera_t* camera; /**< Pointer to the camera used by the player */
+    bool on_ground;   /**< True when standing on a solid surface */
 } player_t;
 
 /**

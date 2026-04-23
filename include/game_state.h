@@ -23,15 +23,23 @@ typedef struct {
     shader_t cube_shader; /**< Current shader program used for cube rendering */
     material_t atlas; /**< OpenGL material structure containing the atlas as a texture */
     text_renderer_t debug_text_renderer; /**< Text renderer to use for debug outputs */
-    world_t* world;                      /**< Pointer to the world the game has to load */
-    player_t* player;                    /** Pointer to the player the game simulates */
-    vec3 target_block;
-    chunk_t* target_chunk;
+
+    world_t* world;        /**< Pointer to the world the game has to load */
+    player_t* player;      /** Pointer to the player the game simulates */
+    vec3 target_block;     /**< World coordinates of the currenlty pointed block. */
+    chunk_t* target_chunk; /**< Pointer to the chunk structure of the target block. */
+
+    /** World coordinates of the potential placed block according the pointer. */
     vec3 neighbour_block;
+    /** Pointer to the chunk structure of the neighbour block. */
     chunk_t* neighbour_chunk;
+
+    /** OpenGL Location of the view matrix in the vertex shader */
     int view_location;
+    /** OpenGL Location of the projection matrix in the vertex shader */
     int projection_location;
-    bool focused;
+
+    bool focused; /**< If true, mouse is captured by the window. */
 } game_state_t;
 
 #endif

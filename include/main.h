@@ -1,21 +1,41 @@
+/**
+ * @file main.h
+ * @authors Da-shou
+ * Header file for the main source file containing most static initalization of
+ * variables and signatures of pre-main loop helper functions and the main game loop
+ * function as well.
+ */
+
 #ifndef MAIN_H
 #define MAIN_H
 
+/** Initial width of the window when launching the game, before applying the loaded
+ * configuration */
 #define INITIAL_WIDTH 800
+
+/** Initial height of the window when launching the game, before applying the loaded
+ * configuration */
 #define INITIAL_HEIGHT 600
+
+/** Initial title of the window when launching the game, before applying the loaded
+ * configuration */
 #define INITIAL_WINDOW_TITLE "da-cubec"
 
 #include "game_state.h"
 
-/* World structure that will contain all of the chunk and block infos */
+/** World structure that will contain all of the chunk and block infos */
 static world_t s_world;
+
+/** Player structure to store all infos about the player in particular */
 static player_t s_player;
 
-/* First-person camera */
+/** First-person camera that will be linked to the player */
 static camera_t s_main_camera;
 
-/* Defining the view and projection matrices. */
+/** Defining the static view matrix that will passed to the vertex shader */
 static mat4 s_view_matrix;
+
+/** Defining the static projection matrix that will passed to the vertex shader */
 static mat4 s_projection_matrix;
 
 /**

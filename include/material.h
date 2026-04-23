@@ -1,11 +1,20 @@
+/**
+ * @file material.h
+ * @authors Da-shou
+ * Header file declaring the material structure containing all elements needed to make
+ * an OpenGL texture and stores its OpenGL ID.
+ */
+
 #ifndef MATERIAL_H
 #define MATERIAL_H
+
+#include "gl_glfw_include.h"
 
 /**
  * @brief Structure storing the important info about a material. For now,
  * this is simply a texture. */
 typedef struct {
-    unsigned int texture;
+    GLuint texture; /**< OpenGL ID of the texture created */
 } material_t;
 
 /**

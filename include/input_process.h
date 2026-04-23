@@ -1,3 +1,10 @@
+/**
+ * @file input_process.h
+ * @authors Da-shou
+ * Header file declaring all of the functions handling the GLFW inputs to the window
+ * and translating them to in-game events.
+ */
+
 #ifndef INPUT_PROCESS_H
 #define INPUT_PROCESS_H
 

@@ -1,3 +1,10 @@
+/**
+ * @file text_renderer.h
+ * @authors Da-shou
+ * Header file declaring a struct containing all useful elements to create a
+ * text_renderer, with a certain font and size.
+ */
+
 #ifndef TEXT_RENDERER_H
 #define TEXT_RENDERER_H
 

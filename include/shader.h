@@ -1,3 +1,10 @@
+/**
+ * @file shader.h
+ * @authors Da-shou
+ * Header file declaring a shader structure containing all the elements needed to
+ * create an OpenGL shader program, as well as the functions signatures to do so.
+ */
+
 #ifndef SHADER_H
 #define SHADER_H
 
@@ -8,7 +15,7 @@
  * @brief Structure to represent an OpenGL shader
  * @param ID unsigned integer locating the shader. */
 typedef struct {
-    unsigned int id;
+    GLuint id; /**< OpenGL ID of the created shader program */
 } shader_t;
 
 /**
