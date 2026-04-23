@@ -20,6 +20,25 @@ static int chunk_to_slot(const int coord, const int max_load) {
     return ((coord % max_load) + max_load) % max_load;
 }
 
+/**
+ * @brief Checks if a chunk is loaded and rebuilds it if it is.
+ * @param world World to check the chunks in
+ * @param chunk_x X coordinate of the chunk in the chunk grid
+ * @param chunk_z Z coordinate of the chunk in the chunk grid
+ * @return 0 on success, -1 on memory allocation failure
+ */
+static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_z) {
+    const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
+    const int slot_x                = chunk_to_slot(chunk_x, max_loaded_chunk_size);
+    const int slot_z                = chunk_to_slot(chunk_z, max_loaded_chunk_size);
+    int memcheck                    = 0;
+    if (world->slot_cx[slot_x][slot_z] == chunk_x &&
+        world->slot_cz[slot_x][slot_z] == chunk_z) {
+        memcheck = world_build_chunk(world, slot_x, slot_z);
+    }
+    return memcheck;
+}
+
 void world_init(world_t* world, const game_config_t* config) {
     srand((unsigned int)time(NULL));
     world->last_player_cx  = INT_MIN;
@@ -164,6 +183,15 @@ int world_update(world_t* world, const vec3 player_pos) {
         if (memcheck < 0) { return -1; }
         world->dirty[best_sx][best_sz]        = false;
         world->chunks[best_sx][best_sz].ready = true;
+
+        /* Rebuild neighbors so they remove seam faces toward this chunk */
+        const int chunk_x = world->slot_cx[best_sx][best_sz];
+        const int chunk_z = world->slot_cz[best_sx][best_sz];
+
+        rebuild_if_loaded(world, chunk_x - 1, chunk_z);
+        rebuild_if_loaded(world, chunk_x + 1, chunk_z);
+        rebuild_if_loaded(world, chunk_x, chunk_z - 1);
+        rebuild_if_loaded(world, chunk_x, chunk_z + 1);
     }
 
     return 0;
@@ -180,25 +208,6 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
     };
     chunk_t* chunk     = world_get_chunk(world, chunk_x, chunk_z);
     const int memcheck = chunk_build_mesh(chunk, &chunk->mesh, neighbors);
-    return memcheck;
-}
-
-/**
- * @brief Checks if a chunk is loaded and rebuilds it if it is.
- * @param world World to check the chunks in
- * @param chunk_x X coordinate of the chunk in the chunk grid
- * @param chunk_z Z coordinate of the chunk in the chunk grid
- * @return 0 on success, -1 on memory allocation failure
- */
-static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_z) {
-    const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
-    const int slot_x                = chunk_to_slot(chunk_x, max_loaded_chunk_size);
-    const int slot_z                = chunk_to_slot(chunk_z, max_loaded_chunk_size);
-    int memcheck                    = 0;
-    if (world->slot_cx[slot_x][slot_z] == chunk_x &&
-        world->slot_cz[slot_x][slot_z] == chunk_z) {
-        memcheck = world_build_chunk(world, slot_x, slot_z);
-    }
     return memcheck;
 }
 

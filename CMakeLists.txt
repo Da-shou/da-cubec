@@ -54,7 +54,7 @@ option(CGLM_USE_TEST "Enable Tests" OFF)
 add_subdirectory(external/cglm)
 target_link_libraries(${PROJECT_NAME} PRIVATE cglm)
 
-find_package(Doxygen)
+find_package(Doxygen REQUIRED dot)
 if (DOXYGEN_FOUND)
     set(DOXYGEN_PROJECT_NAME ${PROJECT_NAME})
     set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/docs")

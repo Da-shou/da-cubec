@@ -39,18 +39,11 @@ static game_state_t game_state_init(void) {
                 state.config.cube_fragment_shader_path);
     material_create(&state.atlas, state.config.texture_atlas_path);
 
-
     /* Debug text renderer initalization */
     text_renderer_init(
         &state.debug_text_renderer, state.config.debug_font_path,
         state.config.text_vertex_shader_path, state.config.text_fragment_shader_path,
         state.config.debug_font_size, state.config.width, state.config.height);
-
-    /* Camera initalization at same position as player */
-    camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
-
-    /* Player initalization */
-    player_init(state.player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
     /* World generation using perlin noise for the hills */
     world_init(state.world, &state.config);
@@ -74,13 +67,11 @@ static game_state_t game_state_init(void) {
     state.view_location       = glGetUniformLocation(state.cube_shader.id, "view");
     state.projection_location = glGetUniformLocation(state.cube_shader.id, "projection");
 
-    /* Replace the camera spawn height with player spawn */
-    /* The camera init position will be overwritten by player_update,
-       but we still need it for initial vector setup */
-    camera_init(&state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
+    /* Player initalization */
+    player_init(state.player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
 
-    /* Initalizing the global player variables */
-    player_init(&s_player, &state.config, &s_main_camera, (vec3) {0.0F, 80.0F, 0.0F});
+    /* Camera initalization at same position as player */
+    camera_init(&state.config, state.player->camera, (vec3) {0.0F, 80.0F, 0.0F});
 
     return state;
 }
@@ -204,14 +195,15 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Setting the correct origin from which to render the world, either the camera or
          * the player depending on the free_camera boolean in the config */
-        pov_origin = config->free_camera ? &s_main_camera.position : &s_player.position;
+        pov_origin = config->free_camera ? &state->player->camera->position
+                                         : &state->player->position;
 
         /* Apply the view and projection matrices */
         shader_use(&state->cube_shader);
         glUniformMatrix4fv(state->view_location, 1, GL_FALSE, (float*)s_view_matrix);
         glUniformMatrix4fv(state->projection_location, 1, GL_FALSE,
                            (float*)s_projection_matrix);
-        shader_set_vec3(&state->cube_shader, "camera_position", (float*)*pov_origin);
+        shader_set_vec3(&state->cube_shader, "camera_position", *pov_origin);
 
         /* If the render distance was changed by the user, the world needs to be reloaded,
          * as well as the projection matrix and the fog since they all depend on the
@@ -234,6 +226,7 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
         glm_mat4_mul(s_projection_matrix, s_view_matrix, view_projection);
         vec4 frustum_planes[6];
         glm_frustum_planes(view_projection, frustum_planes);
+
         world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
 
         /* Stream in/out chunks based on player position. */
@@ -246,18 +239,18 @@ static void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Creates the direction vector depending on the current front vector of the
          * camera and updates the view matrix according to it. */
-        camera_update_view(&s_main_camera, s_view_matrix);
+        camera_update_view(state->player->camera, s_view_matrix);
 
         /* The freecam still updates the player's position so that the world
          * can keep loading. */
         if (config->free_camera) {
-            handle_camera_mouse(game_window, config, &s_player, delta_time);
-            vec3 player_updated_position = {s_player.camera->position[0],
-                                            s_player.camera->position[1] -
-                                                s_player.eye_offset,
-                                            s_player.camera->position[2]};
-            glm_vec3_copy(GLM_VEC3_ZERO, s_player.velocity);
-            glm_vec3_copy(player_updated_position, s_player.position);
+            handle_camera_mouse(game_window, config, state->player, delta_time);
+            vec3 player_updated_position = {state->player->camera->position[0],
+                                            state->player->camera->position[1] -
+                                                state->player->eye_offset,
+                                            state->player->camera->position[2]};
+            glm_vec3_copy(GLM_VEC3_ZERO, state->player->velocity);
+            glm_vec3_copy(player_updated_position, state->player->position);
         } else {
             /* Gets the input about the player movement and
              * updates the direction integers */
