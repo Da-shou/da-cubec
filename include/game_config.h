@@ -1,3 +1,11 @@
+/**
+ * @file game_config.h
+ * @authors Da-shou
+ * Header file describing a structure containing most attributes that can be modified
+ * to alter the game's behaviour, as well as the file paths of all the external files
+ * the games needs to load.
+ */
+
 #ifndef GAME_CONFIG_H
 #define GAME_CONFIG_H
 
@@ -34,19 +42,28 @@ typedef struct {
     float player_sprint_speed;  /**< Speed of the player when sprinting. */
     float player_jump_velocity; /**< Vertical speed added when jumping. */
 
-    float gravity;              /**< Vertical vector to add each frame to a player not
-    touching the ground. */
+    /** Scale of the down vector to add each frame to a
+     * player not touching the ground */
+    float gravity;
 
+    /** Width of the rectangular hitbox around the player. 1.0F = 1 block. */
     float player_width;
+
+    /** Height of the rectangular hitbox around the player. 1.0F = 1 block.*/
     float player_height;
-    float player_eye_offset;
-    float terminal_velocity;
+
+    float player_eye_offset; /**< How high the eyes are, starting from the ground */
+    float terminal_velocity; /**< Maximum falling speed */
 
     /* World settings */
+    /** Defines how many blocks of range the player has to break or place blocks. */
     float max_reach;
+    /** Defines the sky color. The fog copies these values too. */
     float sky_color[4];
 
     /* HUD */
+    /** Font size of the text used to display debug info on
+    screen */
     float debug_font_size;
 } game_config_t;
 

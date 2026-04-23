@@ -9,7 +9,7 @@ game_config_t game_config_default(void) {
                             .cube_fragment_shader_path = "src/shaders/cube.frag.glsl",
                             .text_vertex_shader_path   = "src/shaders/text.vert.glsl",
                             .text_fragment_shader_path = "src/shaders/text.frag.glsl",
-                            .debug_font_path                 = "fonts/pix32.ttf",
+                            .debug_font_path           = "fonts/pix32.ttf",
                             .texture_atlas_path        = "img/atlas.png",
                             .sensitivity               = 0.05F,
                             .speed                     = 25.0F,

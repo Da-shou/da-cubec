@@ -9,8 +9,8 @@
 uint8_t get_pointed_block(game_state_t* game_state, float max_distance) {
     vec3 pos;
     vec3 dir;
-    glm_vec3_copy(game_state->main_camera->position, pos);
-    glm_vec3_copy(game_state->main_camera->front, dir);
+    glm_vec3_copy(game_state->player->camera->position, pos);
+    glm_vec3_copy(game_state->player->camera->front, dir);
 
     axis_t last_pointed_to = X;
 

@@ -30,10 +30,9 @@ static game_state_t game_state_init(void) {
     /* Zero initialization of our state object */
     game_state_t state = {0};
 
-    state.config      = game_config_default();
-    state.world       = &s_world;
-    state.player      = &s_player;
-    state.main_camera = &s_main_camera;
+    state.config = game_config_default();
+    state.world  = &s_world;
+    state.player = &s_player;
 
     /* Shader and material creation */
     shader_init(&state.cube_shader, state.config.cube_vertex_shader_path,

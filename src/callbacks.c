@@ -24,7 +24,7 @@ void mouse_callback(GLFWwindow* window, const double x_pos, const double y_pos) 
     (void)window;
     const game_state_t* const game_state = glfwGetWindowUserPointer(window);
     if (game_state->focused) {
-        camera_rotate(game_state->main_camera, (float)x_pos, (float)y_pos, GL_TRUE);
+        camera_rotate(game_state->player->camera, (float)x_pos, (float)y_pos, GL_TRUE);
     }
 }
 
