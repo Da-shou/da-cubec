@@ -8,6 +8,13 @@
 #include "shader.h"
 #include "material.h"
 
+#define LIGHT_TOP    10U
+#define LIGHT_FRONT  8U
+#define LIGHT_BACK   5U
+#define LIGHT_LEFT   6U
+#define LIGHT_RIGHT  6U
+#define LIGHT_BOTTOM 3U
+
 /* These are all the different vertices for a face that are needed. */
 // clang-format off
 static bool face_front[4][3] = {
@@ -53,7 +60,7 @@ void chunk_mesh_init(chunk_mesh_t* mesh) {
 int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_t face_y,
                          const uint8_t face_z, bool face_vertices[4][3],
                          const float uv_offset_x, const float uv_offset_y,
-                         const float uv_size) {
+                         const float uv_size, const uint8_t light_level) {
     /* Checking if vertices and indices array need to be reallocated.
      * To add a face, we need 4 new vertices. And for each face added,
      * we need 6 indices each. */
@@ -98,7 +105,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
     for (uint8_t i = 0; i < 4; ++i) {
         mesh->vertices[mesh->vertex_count++] =
             chunk_vertex_pack(face_x + face_vertices[i][0], face_y + face_vertices[i][1],
-                              face_z + face_vertices[i][2], uvs[i][0], uvs[i][1]);
+                              face_z + face_vertices[i][2], uvs[i][0], uvs[i][1], light_level);
     }
 
     /* Here we push 6 indices, which will draw two triangles, which in
@@ -139,7 +146,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                             (uint8_t)BLOCK_AIR) {
                         if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
                                                  face_front, uv_block.front.u,
-                                                 uv_block.front.v, tile_offset)) {
+                                                 uv_block.front.v, tile_offset, LIGHT_TOP)) {
                             return -1;
                         };
                     }
@@ -147,7 +154,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                            (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
                                              uv_block.front.u, uv_block.front.v,
-                                             tile_offset)) {
+                                             tile_offset, LIGHT_TOP)) {
                         return -1;
                     };
                 }
@@ -159,7 +166,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                             (uint8_t)BLOCK_AIR) {
                         if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
                                                  face_back, uv_block.back.u,
-                                                 uv_block.back.v, tile_offset)) {
+                                                 uv_block.back.v, tile_offset, LIGHT_BACK)) {
                             return -1;
                         };
                     }
@@ -167,7 +174,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                            (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
                                              uv_block.back.u, uv_block.back.v,
-                                             tile_offset)) {
+                                             tile_offset, LIGHT_BACK)) {
                         return -1;
                     };
                 }
@@ -176,8 +183,8 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     // Above
                     chunk->blocks[block_x][block_y + 1][block_z] == (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_top,
-                                             uv_block.top.u, uv_block.top.v,
-                                             tile_offset)) {
+                                             uv_block.top.u, uv_block.top.v, tile_offset,
+                                             LIGHT_TOP)) {
                         return -1;
                     };
                 }
@@ -187,7 +194,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     chunk->blocks[block_x][block_y - 1][block_z] == (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_bottom,
                                              uv_block.bottom.u, uv_block.bottom.v,
-                                             tile_offset)) {
+                                             tile_offset, LIGHT_BOTTOM)) {
                         return -1;
                     };
                 }
@@ -198,7 +205,8 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                                                (uint8_t)BLOCK_AIR) {
                         if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
                                                  face_right, uv_block.right.u,
-                                                 uv_block.right.v, tile_offset)) {
+                                                 uv_block.right.v, tile_offset,
+                                                 LIGHT_RIGHT)) {
                             return -1;
                         };
                     }
@@ -206,7 +214,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                            (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
                                              uv_block.right.u, uv_block.right.v,
-                                             tile_offset)) {
+                                             tile_offset, LIGHT_RIGHT)) {
                         return -1;
                     };
                 }
@@ -218,7 +226,8 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                             (uint8_t)BLOCK_AIR) {
                         if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
                                                  face_left, uv_block.left.u,
-                                                 uv_block.left.v, tile_offset)) {
+                                                 uv_block.left.v, tile_offset,
+                                                 LIGHT_LEFT)) {
                             return -1;
                         };
                     }
@@ -226,7 +235,7 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                            (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
                                              uv_block.left.u, uv_block.left.v,
-                                             tile_offset)) {
+                                             tile_offset, LIGHT_LEFT)) {
                         return -1;
                     };
                 }
@@ -238,11 +247,18 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
 }
 
 uint32_t chunk_vertex_pack(const uint8_t vertex_x, const uint16_t vertex_y,
-                           const uint8_t vertex_z, const float uv_u, const float uv_v) {
+                           const uint8_t vertex_z, const float uv_u, const float uv_v,
+                           const uint8_t light_level) {
     const uint32_t u_idx = (uint32_t)roundf(uv_u / tile_offset);
     const uint32_t v_idx = (uint32_t)roundf(uv_v / tile_offset);
-    return (vertex_x & 0x1FU) | ((vertex_z & 0x1FU) << 5U) |
-           ((vertex_y & 0x3FFU) << 10U) | (u_idx << 20U) | (v_idx << 23U);
+    // clang-format off
+    return  (vertex_x & 0x1FU)            |
+            ((vertex_z & 0x1FU)   << 5U)  |
+            ((vertex_y & 0x3FFU)  << 10U) |
+            (u_idx << 20U)                |
+            (v_idx << 23U)                |
+            ((light_level & 0xFU) << 26U);
+    // clang-format on
 }
 
 void chunk_mesh_upload(const chunk_mesh_t* mesh) {

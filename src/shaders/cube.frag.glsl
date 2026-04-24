@@ -3,6 +3,7 @@ out vec4 frag_color;
 
 in vec2 texture_coordinates;
 in float camera_distance;
+in float frag_light;
 
 uniform sampler2D current_texture;
 uniform int max_render_distance;
@@ -15,6 +16,9 @@ void main() {
 	float fog_density = 2.0F;
 
 	vec4 color = texture(current_texture, texture_coordinates);
+
+    /* Applying light levels to each vertex */
+    color.rgb *= frag_light;
 
 	/* Normalize distance (0.0 at fog_near, 1.0 at fog_far) */
 	float dist = (camera_distance - fog_near) / (fog_far - fog_near);

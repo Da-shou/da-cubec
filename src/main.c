@@ -237,10 +237,6 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
             break;
         }
 
-        /* Creates the direction vector depending on the current front vector of the
-         * camera and updates the view matrix according to it. */
-        camera_update_view(pcamera, s_view_matrix);
-
         /* The freecam still updates the player's position so that the world
          * can keep loading. */
         if (config->free_camera) {
@@ -257,14 +253,15 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                                 &sprint);
 
             /* Applies gravity, movement vectors, checks collisions */
-            player_update(&s_player, config, world, s_player.camera, wish_forward,
+            player_update(state->player, config, state->world, pcamera, wish_forward,
                           wish_right, jump_pressed, sprint, delta_time);
 
             /* Checks what block is currently being pointer at */
             const uint8_t block = get_pointed_block(state, state->config.max_reach);
             /* Only handling clicks if the block pointed to is not air. */
             if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(game_window, world, &s_player, state->target_block,
+                if (handle_clicks(game_window, state->world, state->player,
+                    state->target_block,
                                   state->neighbour_block, state->target_chunk,
                                   state->neighbour_chunk)) {
                     (void)fprintf(stderr,
@@ -273,6 +270,10 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                 };
             }
         }
+
+        /* Creates the direction vector depending on the current front vector of the
+         * camera and updates the view matrix according to it. */
+        camera_update_view(pcamera, s_view_matrix);
 
         /* Draws text for coordinates, render distance, OpenGL and GLFW version, and game
          * version */

@@ -4,6 +4,7 @@ layout (location = 0) in uint packed_data;
 
 out float camera_distance;
 out vec2 texture_coordinates;
+out float frag_light;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -17,9 +18,11 @@ void main() {
 	float y = float((packed_data >> 10u) & 0x3FFu);
 	float u = float((packed_data >> 20u) & 0x007u) * 0.25;
 	float v = float((packed_data >> 23u) & 0x007u) * 0.25;
+    float light = float((packed_data >> 26u) & 0xFu);
 
 	vec4 global_position = model * vec4(x,y,z,1.0F);
 	camera_distance = length(global_position.xyz - camera_position);
 	gl_Position = projection * view * global_position;
 	texture_coordinates = vec2(u,v);
+    frag_light = light / 10.0F;
 }

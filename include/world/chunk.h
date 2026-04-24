@@ -98,15 +98,16 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
  * @param uv_size Size of one tile in the atlas.
+ * @param light_level
  * @return 0 if successful, -1 if memory allocation failed
  */
 int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
                          uint8_t face_z, bool face_vertices[4][3], float uv_offset_x,
-                         float uv_offset_y, float uv_size);
+                         float uv_offset_y, float uv_size, uint8_t light_level);
 /**
  * @brief Builds a mesh and pushes it to the GPU based on the block array
  * of the chunk. Will analyse the chunk, push all found faces to the mesh
- * object.
+ * object. Also attaches the light level of the face to each vertex.
  * @param chunk Data of all the blocks in the chunk that will be analyzed.
  * @param mesh Pointer to the mesh struct that will be filled with all
  * necesarry faces and sent to the GPU.
@@ -146,17 +147,18 @@ void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas)
 void chunk_mesh_destroy(chunk_mesh_t* mesh);
 
 /**
- * Packs the 5 values (that in total make 20 bytes of data) we need for
- * each vertex into a uint32_t to lighten the buffer data.
+ * Packs the 6 values (that in total make 21 bytes of data) we need for
+ * each vertex into a uint32_t to lighten the buffer data. Last 2 bits are left empty.
  * @param vertex_x X coordinate of the vertex in 3D space. (5 bits [0-16])
  * @param vertex_y Y coordinate of the vertex in 3D space. (5 bits [0-16])
  * @param vertex_z Z coordinate of the vertex in 3D space. (10 bits [0-512])
  * @param uv_u Texture coordinate U. (3 bits (0, 1, 2, or 3 divided by 4.))
  * @param uv_v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
+ * @param light_level Light level of the vertex. (4 bits [0-15])
  * @return Packed vertex data for efficient storage and transmission.
  */
 uint32_t chunk_vertex_pack(uint8_t vertex_x, uint16_t vertex_y, uint8_t vertex_z,
-                           float uv_u, float uv_v);
+                           float uv_u, float uv_v, uint8_t light_level);
 
 /**
  * @brief Destroys the chunk struct storing the cubes infos.
