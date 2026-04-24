@@ -15,6 +15,7 @@
 #define LIGHT_RIGHT 0.6F
 #define LIGHT_BOTTOM 0.4F
 #define MAX_LIGHT 15U
+#define DAY_LIGHT 7U
 #define LIGHT_FALLOFF 1U
 
 /* These are all the different vertices for a face that are needed. */
@@ -42,8 +43,10 @@ void chunk_init(chunk_t* chunk, vec3 position) {
     glm_vec3_copy(position, chunk->position);
     memset(chunk->blocks, 0, sizeof(chunk->blocks));
     chunk_mesh_init(&chunk->mesh);
-    chunk->modified = false;
-    chunk->ready    = false;
+    chunk->needs_rebuild       = false;
+    chunk->needs_light_rebuild = false;
+    chunk->modified            = false;
+    chunk->ready               = false;
 }
 
 void chunk_mesh_init(chunk_mesh_t* mesh) {
@@ -124,7 +127,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
 
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                      const chunk_neighbours_t neighbors) {
-    chunk_propagate_light((chunk_t*)chunk);
+    chunk_propagate_light((chunk_t*)chunk, neighbors);
     mesh->vertex_count = 0;
     mesh->index_count  = 0;
     /* Big ass check on ALL cubes and sending each facing that face
@@ -136,29 +139,59 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                 if (block == BLOCK_AIR) { continue; }
 
                 const block_uv_t uv_block = block_uvs[block];
+
                 const uint8_t top_light =
                     (block_y == CHUNK_SIZE_Y - 1)
                         ? MAX_LIGHT
                         : chunk->light[block_x][block_y + 1][block_z];
 
                 const uint8_t bottom_light =
-                    (block_y == 0) ? 0 : chunk->light[block_x][block_y - 1][block_z];
+                    (block_y == 0) ? 0 // Usually 0 unless you have a bottom neighbor
+                                   : chunk->light[block_x][block_y - 1][block_z];
 
-                const uint8_t front_light =
-                    (block_z == CHUNK_SIZE_XZ - 1)
-                        ? 0
-                        : chunk->light[block_x][block_y][block_z + 1];
+                uint8_t front_light;
+                if (neighbors.north) {
+                    front_light = (block_z == CHUNK_SIZE_XZ - 1)
+                                      ? neighbors.north->light[block_x][block_y][0]
+                                      : chunk->light[block_x][block_y][block_z + 1];
+                } else {
+                    front_light = (block_z == CHUNK_SIZE_XZ - 1)
+                                      ? 0
+                                      : chunk->light[block_x][block_y][block_z + 1];
+                }
 
-                const uint8_t back_light =
-                    (block_z == 0) ? 0 : chunk->light[block_x][block_y][block_z - 1];
+                uint8_t back_light;
+                if (neighbors.south) {
+                    back_light =
+                        (block_z == 0)
+                            ? neighbors.south->light[block_x][block_y][CHUNK_SIZE_XZ - 1]
+                            : chunk->light[block_x][block_y][block_z - 1];
+                } else {
+                    back_light =
+                        (block_z == 0) ? 0 : chunk->light[block_x][block_y][block_z - 1];
+                }
 
-                const uint8_t right_light =
-                    (block_x == CHUNK_SIZE_XZ - 1)
-                        ? 0
-                        : chunk->light[block_x + 1][block_y][block_z];
+                uint8_t right_light;
+                if (neighbors.east) {
+                    right_light = (block_x == CHUNK_SIZE_XZ - 1)
+                                      ? neighbors.east->light[0][block_y][block_z]
+                                      : chunk->light[block_x + 1][block_y][block_z];
+                } else {
+                    right_light = (block_x == CHUNK_SIZE_XZ - 1)
+                                      ? 0
+                                      : chunk->light[block_x + 1][block_y][block_z];
+                }
 
-                const uint8_t left_light =
-                    (block_x == 0) ? 0 : chunk->light[block_x - 1][block_y][block_z];
+                uint8_t left_light;
+                if (neighbors.west) {
+                    left_light =
+                        (block_x == 0)
+                            ? neighbors.west->light[CHUNK_SIZE_XZ - 1][block_y][block_z]
+                            : chunk->light[block_x - 1][block_y][block_z];
+                } else {
+                    left_light =
+                        (block_x == 0) ? 0 : chunk->light[block_x - 1][block_y][block_z];
+                }
 
                 /* To determine if the face of a block in a chunk will be rendered, we
                  * check the 4 potentials neighbors (front, back, left and right). The top
@@ -265,10 +298,10 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     }
                 } else if (chunk->blocks[block_x - 1][block_y][block_z] ==
                            (uint8_t)BLOCK_AIR) {
-                    if (chunk_mesh_push_face(
-                            mesh, block_x, block_y, block_z, face_left, uv_block.left.u,
-                            uv_block.left.v, tile_offset,
-                            (uint8_t)(LIGHT_LEFT * (float)left_light))) {
+                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
+                                             uv_block.left.u, uv_block.left.v,
+                                             tile_offset,
+                                             (uint8_t)(LIGHT_LEFT * (float)left_light))) {
                         return -1;
                     };
                 }
@@ -332,19 +365,25 @@ void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas)
     chunk_mesh_draw(&chunk->mesh);
 }
 
-void chunk_propagate_light(chunk_t* chunk) {
+void chunk_propagate_light(chunk_t* chunk, const chunk_neighbours_t neighbours) {
     /* Reset all light values */
     memset(chunk->light, 0, sizeof(chunk->light));
-
-    static ivec3 queue[CHUNK_SIZE_XZ * CHUNK_SIZE_Y * CHUNK_SIZE_XZ];
     int head = 0;
     int tail = 0;
 
+    /* Creating our BFS queue. When a block gets light, it gets added to the
+     * queue to pass that light to the neighbour blocks */
+    static ivec3 queue[CHUNK_SIZE_XZ * CHUNK_SIZE_Y * CHUNK_SIZE_XZ];
+
+    /* Handling sunlight. These loop interate on all of the columns of blocks, top to
+     * bottom. It sets light to the maximum level in the queue for each block of air it
+     * hits and stops once it hits one block. This means that all block above will be
+     * DAY_LIGHT and every block beneath will be 0. */
     for (uint8_t block_x = 0; block_x < CHUNK_SIZE_XZ; ++block_x) {
         for (uint8_t block_z = 0; block_z < CHUNK_SIZE_XZ; ++block_z) {
             for (uint16_t block_y = CHUNK_SIZE_Y - 1; block_y > 0; --block_y) {
                 if (chunk->blocks[block_x][block_y][block_z] != BLOCK_AIR) { break; }
-                chunk->light[block_x][block_y][block_z] = MAX_LIGHT;
+                chunk->light[block_x][block_y][block_z] = DAY_LIGHT;
                 queue[tail][0]                          = block_x;
                 queue[tail][1]                          = block_y;
                 queue[tail][2]                          = block_z;
@@ -353,7 +392,8 @@ void chunk_propagate_light(chunk_t* chunk) {
         }
     }
 
-    /* Seed block light sources */
+    /* Same process but we now check for light sources and mark these blocks as
+     * MAX_LIGHT in the BFS queue. */
     for (int bx = 0; bx < CHUNK_SIZE_XZ; bx++) {
         for (int by = 0; by < CHUNK_SIZE_Y; by++) {
             for (int bz = 0; bz < CHUNK_SIZE_XZ; bz++) {
@@ -368,22 +408,103 @@ void chunk_propagate_light(chunk_t* chunk) {
         }
     }
 
+    /* Checking for neighbour edges light levels. We have 4 edges to check, north,
+     * south, east and west. If a light level of the neighbouring chunk edge is higher
+     * than the one on the side of the current chunk, take the neighbour value and
+     * remove 1 level. Then, we add this light level to the queue of our current chunk
+     * so it can bleed afterwards. */
+    for (int yc = 0; yc < CHUNK_SIZE_Y; yc++) {
+        for (int i = 0; i < CHUNK_SIZE_XZ; i++) {
+            /* Checking if north chunk exists, and if its light level at the edge is
+             * higher than 1, for each block on the edge */
+            const uint8_t neighbour_n_edge =
+                neighbours.north ? neighbours.north->light[i][yc][0] : 0;
+
+            /* If the neighbour edge block has a light value > 1 */
+            if (neighbour_n_edge > 1) {
+                /* If the neighbour value diminished is greater than the current
+                 * light level of the current chunk edge block, update the chunk edge
+                 * light level */
+                if (neighbour_n_edge - 1 > chunk->light[i][yc][CHUNK_SIZE_XZ - 1]) {
+                    chunk->light[i][yc][CHUNK_SIZE_XZ - 1] = neighbour_n_edge - 1;
+
+                    /* Update the queue with the current light level so it can
+                     * propagate after */
+                    queue[tail][0] = i;
+                    queue[tail][1] = yc;
+                    queue[tail][2] = CHUNK_SIZE_XZ - 1;
+                    tail++;
+                }
+            }
+
+            /* Same process for the other edges... */
+            const uint8_t neighbour_s_edge =
+                neighbours.south ? neighbours.south->light[i][yc][CHUNK_SIZE_XZ - 1] : 0;
+            if (neighbour_s_edge > 1) {
+                if (neighbour_s_edge - 1 > chunk->light[i][yc][0]) {
+                    chunk->light[i][yc][0] = neighbour_s_edge - 1;
+
+                    queue[tail][0] = i;
+                    queue[tail][1] = yc;
+                    queue[tail][2] = 0;
+                    tail++;
+                }
+            }
+
+            const uint8_t neighbour_e_edge =
+                neighbours.east ? neighbours.east->light[0][yc][i] : 0;
+            if (neighbour_e_edge > 1) {
+                if (neighbour_e_edge - 1 > chunk->light[CHUNK_SIZE_XZ - 1][yc][i]) {
+                    chunk->light[CHUNK_SIZE_XZ - 1][yc][i] = neighbour_e_edge - 1;
+
+                    queue[tail][0] = CHUNK_SIZE_XZ - 1;
+                    queue[tail][1] = yc;
+                    queue[tail][2] = i;
+                    tail++;
+                }
+            }
+
+            const uint8_t neighbor_w_edge =
+                neighbours.west ? neighbours.west->light[CHUNK_SIZE_XZ - 1][yc][i] : 0;
+            if (neighbor_w_edge > 1) {
+                if (neighbor_w_edge - 1 > chunk->light[0][yc][i]) {
+                    chunk->light[0][yc][i] = neighbor_w_edge - 1;
+
+                    queue[tail][0] = 0;
+                    queue[tail][1] = yc;
+                    queue[tail][2] = i;
+                    tail++;
+                }
+            }
+        }
+    }
+
+    /* This is the propagation loop. We have a tail at the end of the array and a head
+     * at 0.*/
     while (head < tail) {
+        /* Taking the next coordinates of the light value in the queue */
         const int* cur = queue[head++];
 
+        /* Getting the light value at these coordinates */
         const uint8_t cur_light = chunk->light[cur[0]][cur[1]][cur[2]];
+
+        /* Do not spread further if the light is at the minimum level */
         if (cur_light <= LIGHT_FALLOFF) { continue; }
 
+        /* Looking in all six directions from the light sources, one by one */
         for (int current_dir = 0; current_dir < 6; current_dir++) {
+            /* Helper arrays to iterate through the direction */
             const int dir_x[] = {1, -1, 0, 0, 0, 0};
             const int dir_y[] = {0, 0, 1, -1, 0, 0};
             const int dir_z[] = {0, 0, 0, 0, 1, -1};
 
+            /* Getting the neighbouring blocks of the light source in the chunks. */
             const int neighbour_x = cur[0] + dir_x[current_dir];
             const int neighbour_y = cur[1] + dir_y[current_dir];
             const int neighbour_z = cur[2] + dir_z[current_dir];
 
-            /* Stay within chunk bounds for now */
+            /* Skipping if the neighbour coordinates are out of bounds ; the light
+             * processing of that chunk will take care of it. */
             if (neighbour_x < 0 || neighbour_x >= CHUNK_SIZE_XZ) { continue; }
             if (neighbour_y < 0 || neighbour_y >= CHUNK_SIZE_Y) { continue; }
             if (neighbour_z < 0 || neighbour_z >= CHUNK_SIZE_XZ) { continue; }
@@ -393,7 +514,12 @@ void chunk_propagate_light(chunk_t* chunk) {
                 continue;
             }
 
+            /* Subtracting the falloff from the light to make it gradually fade out. */
             const uint8_t new_light = (uint8_t)(cur_light - LIGHT_FALLOFF);
+
+            /* If this new value of the neighbour is greater, update the neighbour
+             * light value and add it to the queue so it gets processed further down
+             * the line. */
             if (new_light > chunk->light[neighbour_x][neighbour_y][neighbour_z]) {
                 chunk->light[neighbour_x][neighbour_y][neighbour_z] = new_light;
 

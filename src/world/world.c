@@ -3,12 +3,12 @@
 #include <limits.h>
 #include <math.h>
 #include <string.h>
-
+#include <stdio.h>
+#include <time.h>
 #include <cglm/cglm.h>
+
 #include "world/blocks.h"
 #include "game_config.h"
-
-#include <time.h>
 
 /**
  * @brief Gets the correct slot index for a chunk coordinate.
@@ -42,6 +42,10 @@ static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_
 void world_init(world_t** world, const game_config_t* config) {
     srand((unsigned int)time(NULL));
     *world = malloc(sizeof(world_t));
+    if (!*world) {
+        (void)fprintf(stderr, "%s\n", "Could not allocate enough memory for world.");
+        return;
+    }
     (*world)->last_player_cx  = INT_MIN;
     (*world)->last_player_cz  = INT_MIN;
     (*world)->render_distance = config->render_distance;
@@ -81,73 +85,70 @@ int world_update(world_t* world, const vec3 player_pos) {
     const int pcx = (int)floorf(player_pos[0] / (float)CHUNK_SIZE_XZ);
     const int pcz = (int)floorf(player_pos[2] / (float)CHUNK_SIZE_XZ);
 
-    /* If the player has not crossed a new chunk, do not do anything. */
-    if (pcx == world->last_player_cx && pcz == world->last_player_cz) {
-        for (int sx = 0; sx < max_loaded_chunk_size; sx++) {
-            for (int sz = 0; sz < max_loaded_chunk_size; sz++) {
-                /* base_cx is the leftmost world chunk, we get this
-                 * by subtracting the render distance from the player's
-                 * x chunk coordinates.
-                 *
-                 * base_sx is the index of the slot that chunk belongs to.
-                 * the first % N gets us the index. Then, the + N % N handles
-                 * negative world coordinates.
-                 *
-                 * Adding the current chunk (sx) to the base chunk_index)
-                 * to get the target chunk's x coordinate.
-                 * Same logic for the z coordinate.
-                 */
-                const int base_cx   = pcx - render_distance;
-                const int base_sx   = chunk_to_slot(base_cx, max_loaded_chunk_size);
-                const int target_cx = base_cx + ((sx - base_sx + max_loaded_chunk_size) %
-                                                 max_loaded_chunk_size);
+    for (int sx = 0; sx < max_loaded_chunk_size; sx++) {
+        for (int sz = 0; sz < max_loaded_chunk_size; sz++) {
+            /* base_cx is the leftmost world chunk, we get this
+             * by subtracting the render distance from the player's
+             * x chunk coordinates.
+             *
+             * base_sx is the index of the slot that chunk belongs to.
+             * the first % N gets us the index. Then, the + N % N handles
+             * negative world coordinates.
+             *
+             * Adding the current chunk (sx) to the base chunk_index)
+             * to get the target chunk's x coordinate.
+             * Same logic for the z coordinate.
+             */
+            const int base_cx   = pcx - render_distance;
+            const int base_sx   = chunk_to_slot(base_cx, max_loaded_chunk_size);
+            const int target_cx = base_cx + ((sx - base_sx + max_loaded_chunk_size) %
+                                             max_loaded_chunk_size);
 
-                const int base_cz   = pcz - render_distance;
-                const int base_sz   = chunk_to_slot(base_cz, max_loaded_chunk_size);
-                const int target_cz = base_cz + ((sz - base_sz + max_loaded_chunk_size) %
-                                                 max_loaded_chunk_size);
+            const int base_cz   = pcz - render_distance;
+            const int base_sz   = chunk_to_slot(base_cz, max_loaded_chunk_size);
+            const int target_cz = base_cz + ((sz - base_sz + max_loaded_chunk_size) %
+                                             max_loaded_chunk_size);
 
-                /* If the target chunk for this slot is already loaded, skip.
-                 */
-                if (world->slot_cx[sx][sz] == target_cx &&
-                    world->slot_cz[sx][sz] == target_cz) {
-                    continue;
-                }
-
-                chunk_t* slot = &world->chunks[sx][sz];
-
-                /* Persist modified chunks before evicting. */
-                if (slot->modified && world->slot_cx[sx][sz] != INT_MIN) {
-                    chunk_store_save(&world->chunk_store, world->slot_cx[sx][sz],
-                                     world->slot_cz[sx][sz], (void*)slot->blocks);
-                }
-
-                /* Clear blocks and reset mesh counters. */
-                memset(slot->blocks, 0, sizeof(slot->blocks));
-                slot->mesh.vertex_count = 0;
-                slot->mesh.index_count  = 0;
-                slot->modified          = false;
-
-                /* Update the world-space position used by chunk_draw. */
-                slot->position[0] = (float)(target_cx * CHUNK_SIZE_XZ);
-                slot->position[1] = 0.0F;
-                slot->position[2] = (float)(target_cz * CHUNK_SIZE_XZ);
-
-                world->slot_cx[sx][sz] = target_cx;
-                world->slot_cz[sx][sz] = target_cz;
-
-                /* Checking if there is a chunk stored for these coordinates,
-                 * otherwise generate it using the generator logic */
-                if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
-                                      slot->blocks)) {
-                    if (world->generate) {
-                        world->generate(slot, target_cx, target_cz,
-                                        world->generator_data);
-                    }
-                }
-
-                world->dirty[sx][sz] = true;
+            /* If the target chunk for this slot is already loaded, skip.
+             */
+            if (world->slot_cx[sx][sz] == target_cx &&
+                world->slot_cz[sx][sz] == target_cz) {
+                continue;
             }
+
+            chunk_t* slot = &world->chunks[sx][sz];
+
+            /* Persist modified chunks before evicting. */
+            if (slot->modified && world->slot_cx[sx][sz] != INT_MIN) {
+                chunk_store_save(&world->chunk_store, world->slot_cx[sx][sz],
+                                 world->slot_cz[sx][sz], (void*)slot->blocks);
+            }
+
+            /* Clear blocks and reset mesh counters. */
+            memset(slot->blocks, 0, sizeof(slot->blocks));
+            slot->mesh.vertex_count = 0;
+            slot->mesh.index_count  = 0;
+            slot->modified          = false;
+
+            /* Update the world-space position used by chunk_draw. */
+            slot->position[0] = (float)(target_cx * CHUNK_SIZE_XZ);
+            slot->position[1] = 0.0F;
+            slot->position[2] = (float)(target_cz * CHUNK_SIZE_XZ);
+
+            world->slot_cx[sx][sz] = target_cx;
+            world->slot_cz[sx][sz] = target_cz;
+
+            /* Checking if there is a chunk stored for these coordinates,
+             * otherwise generate it using the generator logic */
+            if (!chunk_store_load(&world->chunk_store, target_cx, target_cz,
+                                  slot->blocks)) {
+                if (world->generate) {
+                    world->generate(slot, target_cx, target_cz, world->generator_data);
+                }
+            }
+
+            slot->needs_rebuild  = true;
+            world->dirty[sx][sz] = true;
         }
     }
 
@@ -185,47 +186,91 @@ int world_update(world_t* world, const vec3 player_pos) {
         world->dirty[best_sx][best_sz]        = false;
         world->chunks[best_sx][best_sz].ready = true;
 
-        /* Rebuild neighbors so they remove seam faces toward this chunk */
         const int chunk_x = world->slot_cx[best_sx][best_sz];
         const int chunk_z = world->slot_cz[best_sx][best_sz];
 
-        rebuild_if_loaded(world, chunk_x - 1, chunk_z);
-        rebuild_if_loaded(world, chunk_x + 1, chunk_z);
-        rebuild_if_loaded(world, chunk_x, chunk_z - 1);
-        rebuild_if_loaded(world, chunk_x, chunk_z + 1);
+        for (int i = 0; i < 4; i++) {
+            const int direction_z[] = {0, 0, -1, 1};
+            const int direction_x[] = {-1, 1, 0, 0};
+
+            const int neighbour_x = chunk_x + direction_x[i];
+            const int neighbour_z = chunk_z + direction_z[i];
+
+            const int max = (world->render_distance * 2) + 1;
+            const int nsx = chunk_to_slot(neighbour_x, max);
+            const int nsz = chunk_to_slot(neighbour_z, max);
+
+            if (world->slot_cx[nsx][nsz] != neighbour_x ||
+                world->slot_cz[nsx][nsz] != neighbour_z) {
+                continue;
+            }
+
+            chunk_t* neighbor = &world->chunks[nsx][nsz];
+
+            /* Always rebuild neighbor for seam faces, and mark light dirty
+             * so chunk_propagate_light re-runs with our updated light */
+            neighbor->needs_light_rebuild = true;
+            world_build_chunk(world, nsx, nsz);
+        }
     }
 
     return 0;
 }
 
 int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
-    const int chunk_x                  = world->slot_cx[slot_x][slot_z];
-    const int chunk_z                  = world->slot_cz[slot_x][slot_z];
+    const int chunk_x = world->slot_cx[slot_x][slot_z];
+    const int chunk_z = world->slot_cz[slot_x][slot_z];
+
     const chunk_neighbours_t neighbors = {
         .west  = world_get_chunk(world, chunk_x - 1, chunk_z),
         .east  = world_get_chunk(world, chunk_x + 1, chunk_z),
         .south = world_get_chunk(world, chunk_x, chunk_z - 1),
         .north = world_get_chunk(world, chunk_x, chunk_z + 1),
     };
-    chunk_t* chunk     = world_get_chunk(world, chunk_x, chunk_z);
-    const int memcheck = chunk_build_mesh(chunk, &chunk->mesh, neighbors);
-    return memcheck;
+
+    chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
+    if (!chunk) { return 0; }
+
+    if (chunk->needs_rebuild || chunk->needs_light_rebuild) {
+        if (chunk_build_mesh(chunk, &chunk->mesh, neighbors) != 0) { return -1; }
+        chunk->needs_rebuild       = false;
+        chunk->needs_light_rebuild = false;
+    }
+
+    return 0;
 }
 
 // clang-format off
 int world_rebuild_after_change(world_t* world, const int chunk_x,
                                 const int chunk_z, const int local_x,
                                 const int local_z) {
+    chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
+    if (chunk) { chunk->needs_rebuild = true; }
+
     int memcheck = 0;
     memcheck += rebuild_if_loaded(world, chunk_x, chunk_z);
-    if (local_x == 0)
-        { memcheck += rebuild_if_loaded(world, chunk_x - 1, chunk_z); }
-    if (local_x == CHUNK_SIZE_XZ - 1)
-        { memcheck += rebuild_if_loaded(world, chunk_x + 1, chunk_z); }
-    if (local_z == 0)
-        { memcheck += rebuild_if_loaded(world, chunk_x, chunk_z - 1); }
-    if (local_z == CHUNK_SIZE_XZ - 1)
-        { memcheck += rebuild_if_loaded(world, chunk_x, chunk_z + 1); }
+
+    if (local_x == 0) {
+        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x - 1, chunk_z);
+        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
+        memcheck += rebuild_if_loaded(world, chunk_x - 1, chunk_z);
+    }
+    if (local_x == CHUNK_SIZE_XZ - 1) {
+        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x + 1, chunk_z);
+        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
+        memcheck += rebuild_if_loaded(world, chunk_x + 1, chunk_z);
+    }
+    if (local_z == 0) {
+        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x, chunk_z - 1);
+        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
+        memcheck += rebuild_if_loaded(world, chunk_x, chunk_z - 1);
+    }
+    if (local_z == CHUNK_SIZE_XZ - 1) {
+        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x, chunk_z + 1);
+        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
+        memcheck += rebuild_if_loaded(world, chunk_x, chunk_z + 1);
+    }
+
     if (memcheck < 0) { return -1; }
     return 0;
 }

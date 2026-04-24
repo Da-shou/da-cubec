@@ -52,7 +52,6 @@ game_state_t game_state_init(void) {
     static perlin_params_t terrain = {0.01F, 64, 32};
     state.world->generate          = world_generator_perlin;
     state.world->generator_data    = &terrain;
-    world_update(state.world, GLM_VEC3_ZERO);
 
     /* View and projection matrices calculations, setting the FOV and the min/max drawing
      * distance. */
@@ -75,6 +74,7 @@ game_state_t game_state_init(void) {
     /* Camera initalization at same position as player */
     camera_init(&state.config, state.player->camera, (vec3) {0.0F, 80.0F, 0.0F});
 
+    world_update(state.world, (vec3) {0.0F, 80.0F, 0.0F});
     return state;
 }
 
@@ -263,9 +263,8 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
             /* Only handling clicks if the block pointed to is not air. */
             if (block != (uint8_t)BLOCK_AIR) {
                 if (handle_clicks(game_window, state->world, state->player,
-                    state->target_block,
-                                  state->neighbour_block, state->target_chunk,
-                                  state->neighbour_chunk)) {
+                                  state->target_block, state->neighbour_block,
+                                  state->target_chunk, state->neighbour_chunk)) {
                     (void)fprintf(stderr,
                                   "Chunk building failed after handle_click, exiting.\n");
                     break;

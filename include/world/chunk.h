@@ -61,10 +61,13 @@ typedef struct {
     array storing the light level of each block. Each position
     correspond to the local position of the block in the chunk. */
 
-    chunk_mesh_t mesh; /** Informations about the 3D mesh of the chunk */
-    vec3 position;     /**< Position of the chunk in world-space coordinates */
-    bool modified;     /**< True if chunk has been modified and will be saved */
-    bool ready;        /**< True if chunk is ready to draw */
+    chunk_mesh_t mesh;  /** Informations about the 3D mesh of the chunk. */
+    vec3 position;      /**< Position of the chunk in world-space coordinates. */
+    bool modified;      /**< True if chunk has been modified and will be saved. */
+    bool needs_rebuild; /**< True if the chunk should be rebuilt. */
+    bool needs_light_rebuild; /**< True if chunk light sources have changed and will be
+    rebuilt. */
+    bool ready;         /**< True if chunk is ready to draw. */
 } chunk_t;
 
 /**
@@ -73,10 +76,10 @@ typedef struct {
  * on different chunks.
  */
 typedef struct {
-    const chunk_t* west;  /**< Pointer to the chunk at x-1 */
-    const chunk_t* east;  /**< Pointer to the chunk at x+1 */
-    const chunk_t* south; /**< Pointer to the chunk at z-1 */
-    const chunk_t* north; /**< Pointer to the chunk at z+1 */
+    chunk_t* west;  /**< Pointer to the chunk at x-1 */
+    chunk_t* east;  /**< Pointer to the chunk at x+1 */
+    chunk_t* south; /**< Pointer to the chunk at z-1 */
+    chunk_t* north; /**< Pointer to the chunk at z+1 */
 } chunk_neighbours_t;
 
 /**
@@ -129,8 +132,9 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
  * light-emitting block in the chunk and propagates the light to the other blocks.
  * Algorithm used is BFS Flood filling.
  * @param chunk Pointer to the chunk to calculate the light for.
+ * @param neighbours Neighbours of the chunk to calculate for.
  */
-void chunk_propagate_light(chunk_t* chunk);
+void chunk_propagate_light(chunk_t* chunk, chunk_neighbours_t neighbours);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside
