@@ -57,10 +57,17 @@ typedef struct {
     array storing the id of each block (is it air, grass, stone, etc..) Each position
     correspond to the local position of the block in the chunk. */
 
-    chunk_mesh_t mesh; /** Informations about the 3D mesh of the chunk */
-    vec3 position;     /**< Position of the chunk in world-space coordinates */
-    bool modified;     /**< True if chunk has been modified and will be saved */
-    bool ready;        /**< True if chunk is ready to draw */
+    uint8_t light[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]; /**< 3-dimensional
+    array storing the light level of each block. Each position
+    correspond to the local position of the block in the chunk. */
+
+    chunk_mesh_t mesh;  /** Informations about the 3D mesh of the chunk. */
+    vec3 position;      /**< Position of the chunk in world-space coordinates. */
+    bool modified;      /**< True if chunk has been modified and will be saved. */
+    bool needs_rebuild; /**< True if the chunk should be rebuilt. */
+    bool needs_light_rebuild; /**< True if chunk light sources have changed and will be
+    rebuilt. */
+    bool ready;         /**< True if chunk is ready to draw. */
 } chunk_t;
 
 /**
@@ -69,10 +76,10 @@ typedef struct {
  * on different chunks.
  */
 typedef struct {
-    const chunk_t* west;  /**< Pointer to the chunk at x-1 */
-    const chunk_t* east;  /**< Pointer to the chunk at x+1 */
-    const chunk_t* south; /**< Pointer to the chunk at z-1 */
-    const chunk_t* north; /**< Pointer to the chunk at z+1 */
+    chunk_t* west;  /**< Pointer to the chunk at x-1 */
+    chunk_t* east;  /**< Pointer to the chunk at x+1 */
+    chunk_t* south; /**< Pointer to the chunk at z-1 */
+    chunk_t* north; /**< Pointer to the chunk at z+1 */
 } chunk_neighbours_t;
 
 /**
@@ -98,15 +105,16 @@ void chunk_mesh_init(chunk_mesh_t* mesh);
  * @param face_vertices 4 corners of the face
  * @param uv_offset_x, uv_offset_y Texture atlas offset
  * @param uv_size Size of one tile in the atlas.
+ * @param light_level
  * @return 0 if successful, -1 if memory allocation failed
  */
 int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
                          uint8_t face_z, bool face_vertices[4][3], float uv_offset_x,
-                         float uv_offset_y, float uv_size);
+                         float uv_offset_y, float uv_size, uint8_t light_level);
 /**
  * @brief Builds a mesh and pushes it to the GPU based on the block array
  * of the chunk. Will analyse the chunk, push all found faces to the mesh
- * object.
+ * object. Also attaches the light level of the face to each vertex.
  * @param chunk Data of all the blocks in the chunk that will be analyzed.
  * @param mesh Pointer to the mesh struct that will be filled with all
  * necesarry faces and sent to the GPU.
@@ -114,10 +122,22 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
  * chunk. The neighbours are checked when the blocks of the current chunk
  * are on the edge, so the chunk does not render a face that is facing a
  * face from a neighbouring chunk.
+ * @param light_queue
  * @return 0 if successful, -1 if memory allocation failed
  */
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
-                     chunk_neighbours_t neighbors);
+                     chunk_neighbours_t neighbors, uint32_t* light_queue);
+
+/**
+ * @brief Calculate the light levels for each blocks in the chunk. Checks if there is any
+ * light-emitting block in the chunk and propagates the light to the other blocks.
+ * Algorithm used is BFS Flood filling.
+ * @param target_chunk Pointer to the chunk to calculate the light for.
+ * @param adj_neighbours Neighbours of the chunk to calculate for.
+ * @param light_queue Pointer to allocated memory for storing the light queue.
+ */
+void chunk_propagate_light(chunk_t* target_chunk, chunk_neighbours_t adj_neighbours,
+                           uint32_t* light_queue);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside
@@ -146,17 +166,18 @@ void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas)
 void chunk_mesh_destroy(chunk_mesh_t* mesh);
 
 /**
- * Packs the 5 values (that in total make 20 bytes of data) we need for
- * each vertex into a uint32_t to lighten the buffer data.
+ * Packs the 6 values (that in total make 21 bytes of data) we need for
+ * each vertex into a uint32_t to lighten the buffer data. Last 2 bits are left empty.
  * @param vertex_x X coordinate of the vertex in 3D space. (5 bits [0-16])
- * @param vertex_y Y coordinate of the vertex in 3D space. (5 bits [0-16])
- * @param vertex_z Z coordinate of the vertex in 3D space. (10 bits [0-512])
+ * @param vertex_y Y coordinate of the vertex in 3D space. (10 bits [0-512])
+ * @param vertex_z Z coordinate of the vertex in 3D space. (5 bits [0-16])
  * @param uv_u Texture coordinate U. (3 bits (0, 1, 2, or 3 divided by 4.))
  * @param uv_v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
+ * @param light_level Light level of the vertex. (4 bits [0-15])
  * @return Packed vertex data for efficient storage and transmission.
  */
 uint32_t chunk_vertex_pack(uint8_t vertex_x, uint16_t vertex_y, uint8_t vertex_z,
-                           float uv_u, float uv_v);
+                           float uv_u, float uv_v, uint8_t light_level);
 
 /**
  * @brief Destroys the chunk struct storing the cubes infos.

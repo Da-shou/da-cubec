@@ -10,12 +10,12 @@
 #include <cglm/box.h>
 #include <math.h>
 
-void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world) {
+void handle_debug_inputs(GLFWwindow* window, game_state_t* state) {
     static int last_tab_state = GLFW_RELEASE;
     const int tab_state       = glfwGetKey(window, GLFW_KEY_TAB);
     if (last_tab_state != tab_state && tab_state == GLFW_PRESS &&
         last_tab_state == GLFW_RELEASE) {
-        config->free_camera = !config->free_camera;
+        state->config.free_camera = !state->config.free_camera;
     }
     last_tab_state = tab_state;
 
@@ -23,8 +23,8 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     const int pgup_state       = glfwGetKey(window, GLFW_KEY_PAGE_UP);
     if (last_pgup_state != pgup_state && pgup_state == GLFW_PRESS &&
         last_pgup_state == GLFW_RELEASE) {
-        if (config->render_distance < MAX_RENDER_DISTANCE) {
-            ++(config->render_distance);
+        if (state->config.render_distance < MAX_RENDER_DISTANCE) {
+            ++(state->config.render_distance);
         }
     }
     last_pgup_state = pgup_state;
@@ -33,7 +33,7 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     const int pgdown_state       = glfwGetKey(window, GLFW_KEY_PAGE_DOWN);
     if (last_pgdown_state != pgdown_state && pgdown_state == GLFW_PRESS &&
         last_pgdown_state == GLFW_RELEASE) {
-        if (config->render_distance > 1) { --(config->render_distance); }
+        if (state->config.render_distance > 1) { --(state->config.render_distance); }
     }
     last_pgdown_state = pgdown_state;
 
@@ -41,7 +41,9 @@ void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* wor
     const int f3_state       = glfwGetKey(window, GLFW_KEY_F3);
     if (last_f3_state != f3_state && f3_state == GLFW_PRESS &&
         last_f3_state == GLFW_RELEASE) {
-        world_reload(world, config->render_distance);
+        world_reload(state->world, state->config.render_distance);
+        state->target_chunk    = NULL;
+        state->neighbour_chunk = NULL;
     }
     last_f3_state = f3_state;
 }
@@ -95,8 +97,9 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
         const int local_z = (int)floorf(target_block[2]) - (chunk_z * CHUNK_SIZE_XZ);
 
         target_chunk->blocks[local_x][local_y][local_z] = (uint8_t)BLOCK_AIR;
-        target_chunk->modified                          = true;
-        world_rebuild_after_change(world, chunk_x, chunk_z, local_x, local_z);
+
+        target_chunk->modified = true;
+        world_rebuild_after_change(world, chunk_x, chunk_z);
     }
 
     /* Right-click -> A block is placed at the
@@ -135,11 +138,9 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
             return 0;
         }
 
-        neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] =
-            (uint8_t)BLOCK_COBBLESTONE;
-        neighbour_chunk->modified = true;
-        memcheck =
-            world_rebuild_after_change(world, chunk_x, chunk_z, n_local_x, n_local_z);
+        neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] = (uint8_t)BLOCK_GLOW;
+        neighbour_chunk->modified                                = true;
+        memcheck = world_rebuild_after_change(world, chunk_x, chunk_z);
     }
 
     last_lc_state = lc_state;

@@ -9,6 +9,7 @@
 #include "world/pointer.h"
 #include "world/fog.h"
 #include "world/blocks.h"
+#include "world/world.h"
 
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
@@ -50,7 +51,6 @@ game_state_t game_state_init(void) {
     static perlin_params_t terrain = {0.01F, 64, 32};
     state.world->generate          = world_generator_perlin;
     state.world->generator_data    = &terrain;
-    world_update(state.world, GLM_VEC3_ZERO);
 
     /* View and projection matrices calculations, setting the FOV and the min/max drawing
      * distance. */
@@ -73,6 +73,7 @@ game_state_t game_state_init(void) {
     /* Camera initalization at same position as player */
     camera_init(&state.config, state.player->camera, (vec3) {0.0F, 80.0F, 0.0F});
 
+    world_update(state.world, (vec3) {0.0F, 80.0F, 0.0F});
     return state;
 }
 
@@ -166,7 +167,10 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
     static vec3* pov_origin;
     static int last_render_distance = MAX_RENDER_DISTANCE;
 
-    game_config_t* config = &state->config;
+    const game_config_t* config = &state->config;
+
+    /* Setting the requested width and height after loading the configuration */
+    glfwSetWindowSize(game_window, state->config.width, state->config.height);
 
     /* Main window loop */
     while (!glfwWindowShouldClose(game_window)) {
@@ -186,7 +190,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Handling the different debug inputs such as freecam
          * toggle or reloading chunks */
-        handle_debug_inputs(game_window, config, world);
+        handle_debug_inputs(game_window, state);
 
         /* Calculating the delta_time */
         const float current_frame = (float)glfwGetTime();
@@ -227,7 +231,41 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
         vec4 frustum_planes[6];
         glm_frustum_planes(view_projection, frustum_planes);
 
-        world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
+        /* The freecam still updates the player's position so that the world
+         * can keep loading. */
+        if (config->free_camera) {
+            handle_camera_mouse(game_window, config, state->player, delta_time);
+            vec3 player_updated_position = {
+                pcamera->position[0], pcamera->position[1] - state->player->eye_offset,
+                pcamera->position[2]};
+            glm_vec3_copy(GLM_VEC3_ZERO, state->player->velocity);
+            glm_vec3_copy(player_updated_position, state->player->position);
+        } else if (world_player_chunks_ready(state->world, state->player->position)) {
+            /* Gets the input about the player movement and
+             * updates the direction integers */
+            handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
+                                &sprint);
+
+            /* Applies gravity, movement vectors, checks collisions */
+            player_update(state->player, config, state->world, pcamera, wish_forward,
+                          wish_right, jump_pressed, sprint, delta_time);
+
+            /* Checks what block is currently being pointer at */
+            const uint8_t block = get_pointed_block(state, state->config.max_reach);
+
+            /* Only handling clicks if the block pointed to is not air. */
+            if (block != (uint8_t)BLOCK_AIR && state->target_chunk != NULL) {
+                if (handle_clicks(game_window, state->world, state->player,
+                                  state->target_block, state->neighbour_block,
+                                  state->target_chunk, state->neighbour_chunk)) {
+                    (void)fprintf(stderr,
+                                  "Chunk building failed after handle_click, exiting.\n");
+                    break;
+                };
+            }
+        } else {
+            glm_vec3_zero(state->player->velocity);
+        }
 
         /* Stream in/out chunks based on player position. */
         const int memcheck = world_update(state->world, *pov_origin);
@@ -241,38 +279,8 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
          * camera and updates the view matrix according to it. */
         camera_update_view(pcamera, s_view_matrix);
 
-        /* The freecam still updates the player's position so that the world
-         * can keep loading. */
-        if (config->free_camera) {
-            handle_camera_mouse(game_window, config, state->player, delta_time);
-            vec3 player_updated_position = {
-                pcamera->position[0], pcamera->position[1] - state->player->eye_offset,
-                pcamera->position[2]};
-            glm_vec3_copy(GLM_VEC3_ZERO, state->player->velocity);
-            glm_vec3_copy(player_updated_position, state->player->position);
-        } else {
-            /* Gets the input about the player movement and
-             * updates the direction integers */
-            handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
-                                &sprint);
-
-            /* Applies gravity, movement vectors, checks collisions */
-            player_update(&s_player, config, world, s_player.camera, wish_forward,
-                          wish_right, jump_pressed, sprint, delta_time);
-
-            /* Checks what block is currently being pointer at */
-            const uint8_t block = get_pointed_block(state, state->config.max_reach);
-            /* Only handling clicks if the block pointed to is not air. */
-            if (block != (uint8_t)BLOCK_AIR) {
-                if (handle_clicks(game_window, world, &s_player, state->target_block,
-                                  state->neighbour_block, state->target_chunk,
-                                  state->neighbour_chunk)) {
-                    (void)fprintf(stderr,
-                                  "Chunk building failed after handle_click, exiting.\n");
-                    break;
-                };
-            }
-        }
+        /* Drawing the world first, if not the UI will get drawn behind the world. */
+        world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
 
         /* Draws text for coordinates, render distance, OpenGL and GLFW version, and game
          * version */

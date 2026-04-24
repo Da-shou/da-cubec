@@ -7,7 +7,7 @@
 #include "world/world.h"
 #include "world/blocks.h"
 
-uint8_t get_pointed_block(game_state_t* game_state, float max_distance) {
+uint8_t get_pointed_block(game_state_t* game_state, const float max_distance) {
     vec3 pos;
     vec3 dir;
     glm_vec3_copy(game_state->player->camera->position, pos);
@@ -55,25 +55,26 @@ uint8_t get_pointed_block(game_state_t* game_state, float max_distance) {
 
         if (camera_y >= 0 && camera_y < CHUNK_SIZE_Y) {
             chunk_t* chunk = world_get_chunk(game_state->world, chunk_x, chunk_z);
-            if (chunk == NULL) { continue; }
-            const uint8_t block = chunk->blocks[local_x][camera_y][local_z];
-            if (block != (uint8_t)BLOCK_AIR) {
-                process_block((vec3) {(float)camera_x, (float)camera_y, (float)camera_z},
-                              last_pointed_to, &game_state->target_block,
-                              &game_state->neighbour_block, step_x, step_y, step_z);
+            if (chunk != NULL) {
+                const uint8_t block = chunk->blocks[local_x][camera_y][local_z];
+                if (block != (uint8_t)BLOCK_AIR) {
+                    process_block((vec3) {(float)camera_x, (float)camera_y, (float)camera_z},
+                                  last_pointed_to, &game_state->target_block,
+                                  &game_state->neighbour_block, step_x, step_y, step_z);
 
-                /* Setting the chunk pointer for the targeted block chunk
-                 * and for it's neighbour, in case the neighbour is in
-                 * a different chunk.*/
-                game_state->target_chunk = chunk;
-                const int nb_chunk_x =
-                    (int)floorf((game_state->neighbour_block)[0] / CHUNK_SIZE_XZ);
-                const int nb_chunk_z =
-                    (int)floorf((game_state->neighbour_block)[2] / CHUNK_SIZE_XZ);
+                    /* Setting the chunk pointer for the targeted block chunk
+                     * and for it's neighbour, in case the neighbour is in
+                     * a different chunk.*/
+                    game_state->target_chunk = chunk;
+                    const int nb_chunk_x =
+                        (int)floorf((game_state->neighbour_block)[0] / CHUNK_SIZE_XZ);
+                    const int nb_chunk_z =
+                        (int)floorf((game_state->neighbour_block)[2] / CHUNK_SIZE_XZ);
 
-                game_state->neighbour_chunk =
-                    world_get_chunk(game_state->world, nb_chunk_x, nb_chunk_z);
-                return block;
+                    game_state->neighbour_chunk =
+                        world_get_chunk(game_state->world, nb_chunk_x, nb_chunk_z);
+                    return block;
+                }
             }
         }
 
