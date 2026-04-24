@@ -10,6 +10,7 @@
 
 #include "opengl_glfw.h"
 #include "game_config.h"
+#include "game_state.h"
 #include "player.h"
 #include "world/chunk.h"
 #include "world/world.h"
@@ -54,9 +55,8 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
  * @brief Allows the player to reload the chunks, switch between player view and freecam
  * and allows reloading the chunks.
  * @param window Pointer to the window polling the inputs.
- * @param config Pointer to the config to edit to set the free_camera value.
- * @param world Pointer to world to allow world reloading.
+ * @param state Pointer to the state to edit to set the free_camera value.
  */
-void handle_debug_inputs(GLFWwindow* window, game_config_t* config, world_t* world);
+void handle_debug_inputs(GLFWwindow* window, game_state_t* state);
 
 #endif

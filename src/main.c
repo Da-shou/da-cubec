@@ -10,8 +10,6 @@
 #include "world/fog.h"
 #include "world/blocks.h"
 
-#include <string.h>
-
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
  * a base state for the game. Finally, launches the game render loop with the created
@@ -168,7 +166,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
     static vec3* pov_origin;
     static int last_render_distance = MAX_RENDER_DISTANCE;
 
-    game_config_t* config = &state->config;
+    const game_config_t* config = &state->config;
 
     /* Main window loop */
     while (!glfwWindowShouldClose(game_window)) {
@@ -188,7 +186,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
         /* Handling the different debug inputs such as freecam
          * toggle or reloading chunks */
-        handle_debug_inputs(game_window, config, world);
+        handle_debug_inputs(game_window, state);
 
         /* Calculating the delta_time */
         const float current_frame = (float)glfwGetTime();
@@ -229,16 +227,6 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
         vec4 frustum_planes[6];
         glm_frustum_planes(view_projection, frustum_planes);
 
-        world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
-
-        /* Stream in/out chunks based on player position. */
-        const int memcheck = world_update(state->world, *pov_origin);
-        if (memcheck < 0) {
-            (void)fprintf(stderr,
-                          "Memory allocation failure in world_update, exiting.\n");
-            break;
-        }
-
         /* The freecam still updates the player's position so that the world
          * can keep loading. */
         if (config->free_camera) {
@@ -260,21 +248,33 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
             /* Checks what block is currently being pointer at */
             const uint8_t block = get_pointed_block(state, state->config.max_reach);
+
             /* Only handling clicks if the block pointed to is not air. */
-            if (block != (uint8_t)BLOCK_AIR) {
+            if (block != (uint8_t)BLOCK_AIR && state->target_chunk != NULL) {
                 if (handle_clicks(game_window, state->world, state->player,
                                   state->target_block, state->neighbour_block,
                                   state->target_chunk, state->neighbour_chunk)) {
                     (void)fprintf(stderr,
                                   "Chunk building failed after handle_click, exiting.\n");
                     break;
-                };
+                                  };
             }
+        }
+
+        /* Stream in/out chunks based on player position. */
+        const int memcheck = world_update(state->world, *pov_origin);
+        if (memcheck < 0) {
+            (void)fprintf(stderr,
+                          "Memory allocation failure in world_update, exiting.\n");
+            break;
         }
 
         /* Creates the direction vector depending on the current front vector of the
          * camera and updates the view matrix according to it. */
         camera_update_view(pcamera, s_view_matrix);
+
+        /* Drawing the world first, if not the UI will get drawn behind the world. */
+        world_draw(state->world, &state->cube_shader, &state->atlas, frustum_planes);
 
         /* Draws text for coordinates, render distance, OpenGL and GLFW version, and game
          * version */

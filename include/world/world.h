@@ -20,6 +20,8 @@
  * memory storing the chunks. */
 #define MAX_LOADED_CHUNKS_SIZE ((2 * MAX_RENDER_DISTANCE) + 1)
 
+#define LIGHT_QUEUE_SIZE (CHUNK_SIZE_XZ * CHUNK_SIZE_XZ * CHUNK_SIZE_Y)
+
 /**
  * @brief Signature for a chunk terrain generator.
  * @param chunk The chunk to fill with blocks.
@@ -62,6 +64,7 @@ typedef struct {
 
     chunk_store_t chunk_store;  /**< Chunk hashmap used to store a chunk whenever a chunk
      is modified by the player. */
+    uint32_t* light_queue;
 } world_t;
 
 /**
@@ -114,12 +117,9 @@ void world_set_render_distance(world_t* world, int render_distance);
  * @param world   Pointer to the world.
  * @param chunk_x World-space chunk X of the modified chunk.
  * @param chunk_z World-space chunk Z of the modified chunk.
- * @param local_x Block's local X within the chunk.
- * @param local_z Block's local Z within the chunk.
  * @return 0 on success, -1 on memory allocation failure.
  */
-int world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z, int local_x,
-                               int local_z);
+int world_rebuild_after_change(world_t* world, int chunk_x, int chunk_z);
 /**
  * @brief Draws all loaded chunks with frustum culling.
  * @param world   Pointer to the world to be drawn.

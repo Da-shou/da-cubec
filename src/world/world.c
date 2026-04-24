@@ -31,11 +31,13 @@ static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
     const int slot_x                = chunk_to_slot(chunk_x, max_loaded_chunk_size);
     const int slot_z                = chunk_to_slot(chunk_z, max_loaded_chunk_size);
-    int memcheck                    = 0;
+
+    int memcheck = 0;
     if (world->slot_cx[slot_x][slot_z] == chunk_x &&
         world->slot_cz[slot_x][slot_z] == chunk_z) {
         memcheck = world_build_chunk(world, slot_x, slot_z);
     }
+
     return memcheck;
 }
 
@@ -63,6 +65,7 @@ void world_init(world_t** world, const game_config_t* config) {
         }
     }
     chunk_store_init(&(*world)->chunk_store);
+    (*world)->light_queue = malloc((size_t)LIGHT_QUEUE_SIZE * sizeof(uint32_t));
 }
 
 chunk_t* world_get_chunk(world_t* world, const int chunk_x, const int chunk_z) {
@@ -232,7 +235,9 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
     if (!chunk) { return 0; }
 
     if (chunk->needs_rebuild || chunk->needs_light_rebuild) {
-        if (chunk_build_mesh(chunk, &chunk->mesh, neighbors) != 0) { return -1; }
+        if (chunk_build_mesh(chunk, &chunk->mesh, neighbors, world->light_queue) != 0) {
+            return -1;
+        }
         chunk->needs_rebuild       = false;
         chunk->needs_light_rebuild = false;
     }
@@ -242,33 +247,33 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
 
 // clang-format off
 int world_rebuild_after_change(world_t* world, const int chunk_x,
-                                const int chunk_z, const int local_x,
-                                const int local_z) {
+                                const int chunk_z) {
     chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
-    if (chunk) { chunk->needs_rebuild = true; }
+    if (chunk) {
+        chunk->needs_rebuild = true;
+        chunk->needs_light_rebuild = true;
+    }
 
     int memcheck = 0;
     memcheck += rebuild_if_loaded(world, chunk_x, chunk_z);
+    if (memcheck < 0) { return -1; }
 
-    if (local_x == 0) {
-        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x - 1, chunk_z);
-        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
-        memcheck += rebuild_if_loaded(world, chunk_x - 1, chunk_z);
-    }
-    if (local_x == CHUNK_SIZE_XZ - 1) {
-        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x + 1, chunk_z);
-        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
-        memcheck += rebuild_if_loaded(world, chunk_x + 1, chunk_z);
-    }
-    if (local_z == 0) {
-        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x, chunk_z - 1);
-        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
-        memcheck += rebuild_if_loaded(world, chunk_x, chunk_z - 1);
-    }
-    if (local_z == CHUNK_SIZE_XZ - 1) {
-        chunk_t* neighbour_chunk = world_get_chunk(world, chunk_x, chunk_z + 1);
-        if (neighbour_chunk) { neighbour_chunk->needs_rebuild = true; }
-        memcheck += rebuild_if_loaded(world, chunk_x, chunk_z + 1);
+    // Pass 2: now rebuild neighbours, which will seed from the correct edge light
+    const int neighbours[4][2] = {
+        {chunk_x - 1, chunk_z},
+        {chunk_x + 1, chunk_z},
+        {chunk_x,     chunk_z - 1},
+        {chunk_x,     chunk_z + 1},
+    };
+
+    for (int i = 0; i < 4; i++) {
+        chunk_t* neighbour = world_get_chunk(world, neighbours[i][0], neighbours[i][1]);
+        if (neighbour) {
+            neighbour->needs_rebuild       = true;
+            neighbour->needs_light_rebuild = true;
+        }
+        // Always rebuild all 4 neighbours for light, not just boundary ones
+        memcheck += rebuild_if_loaded(world, neighbours[i][0], neighbours[i][1]);
     }
 
     if (memcheck < 0) { return -1; }
@@ -310,6 +315,7 @@ void world_destroy(world_t* world) {
         }
     }
     chunk_store_destroy(&world->chunk_store);
+    free(world->light_queue);
     free(world);
 }
 

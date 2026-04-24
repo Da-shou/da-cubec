@@ -122,19 +122,22 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
  * chunk. The neighbours are checked when the blocks of the current chunk
  * are on the edge, so the chunk does not render a face that is facing a
  * face from a neighbouring chunk.
+ * @param light_queue
  * @return 0 if successful, -1 if memory allocation failed
  */
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
-                     chunk_neighbours_t neighbors);
+                     chunk_neighbours_t neighbors, uint32_t* light_queue);
 
 /**
  * @brief Calculate the light levels for each blocks in the chunk. Checks if there is any
  * light-emitting block in the chunk and propagates the light to the other blocks.
  * Algorithm used is BFS Flood filling.
- * @param chunk Pointer to the chunk to calculate the light for.
- * @param neighbours Neighbours of the chunk to calculate for.
+ * @param target_chunk Pointer to the chunk to calculate the light for.
+ * @param adj_neighbours Neighbours of the chunk to calculate for.
+ * @param light_queue Pointer to allocated memory for storing the light queue.
  */
-void chunk_propagate_light(chunk_t* chunk, chunk_neighbours_t neighbours);
+void chunk_propagate_light(chunk_t* target_chunk, chunk_neighbours_t adj_neighbours,
+                           uint32_t* light_queue);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside
