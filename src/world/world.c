@@ -246,42 +246,43 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
     return 0;
 }
 
-// clang-format off
-int world_rebuild_after_change(world_t* world, const int chunk_x,
-                                const int chunk_z) {
-    printf("Rebuilding because of change in chunk %d, %d\n", chunk_x, chunk_z);
-    chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
-    if (chunk) {
-        chunk->needs_rebuild = true;
-        chunk->needs_light_rebuild = true;
-    }
-
+int world_rebuild_after_change(world_t* world, const int chunk_x, const int chunk_z) {
+    /* When a block has been placed, the chunk and its 8 neighbours get their light
+     * repropagated. This needs to be done all at once so that they can be correcly
+     * rebuilt afterwards. */
     for (int offset_x = -1; offset_x <= 1; offset_x++) {
         for (int offset_z = -1; offset_z <= 1; offset_z++) {
-            chunk_t* neighbour = world_get_chunk(world, chunk_x + offset_x, chunk_z + offset_z);
-            if (neighbour) {
-                neighbour->needs_rebuild       = true;
-                neighbour->needs_light_rebuild = true;
-                memset(neighbour->light, 0, sizeof(neighbour->light));
-            }
+            const int current_cx = chunk_x + offset_x;
+            const int current_cz = chunk_z + offset_z;
+            chunk_t* current_c   = world_get_chunk(world, current_cx, current_cz);
+            if (!current_c) { continue; }
+
+            const chunk_neighbours_t neighbours = {
+                .west  = world_get_chunk(world, current_cx - 1, current_cz),
+                .east  = world_get_chunk(world, current_cx + 1, current_cz),
+                .south = world_get_chunk(world, current_cx, current_cz - 1),
+                .north = world_get_chunk(world, current_cx, current_cz + 1),
+            };
+            chunk_propagate_light(current_c, neighbours, world->light_queue);
         }
     }
 
+	/* Rebuilding all 9 chunks with newly recalculated lights */
     int memcheck = 0;
-    memcheck += rebuild_if_loaded(world, chunk_x, chunk_z);
-    if (memcheck < 0) { return -1; }
-
     for (int offset_x = -1; offset_x <= 1; offset_x++) {
         for (int offset_z = -1; offset_z <= 1; offset_z++) {
-            memcheck += rebuild_if_loaded(world, chunk_x + offset_x, chunk_z + offset_z);
+            const int current_x = chunk_x + offset_x;
+            const int current_z = chunk_z + offset_z;
+            chunk_t* current_c  = world_get_chunk(world, current_x, current_z);
+            if (!current_c) { continue; }
+            current_c->needs_rebuild = true;
+            memcheck += rebuild_if_loaded(world, current_x, current_z);
+            if (memcheck < 0) { return -1; }
         }
     }
 
-    if (memcheck < 0) { return -1; }
     return 0;
 }
-
-// clang-format on
 
 void world_draw(world_t* world, const shader_t* shader, const material_t* atlas,
                 vec4 frustum[6]) {
