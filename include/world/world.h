@@ -43,10 +43,10 @@ typedef struct {
     chunk_t chunks[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE]; /**< Main chunk
     storage, containing the position and mesh of each chunk */
 
-    int slot_cx[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];    /**< Holds the X
-       coordinates of the loaded chunks in world coordinates. */
-    int slot_cz[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE];    /**< Holds the Z
-        coordinates of the loaded chunks in world coordinates. */
+    int slot_cx[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE]; /**< Holds the X
+    coordinates of the loaded chunks in world coordinates. */
+    int slot_cz[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE]; /**< Holds the Z
+     coordinates of the loaded chunks in world coordinates. */
 
     bool dirty[MAX_LOADED_CHUNKS_SIZE][MAX_LOADED_CHUNKS_SIZE]; /**< Allows marking any
     chunks around the player that needs rebuilding. */
@@ -54,16 +54,16 @@ typedef struct {
     int last_player_cx; /**< Last X known chunk coordinates in which the player was. */
     int last_player_cz; /**< Last Z known chunk coordinates in which the player was. */
 
-    uint8_t render_distance;    /**< The render distance the world is currenlty getting
-       drawn at. This allows checking against the config render distance and reloading
-       automatically if a change is detected. */
+    uint8_t render_distance; /**< The render distance the world is currenlty getting
+    drawn at. This allows checking against the config render distance and reloading
+    automatically if a change is detected. */
 
     chunk_generator_t generate; /**< Pointer to the chunk generator function. */
     void* generator_data;       /**< World generator parameters. Depends on the chosen
           generator */
 
-    chunk_store_t chunk_store;  /**< Chunk hashmap used to store a chunk whenever a chunk
-     is modified by the player. */
+    chunk_store_t chunk_store; /**< Chunk hashmap used to store a chunk whenever a chunk
+    is modified by the player. */
     uint32_t* light_queue;
 } world_t;
 
@@ -172,5 +172,13 @@ void world_generator_perlin(chunk_t* chunk, int world_cx, int world_cz,
  * @param render_distance The new render distance.
  */
 void world_reload(world_t* world, uint8_t render_distance);
+
+/**
+ * @brief Checks if the chunks around the player are built. This is used to block
+ * the player physics while the game is rendering chunks.
+ * @param world Pointer to world being reloaded
+ * @param player_pos Current player position.
+ */
+bool world_player_chunks_ready(world_t* world, const vec3 player_pos);
 
 #endif // WORLD_H

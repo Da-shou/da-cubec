@@ -247,9 +247,10 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
 }
 
 int world_rebuild_after_change(world_t* world, const int chunk_x, const int chunk_z) {
-	for (int offset_x = -1; offset_x <= 1; offset_x++) {
+    for (int offset_x = -1; offset_x <= 1; offset_x++) {
         for (int offset_z = -1; offset_z <= 1; offset_z++) {
-            chunk_t* chunk = world_get_chunk(world, chunk_x + offset_x, chunk_z + offset_z);
+            chunk_t* chunk =
+                world_get_chunk(world, chunk_x + offset_x, chunk_z + offset_z);
             if (!chunk) { continue; }
             memset(chunk->light, 0, sizeof(chunk->light));
         }
@@ -275,7 +276,7 @@ int world_rebuild_after_change(world_t* world, const int chunk_x, const int chun
         }
     }
 
-	/* Rebuilding all 9 chunks with newly recalculated lights */
+    /* Rebuilding all 9 chunks with newly recalculated lights */
     int memcheck = 0;
     for (int offset_x = -1; offset_x <= 1; ++offset_x) {
         for (int offset_z = -1; offset_z <= 1; ++offset_z) {
@@ -382,6 +383,19 @@ void world_generator_perlin(chunk_t* chunk, const int world_cx, const int world_
             }
         }
     }
+}
+
+bool world_player_chunks_ready(world_t* world, const vec3 player_pos) {
+    const int pcx = (int)floorf(player_pos[0] / (float)CHUNK_SIZE_XZ);
+    const int pcz = (int)floorf(player_pos[2] / (float)CHUNK_SIZE_XZ);
+
+    for (int chunk_x = -1; chunk_x <= 1; chunk_x++) {
+        for (int chunk_x = -1; chunk_x <= 1; chunk_x++) {
+            const chunk_t* chunk = world_get_chunk(world, pcx + chunk_x, pcz + chunk_x);
+            if (!chunk || !chunk->ready) { return false; };
+        }
+    }
+    return true;
 }
 
 void world_reload(world_t* world, const uint8_t render_distance) {

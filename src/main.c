@@ -9,6 +9,7 @@
 #include "world/pointer.h"
 #include "world/fog.h"
 #include "world/blocks.h"
+#include "world/world.h"
 
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
@@ -168,6 +169,9 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
 
     const game_config_t* config = &state->config;
 
+    /* Setting the requested width and height after loading the configuration */
+    glfwSetWindowSize(game_window, state->config.width, state->config.height);
+
     /* Main window loop */
     while (!glfwWindowShouldClose(game_window)) {
         /* Calling this function allows us to gather all inputs
@@ -236,7 +240,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                 pcamera->position[2]};
             glm_vec3_copy(GLM_VEC3_ZERO, state->player->velocity);
             glm_vec3_copy(player_updated_position, state->player->position);
-        } else {
+        } else if (world_player_chunks_ready(state->world, state->player->position)) {
             /* Gets the input about the player movement and
              * updates the direction integers */
             handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
@@ -259,6 +263,8 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                     break;
                 };
             }
+        } else {
+            glm_vec3_zero(state->player->velocity);
         }
 
         /* Stream in/out chunks based on player position. */

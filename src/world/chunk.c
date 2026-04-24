@@ -144,9 +144,6 @@ static uint16_t unpack_chunk_y(const uint32_t arg_coord) {
 
 void chunk_propagate_light(chunk_t* target_chunk, const chunk_neighbours_t adj_neighbours,
                            uint32_t* light_queue) {
-    printf("Propagating light for chunk (%f, %f)\n", target_chunk->position[0],
-           target_chunk->position[2]);
-
     /* Reset all light values */
     memset(target_chunk->light, 0, sizeof(target_chunk->light));
 
