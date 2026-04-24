@@ -10,6 +10,8 @@
 #include "world/fog.h"
 #include "world/blocks.h"
 
+#include <string.h>
+
 /**
  * @brief Main function of the game. Initializes the game window using GLFW, then creates
  * a base state for the game. Finally, launches the game render loop with the created

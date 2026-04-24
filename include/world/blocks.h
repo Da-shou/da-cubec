@@ -10,6 +10,8 @@
 #ifndef BLOCKS_H
 #define BLOCKS_H
 
+#include <stdbool.h>
+
 static const float tile_offset = 0.25F;
 
 /**
@@ -39,7 +41,8 @@ typedef enum {
     BLOCK_COBBLESTONE = 2,
     BLOCK_DIRT        = 3,
     BLOCK_GRASS       = 4,
-    BLOCK_SAND        = 5
+    BLOCK_SAND        = 5,
+    BLOCK_GLOW        = 6
 } block_type_t;
 
 /**
@@ -90,6 +93,21 @@ static const block_uv_t block_uvs[] = {
             .right  = {0.25F, 0.25F},
             .left   = {0.25F, 0.25F},
         },
+    [BLOCK_GLOW] =
+        {
+            .top    = {0.5F, 0.25F},
+            .bottom = {0.5F, 0.25F},
+            .front  = {0.5F, 0.25F},
+            .back   = {0.5F, 0.25F},
+            .right  = {0.5F, 0.25F},
+            .left   = {0.5F, 0.25F},
+        },
 };
+
+static const block_type_t light_blocks[] = {
+    BLOCK_GLOW,
+};
+
+bool is_light_block(block_type_t block_type);
 
 #endif

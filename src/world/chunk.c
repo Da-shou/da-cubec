@@ -8,12 +8,14 @@
 #include "shader.h"
 #include "material.h"
 
-#define LIGHT_TOP    10U
-#define LIGHT_FRONT  8U
-#define LIGHT_BACK   5U
-#define LIGHT_LEFT   6U
-#define LIGHT_RIGHT  6U
-#define LIGHT_BOTTOM 3U
+#define LIGHT_TOP 1.0F
+#define LIGHT_FRONT 0.8F
+#define LIGHT_BACK 0.5F
+#define LIGHT_LEFT 0.6F
+#define LIGHT_RIGHT 0.6F
+#define LIGHT_BOTTOM 0.4F
+#define MAX_LIGHT 15U
+#define LIGHT_FALLOFF 1U
 
 /* These are all the different vertices for a face that are needed. */
 // clang-format off
@@ -103,9 +105,9 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
      * allowing a quick access to the necessary offset for each
      * vertex.*/
     for (uint8_t i = 0; i < 4; ++i) {
-        mesh->vertices[mesh->vertex_count++] =
-            chunk_vertex_pack(face_x + face_vertices[i][0], face_y + face_vertices[i][1],
-                              face_z + face_vertices[i][2], uvs[i][0], uvs[i][1], light_level);
+        mesh->vertices[mesh->vertex_count++] = chunk_vertex_pack(
+            face_x + face_vertices[i][0], face_y + face_vertices[i][1],
+            face_z + face_vertices[i][2], uvs[i][0], uvs[i][1], light_level);
     }
 
     /* Here we push 6 indices, which will draw two triangles, which in
@@ -122,6 +124,7 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, const uint8_t face_x, const uint16_
 
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                      const chunk_neighbours_t neighbors) {
+    chunk_propagate_light((chunk_t*)chunk);
     mesh->vertex_count = 0;
     mesh->index_count  = 0;
     /* Big ass check on ALL cubes and sending each facing that face
@@ -133,6 +136,29 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                 if (block == BLOCK_AIR) { continue; }
 
                 const block_uv_t uv_block = block_uvs[block];
+                const uint8_t top_light =
+                    (block_y == CHUNK_SIZE_Y - 1)
+                        ? MAX_LIGHT
+                        : chunk->light[block_x][block_y + 1][block_z];
+
+                const uint8_t bottom_light =
+                    (block_y == 0) ? 0 : chunk->light[block_x][block_y - 1][block_z];
+
+                const uint8_t front_light =
+                    (block_z == CHUNK_SIZE_XZ - 1)
+                        ? 0
+                        : chunk->light[block_x][block_y][block_z + 1];
+
+                const uint8_t back_light =
+                    (block_z == 0) ? 0 : chunk->light[block_x][block_y][block_z - 1];
+
+                const uint8_t right_light =
+                    (block_x == CHUNK_SIZE_XZ - 1)
+                        ? 0
+                        : chunk->light[block_x + 1][block_y][block_z];
+
+                const uint8_t left_light =
+                    (block_x == 0) ? 0 : chunk->light[block_x - 1][block_y][block_z];
 
                 /* To determine if the face of a block in a chunk will be rendered, we
                  * check the 4 potentials neighbors (front, back, left and right). The top
@@ -144,17 +170,19 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.north ||
                         neighbors.north->blocks[block_x][block_y][0] ==
                             (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
-                                                 face_front, uv_block.front.u,
-                                                 uv_block.front.v, tile_offset, LIGHT_TOP)) {
+                        if (chunk_mesh_push_face(
+                                mesh, block_x, block_y, block_z, face_front,
+                                uv_block.front.u, uv_block.front.v, tile_offset,
+                                (uint8_t)(LIGHT_FRONT * (float)front_light))) {
                             return -1;
                         };
                     }
                 } else if (chunk->blocks[block_x][block_y][block_z + 1] ==
                            (uint8_t)BLOCK_AIR) {
-                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_front,
-                                             uv_block.front.u, uv_block.front.v,
-                                             tile_offset, LIGHT_TOP)) {
+                    if (chunk_mesh_push_face(
+                            mesh, block_x, block_y, block_z, face_front, uv_block.front.u,
+                            uv_block.front.v, tile_offset,
+                            (uint8_t)(LIGHT_FRONT * (float)front_light))) {
                         return -1;
                     };
                 }
@@ -164,37 +192,40 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.south ||
                         neighbors.south->blocks[block_x][block_y][CHUNK_SIZE_XZ - 1] ==
                             (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
-                                                 face_back, uv_block.back.u,
-                                                 uv_block.back.v, tile_offset, LIGHT_BACK)) {
+                        if (chunk_mesh_push_face(
+                                mesh, block_x, block_y, block_z, face_back,
+                                uv_block.back.u, uv_block.back.v, tile_offset,
+                                (uint8_t)(LIGHT_BACK * (float)back_light))) {
                             return -1;
                         };
                     }
                 } else if (chunk->blocks[block_x][block_y][block_z - 1] ==
                            (uint8_t)BLOCK_AIR) {
-                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_back,
-                                             uv_block.back.u, uv_block.back.v,
-                                             tile_offset, LIGHT_BACK)) {
+                    if (chunk_mesh_push_face(
+                            mesh, block_x, block_y, block_z, face_back, uv_block.back.u,
+                            uv_block.back.v, tile_offset,
+                            (uint8_t)(LIGHT_FRONT * (float)back_light))) {
                         return -1;
                     };
                 }
 
                 if (block_y == CHUNK_SIZE_Y - 1 ||
-                    // Above
+                    // Top
                     chunk->blocks[block_x][block_y + 1][block_z] == (uint8_t)BLOCK_AIR) {
                     if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_top,
                                              uv_block.top.u, uv_block.top.v, tile_offset,
-                                             LIGHT_TOP)) {
+                                             (uint8_t)(LIGHT_TOP * (float)top_light))) {
                         return -1;
                     };
                 }
 
                 if (block_y == 0 ||
-                    // Below
+                    // Bottom
                     chunk->blocks[block_x][block_y - 1][block_z] == (uint8_t)BLOCK_AIR) {
-                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_bottom,
-                                             uv_block.bottom.u, uv_block.bottom.v,
-                                             tile_offset, LIGHT_BOTTOM)) {
+                    if (chunk_mesh_push_face(
+                            mesh, block_x, block_y, block_z, face_bottom,
+                            uv_block.bottom.u, uv_block.bottom.v, tile_offset,
+                            (uint8_t)(LIGHT_BOTTOM * (float)bottom_light))) {
                         return -1;
                     };
                 }
@@ -203,18 +234,19 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     // Right-checking
                     if (!neighbors.east || neighbors.east->blocks[0][block_y][block_z] ==
                                                (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
-                                                 face_right, uv_block.right.u,
-                                                 uv_block.right.v, tile_offset,
-                                                 LIGHT_RIGHT)) {
+                        if (chunk_mesh_push_face(
+                                mesh, block_x, block_y, block_z, face_right,
+                                uv_block.right.u, uv_block.right.v, tile_offset,
+                                (uint8_t)(LIGHT_RIGHT * (float)right_light))) {
                             return -1;
                         };
                     }
                 } else if (chunk->blocks[block_x + 1][block_y][block_z] ==
                            (uint8_t)BLOCK_AIR) {
-                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_right,
-                                             uv_block.right.u, uv_block.right.v,
-                                             tile_offset, LIGHT_RIGHT)) {
+                    if (chunk_mesh_push_face(
+                            mesh, block_x, block_y, block_z, face_right, uv_block.right.u,
+                            uv_block.right.v, tile_offset,
+                            (uint8_t)(LIGHT_RIGHT * (float)right_light))) {
                         return -1;
                     };
                 }
@@ -224,18 +256,19 @@ int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                     if (!neighbors.west ||
                         neighbors.west->blocks[CHUNK_SIZE_XZ - 1][block_y][block_z] ==
                             (uint8_t)BLOCK_AIR) {
-                        if (chunk_mesh_push_face(mesh, block_x, block_y, block_z,
-                                                 face_left, uv_block.left.u,
-                                                 uv_block.left.v, tile_offset,
-                                                 LIGHT_LEFT)) {
+                        if (chunk_mesh_push_face(
+                                mesh, block_x, block_y, block_z, face_left,
+                                uv_block.left.u, uv_block.left.v, tile_offset,
+                                (uint8_t)(LIGHT_LEFT * (float)left_light))) {
                             return -1;
                         };
                     }
                 } else if (chunk->blocks[block_x - 1][block_y][block_z] ==
                            (uint8_t)BLOCK_AIR) {
-                    if (chunk_mesh_push_face(mesh, block_x, block_y, block_z, face_left,
-                                             uv_block.left.u, uv_block.left.v,
-                                             tile_offset, LIGHT_LEFT)) {
+                    if (chunk_mesh_push_face(
+                            mesh, block_x, block_y, block_z, face_left, uv_block.left.u,
+                            uv_block.left.v, tile_offset,
+                            (uint8_t)(LIGHT_LEFT * (float)left_light))) {
                         return -1;
                     };
                 }
@@ -297,6 +330,80 @@ void chunk_draw(chunk_t* chunk, const shader_t* shader, const material_t* atlas)
     glm_translate(model, chunk->position);
     shader_set_mat4(shader, "model", model);
     chunk_mesh_draw(&chunk->mesh);
+}
+
+void chunk_propagate_light(chunk_t* chunk) {
+    /* Reset all light values */
+    memset(chunk->light, 0, sizeof(chunk->light));
+
+    static ivec3 queue[CHUNK_SIZE_XZ * CHUNK_SIZE_Y * CHUNK_SIZE_XZ];
+    int head = 0;
+    int tail = 0;
+
+    for (uint8_t block_x = 0; block_x < CHUNK_SIZE_XZ; ++block_x) {
+        for (uint8_t block_z = 0; block_z < CHUNK_SIZE_XZ; ++block_z) {
+            for (uint16_t block_y = CHUNK_SIZE_Y - 1; block_y > 0; --block_y) {
+                if (chunk->blocks[block_x][block_y][block_z] != BLOCK_AIR) { break; }
+                chunk->light[block_x][block_y][block_z] = MAX_LIGHT;
+                queue[tail][0]                          = block_x;
+                queue[tail][1]                          = block_y;
+                queue[tail][2]                          = block_z;
+                ++tail;
+            }
+        }
+    }
+
+    /* Seed block light sources */
+    for (int bx = 0; bx < CHUNK_SIZE_XZ; bx++) {
+        for (int by = 0; by < CHUNK_SIZE_Y; by++) {
+            for (int bz = 0; bz < CHUNK_SIZE_XZ; bz++) {
+                if (is_light_block(chunk->blocks[bx][by][bz])) {
+                    chunk->light[bx][by][bz] = MAX_LIGHT;
+                    queue[tail][0]           = bx;
+                    queue[tail][1]           = by;
+                    queue[tail][2]           = bz;
+                    ++tail;
+                }
+            }
+        }
+    }
+
+    while (head < tail) {
+        const int* cur = queue[head++];
+
+        const uint8_t cur_light = chunk->light[cur[0]][cur[1]][cur[2]];
+        if (cur_light <= LIGHT_FALLOFF) { continue; }
+
+        for (int current_dir = 0; current_dir < 6; current_dir++) {
+            const int dir_x[] = {1, -1, 0, 0, 0, 0};
+            const int dir_y[] = {0, 0, 1, -1, 0, 0};
+            const int dir_z[] = {0, 0, 0, 0, 1, -1};
+
+            const int neighbour_x = cur[0] + dir_x[current_dir];
+            const int neighbour_y = cur[1] + dir_y[current_dir];
+            const int neighbour_z = cur[2] + dir_z[current_dir];
+
+            /* Stay within chunk bounds for now */
+            if (neighbour_x < 0 || neighbour_x >= CHUNK_SIZE_XZ) { continue; }
+            if (neighbour_y < 0 || neighbour_y >= CHUNK_SIZE_Y) { continue; }
+            if (neighbour_z < 0 || neighbour_z >= CHUNK_SIZE_XZ) { continue; }
+
+            /* Only propagate into air */
+            if (chunk->blocks[neighbour_x][neighbour_y][neighbour_z] != BLOCK_AIR) {
+                continue;
+            }
+
+            const uint8_t new_light = (uint8_t)(cur_light - LIGHT_FALLOFF);
+            if (new_light > chunk->light[neighbour_x][neighbour_y][neighbour_z]) {
+                chunk->light[neighbour_x][neighbour_y][neighbour_z] = new_light;
+
+                queue[tail][0] = neighbour_x;
+                queue[tail][1] = neighbour_y;
+                queue[tail][2] = neighbour_z;
+                ++tail;
+            }
+        }
+    }
 }
 
 void chunk_mesh_destroy(chunk_mesh_t* mesh) {

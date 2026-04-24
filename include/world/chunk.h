@@ -57,6 +57,10 @@ typedef struct {
     array storing the id of each block (is it air, grass, stone, etc..) Each position
     correspond to the local position of the block in the chunk. */
 
+    uint8_t light[CHUNK_SIZE_XZ][CHUNK_SIZE_Y][CHUNK_SIZE_XZ]; /**< 3-dimensional
+    array storing the light level of each block. Each position
+    correspond to the local position of the block in the chunk. */
+
     chunk_mesh_t mesh; /** Informations about the 3D mesh of the chunk */
     vec3 position;     /**< Position of the chunk in world-space coordinates */
     bool modified;     /**< True if chunk has been modified and will be saved */
@@ -119,6 +123,14 @@ int chunk_mesh_push_face(chunk_mesh_t* mesh, uint8_t face_x, uint16_t face_y,
  */
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                      chunk_neighbours_t neighbors);
+
+/**
+ * @brief Calculate the light levels for each blocks in the chunk. Checks if there is any
+ * light-emitting block in the chunk and propagates the light to the other blocks.
+ * Algorithm used is BFS Flood filling.
+ * @param chunk Pointer to the chunk to calculate the light for.
+ */
+void chunk_propagate_light(chunk_t* chunk);
 
 /**
  * @brief Uploads a mesh to the GPU. Is meant to be used inside

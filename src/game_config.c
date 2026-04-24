@@ -25,6 +25,6 @@ game_config_t game_config_default(void) {
                             .terminal_velocity         = 50.0F,
                             .max_reach                 = 6.0F,
                             .sky_color                 = {0.85F, 0.85F, 1.0F, 1.0F},
-                            .render_distance           = 16,
+                            .render_distance           = 8,
                             .debug_font_size           = 28.0F};
 }
