@@ -247,11 +247,19 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
 }
 
 int world_rebuild_after_change(world_t* world, const int chunk_x, const int chunk_z) {
+	for (int offset_x = -1; offset_x <= 1; offset_x++) {
+        for (int offset_z = -1; offset_z <= 1; offset_z++) {
+            chunk_t* chunk = world_get_chunk(world, chunk_x + offset_x, chunk_z + offset_z);
+            if (!chunk) { continue; }
+            memset(chunk->light, 0, sizeof(chunk->light));
+        }
+    }
+
     /* When a block has been placed, the chunk and its 8 neighbours get their light
      * repropagated. This needs to be done all at once so that they can be correcly
      * rebuilt afterwards. */
-    for (int offset_x = -1; offset_x <= 1; offset_x++) {
-        for (int offset_z = -1; offset_z <= 1; offset_z++) {
+    for (int offset_x = -1; offset_x <= 1; ++offset_x) {
+        for (int offset_z = -1; offset_z <= 1; ++offset_z) {
             const int current_cx = chunk_x + offset_x;
             const int current_cz = chunk_z + offset_z;
             chunk_t* current_c   = world_get_chunk(world, current_cx, current_cz);
@@ -269,8 +277,8 @@ int world_rebuild_after_change(world_t* world, const int chunk_x, const int chun
 
 	/* Rebuilding all 9 chunks with newly recalculated lights */
     int memcheck = 0;
-    for (int offset_x = -1; offset_x <= 1; offset_x++) {
-        for (int offset_z = -1; offset_z <= 1; offset_z++) {
+    for (int offset_x = -1; offset_x <= 1; ++offset_x) {
+        for (int offset_z = -1; offset_z <= 1; ++offset_z) {
             const int current_x = chunk_x + offset_x;
             const int current_z = chunk_z + offset_z;
             chunk_t* current_c  = world_get_chunk(world, current_x, current_z);

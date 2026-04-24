@@ -98,9 +98,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
 
         target_chunk->blocks[local_x][local_y][local_z] = (uint8_t)BLOCK_AIR;
 
-        target_chunk->modified            = true;
-        target_chunk->needs_light_rebuild = true;
-
+        target_chunk->modified = true;
         world_rebuild_after_change(world, chunk_x, chunk_z);
     }
 
