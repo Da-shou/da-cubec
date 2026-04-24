@@ -142,8 +142,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
 
         neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] = (uint8_t)BLOCK_GLOW;
         neighbour_chunk->modified                                = true;
-        memcheck =
-            world_rebuild_after_change(world, chunk_x, chunk_z);
+        memcheck = world_rebuild_after_change(world, chunk_x, chunk_z);
     }
 
     last_lc_state = lc_state;

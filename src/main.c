@@ -257,7 +257,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                     (void)fprintf(stderr,
                                   "Chunk building failed after handle_click, exiting.\n");
                     break;
-                                  };
+                };
             }
         }
 

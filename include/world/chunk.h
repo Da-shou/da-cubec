@@ -169,8 +169,8 @@ void chunk_mesh_destroy(chunk_mesh_t* mesh);
  * Packs the 6 values (that in total make 21 bytes of data) we need for
  * each vertex into a uint32_t to lighten the buffer data. Last 2 bits are left empty.
  * @param vertex_x X coordinate of the vertex in 3D space. (5 bits [0-16])
- * @param vertex_y Y coordinate of the vertex in 3D space. (5 bits [0-16])
- * @param vertex_z Z coordinate of the vertex in 3D space. (10 bits [0-512])
+ * @param vertex_y Y coordinate of the vertex in 3D space. (10 bits [0-512])
+ * @param vertex_z Z coordinate of the vertex in 3D space. (5 bits [0-16])
  * @param uv_u Texture coordinate U. (3 bits (0, 1, 2, or 3 divided by 4.))
  * @param uv_v Texture coordinate V. (3 bits (0, 1, 2, or 3 divided by 4.))
  * @param light_level Light level of the vertex. (4 bits [0-15])

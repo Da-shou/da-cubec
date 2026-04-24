@@ -144,6 +144,9 @@ static uint16_t unpack_chunk_y(const uint32_t arg_coord) {
 
 void chunk_propagate_light(chunk_t* target_chunk, const chunk_neighbours_t adj_neighbours,
                            uint32_t* light_queue) {
+    printf("Propagating light for chunk (%f, %f)\n", target_chunk->position[0],
+           target_chunk->position[2]);
+
     /* Reset all light values */
     memset(target_chunk->light, 0, sizeof(target_chunk->light));
 
@@ -394,11 +397,11 @@ static int push_face(chunk_mesh_t* mesh, const uint8_t block_x, const uint16_t b
 
 int chunk_build_mesh(const chunk_t* chunk, chunk_mesh_t* mesh,
                      const chunk_neighbours_t neighbors, uint32_t* light_queue) {
-    /* Propagate light through the chunk */
-    chunk_propagate_light((chunk_t*)chunk, neighbors, light_queue);
-
     mesh->vertex_count = 0;
     mesh->index_count  = 0;
+
+    /* Propagate light through the chunk */
+    chunk_propagate_light((chunk_t*)chunk, neighbors, light_queue);
 
     for (uint8_t block_x = 0; block_x < CHUNK_SIZE_XZ; ++block_x) {
         for (uint16_t block_y = 0; block_y < CHUNK_SIZE_Y; ++block_y) {

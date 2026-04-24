@@ -29,8 +29,9 @@ static int chunk_to_slot(const int coord, const int max_load) {
  */
 static int rebuild_if_loaded(world_t* world, const int chunk_x, const int chunk_z) {
     const int max_loaded_chunk_size = (world->render_distance * 2) + 1;
-    const int slot_x                = chunk_to_slot(chunk_x, max_loaded_chunk_size);
-    const int slot_z                = chunk_to_slot(chunk_z, max_loaded_chunk_size);
+
+    const int slot_x = chunk_to_slot(chunk_x, max_loaded_chunk_size);
+    const int slot_z = chunk_to_slot(chunk_z, max_loaded_chunk_size);
 
     int memcheck = 0;
     if (world->slot_cx[slot_x][slot_z] == chunk_x &&
@@ -248,32 +249,32 @@ int world_build_chunk(world_t* world, const int slot_x, const int slot_z) {
 // clang-format off
 int world_rebuild_after_change(world_t* world, const int chunk_x,
                                 const int chunk_z) {
+    printf("Rebuilding because of change in chunk %d, %d\n", chunk_x, chunk_z);
     chunk_t* chunk = world_get_chunk(world, chunk_x, chunk_z);
     if (chunk) {
         chunk->needs_rebuild = true;
         chunk->needs_light_rebuild = true;
     }
 
+    for (int offset_x = -1; offset_x <= 1; offset_x++) {
+        for (int offset_z = -1; offset_z <= 1; offset_z++) {
+            chunk_t* neighbour = world_get_chunk(world, chunk_x + offset_x, chunk_z + offset_z);
+            if (neighbour) {
+                neighbour->needs_rebuild       = true;
+                neighbour->needs_light_rebuild = true;
+                memset(neighbour->light, 0, sizeof(neighbour->light));
+            }
+        }
+    }
+
     int memcheck = 0;
     memcheck += rebuild_if_loaded(world, chunk_x, chunk_z);
     if (memcheck < 0) { return -1; }
 
-    // Pass 2: now rebuild neighbours, which will seed from the correct edge light
-    const int neighbours[4][2] = {
-        {chunk_x - 1, chunk_z},
-        {chunk_x + 1, chunk_z},
-        {chunk_x,     chunk_z - 1},
-        {chunk_x,     chunk_z + 1},
-    };
-
-    for (int i = 0; i < 4; i++) {
-        chunk_t* neighbour = world_get_chunk(world, neighbours[i][0], neighbours[i][1]);
-        if (neighbour) {
-            neighbour->needs_rebuild       = true;
-            neighbour->needs_light_rebuild = true;
+    for (int offset_x = -1; offset_x <= 1; offset_x++) {
+        for (int offset_z = -1; offset_z <= 1; offset_z++) {
+            memcheck += rebuild_if_loaded(world, chunk_x + offset_x, chunk_z + offset_z);
         }
-        // Always rebuild all 4 neighbours for light, not just boundary ones
-        memcheck += rebuild_if_loaded(world, neighbours[i][0], neighbours[i][1]);
     }
 
     if (memcheck < 0) { return -1; }
