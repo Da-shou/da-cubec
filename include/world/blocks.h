@@ -43,11 +43,15 @@ typedef enum {
     BLOCK_DIRT        = 3,
     BLOCK_GRASS       = 4,
     BLOCK_SAND        = 5,
-    BLOCK_LAMP        = 6
+    BLOCK_LAMP        = 6,
+    BLOCK_PLANKS      = 7,
+    BLOCK_LOG         = 8
 } block_type_t;
 
+// clang-format off
 /**
- * @brief Defines the texture mapping for each block type */
+ * @brief Defines the texture mapping for each block type 
+ */
 static const block_uv_t block_uvs[] = {
     [BLOCK_STONE] =
         {
@@ -103,7 +107,26 @@ static const block_uv_t block_uvs[] = {
             .right  = {0.5F, 0.25F},
             .left   = {0.5F, 0.25F},
         },
+	[BLOCK_PLANKS] = 
+		{
+			.top = {0.75F, 0.25F},
+			.bottom = {0.75F, 0.25F},
+			.front = {0.75F, 0.25F},
+			.back = {0.75F, 0.25F},
+			.right = {0.75F, 0.25F},
+			.left = {0.75F, 0.25F},
+		},
+	[BLOCK_LOG] = 
+		{
+			.top = {0.0F, 0.5F},
+			.bottom = {0.0F, 0.5F},
+			.front = {0.25F, 0.5F},
+			.back = {0.25F, 0.5F},
+			.right = {0.25F, 0.5F},
+			.left = {0.25F, 0.5F},
+		}
 };
+// clang-format on
 
 static const block_type_t light_blocks[] = {
     BLOCK_LAMP,

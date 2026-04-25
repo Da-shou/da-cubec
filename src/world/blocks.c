@@ -24,6 +24,8 @@ void get_block_name(block_type_t block_type, const char** out) {
     case BLOCK_GRASS: *out = "Grass"; break;
     case BLOCK_SAND: *out = "Sand"; break;
     case BLOCK_LAMP: *out = "Lamp"; break;
-	default: break;
+    case BLOCK_PLANKS: *out = "Wood Planks"; break;
+    case BLOCK_LOG: *out = "Wood Log"; break;
+    default: break;
     }
 }
