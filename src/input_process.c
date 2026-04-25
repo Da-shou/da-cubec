@@ -1,6 +1,7 @@
 #include "input_process.h"
 
 #include <cglm/box.h>
+#include <stdio.h>
 
 #include "camera.h"
 #include "world/blocks.h"
@@ -94,7 +95,7 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
     /* Right-click -> A block is placed at the
      * neighbour coordinates. */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
-        place_block(world, player, place_target, BLOCK_COBBLESTONE);
+        place_block(world, player, place_target, player->block);
     }
 
     last_lc_state = lc_state;
@@ -116,4 +117,13 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { *wish_right -= 1.0F; }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { *jump_pressed = true; }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) { *sprint = true; }
+}
+
+void handle_block_switch(GLFWwindow* window, block_type_t* block_type) {
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) { *block_type = BLOCK_STONE; }
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) { *block_type = BLOCK_COBBLESTONE; }
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) { *block_type = BLOCK_DIRT; }
+    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) { *block_type = BLOCK_GRASS; }
+    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) { *block_type = BLOCK_SAND; }
+    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) { *block_type = BLOCK_GLOW; }
 }

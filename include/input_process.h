@@ -55,4 +55,11 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
  */
 void handle_debug_inputs(GLFWwindow* window, game_state_t* state);
 
+/**
+ * @brief Allows the player to switch block using the number buttons.
+ * @param window Pointer to the window polling the inputs.
+ * @param block_type Pointer to the player's block_type field.
+ */
+void handle_block_switch(GLFWwindow* window, block_type_t* block_type);
+
 #endif
