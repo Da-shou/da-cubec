@@ -3,7 +3,7 @@
 game_config_t game_config_default(void) {
     return (game_config_t) {.width                     = 1024,
                             .height                    = 768,
-                            .version                   = "v0.1.7",
+                            .version                   = "v0.1.8",
                             .title                     = "da-cubec",
                             .cube_vertex_shader_path   = "src/shaders/cube.vert.glsl",
                             .cube_fragment_shader_path = "src/shaders/cube.frag.glsl",

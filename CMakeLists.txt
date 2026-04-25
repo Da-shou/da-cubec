@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.1.1)
 
 # Project info
-project("da-cubec" VERSION 0.1.7)
+project("da-cubec" VERSION 0.1.8)
 
 # Set the executable and library output to root
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
