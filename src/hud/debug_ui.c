@@ -3,6 +3,10 @@
 #include <cglm/cglm.h>
 #include <stdio.h>
 
+#include "world/blocks.h"
+
+#define DEBUG_LINES 5
+
 void draw_debug_info(const text_renderer_t* text_renderer,
                      const game_state_t* game_state) {
     /* Draw game title in the bottom-left corner */
@@ -28,8 +32,13 @@ void draw_debug_info(const text_renderer_t* text_renderer,
     char render_distance_text[64];
     (void)snprintf(render_distance_text, sizeof(render_distance_text),
                    "Render distance : %d", config.render_distance);
-    char* coordinates[4] = {render_distance_text, x_coordinates, y_coordinates,
-                            z_coordinates};
+	const char* block_name = NULL;
+	get_block_name(player.block, &block_name);
+	char block_name_text[64];
+	(void)snprintf(block_name_text, sizeof(block_name_text), "Selected block : %s", block_name);
+	
+    char* strings[DEBUG_LINES] = {render_distance_text, x_coordinates, y_coordinates,
+                            z_coordinates, block_name_text};
 
     const float line_spacing  = text_renderer->font_size * 1.25F;
     const float margin_bottom = line_spacing - 20.0F;
@@ -42,9 +51,9 @@ void draw_debug_info(const text_renderer_t* text_renderer,
         (vec2) {10.0F, (float)config.height - margin_bottom - line_spacing}, GLM_VEC3_ONE,
         true, GLM_VEC3_ZERO, 0.33F);
 
-    for (int8_t i = 0; i < 4; i++) {
+    for (int8_t i = 0; i < DEBUG_LINES; i++) {
         const float margin_top = 5.0F;
-        text_renderer_draw(text_renderer, coordinates[i],
+        text_renderer_draw(text_renderer, strings[i],
                            (vec2) {10.0F, text_renderer->font_size + margin_top +
                                               (line_spacing * (float)i)},
                            GLM_VEC3_ONE, true, GLM_VEC3_ZERO, 0.33F);

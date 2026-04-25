@@ -16,6 +16,7 @@ void player_init(player_t* player, const game_config_t* config, camera_t* camera
     player->eye_offset = config->player_eye_offset;
     player->camera     = camera;
     player->on_ground  = false;
+    player->block      = BLOCK_DIRT;
 }
 
 /**

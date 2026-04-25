@@ -15,20 +15,22 @@
 #include "camera.h"
 #include "game_config.h"
 #include "world/world.h"
+#include "world/blocks.h"
 
 #define COLLISION_EPSILON 0.0001F
 
 /**
  * Defines all attributes of a player.
  */
-typedef struct {
-    vec3 position;    /**< Feet position (bottom-center of AABB) */
-    vec3 velocity;    /**< Current velocity (x, y, z) */
-    float width;      /**< AABB width and depth (centered on position XZ) */
-    float height;     /**< AABB height (extends upward from position.y) */
-    float eye_offset; /**< Eye height above feet */
-    camera_t* camera; /**< Pointer to the camera used by the player */
-    bool on_ground;   /**< True when standing on a solid surface */
+typedef struct player_t {
+    vec3 position;      /**< Feet position (bottom-center of AABB) */
+    vec3 velocity;      /**< Current velocity (x, y, z) */
+    float width;        /**< AABB width and depth (centered on position XZ) */
+    float height;       /**< AABB height (extends upward from position.y) */
+    float eye_offset;   /**< Eye height above feet */
+    camera_t* camera;   /**< Pointer to the camera used by the player */
+    block_type_t block; /**< Block type the player is currently holding */
+    bool on_ground;     /**< True when standing on a solid surface */
 } player_t;
 
 /**

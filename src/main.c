@@ -241,6 +241,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
             glm_vec3_copy(GLM_VEC3_ZERO, state->player->velocity);
             glm_vec3_copy(player_updated_position, state->player->position);
         } else if (world_player_chunks_ready(state->world, state->player->position)) {
+            handle_block_switch(game_window, &(state->player->block));
             /* Gets the input about the player movement and
              * updates the direction integers */
             handle_player_input(game_window, &wish_forward, &wish_right, &jump_pressed,
@@ -256,8 +257,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
             /* Only handling clicks if the block pointed to is not air. */
             if (block != (uint8_t)BLOCK_AIR && state->target_chunk != NULL) {
                 if (handle_clicks(game_window, state->world, state->player,
-                                  state->target_block, state->neighbour_block,
-                                  state->target_chunk, state->neighbour_chunk)) {
+                                  state->target_block, state->neighbour_block)) {
                     (void)fprintf(stderr,
                                   "Chunk building failed after handle_click, exiting.\n");
                     break;

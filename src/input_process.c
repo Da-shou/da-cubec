@@ -1,14 +1,14 @@
 #include "input_process.h"
 
+#include <cglm/box.h>
+#include <stdio.h>
+
 #include "camera.h"
 #include "world/blocks.h"
-#include "world/chunk.h"
+#include "world/block_actions.h"
 #include "world/world.h"
 #include "game_config.h"
 #include "player.h"
-
-#include <cglm/box.h>
-#include <math.h>
 
 void handle_debug_inputs(GLFWwindow* window, game_state_t* state) {
     static int last_tab_state = GLFW_RELEASE;
@@ -79,8 +79,7 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
 }
 
 int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
-                  vec3 target_block, vec3 neighbour, chunk_t* target_chunk,
-                  chunk_t* neighbour_chunk) {
+                  vec3 break_target, vec3 place_target) {
     static int last_lc_state = GLFW_RELEASE;
     static int last_rc_state = GLFW_RELEASE;
     static int memcheck      = 0;
@@ -90,57 +89,13 @@ int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
 
     /* Left-click -> The block gets destroyed (replaced with air) */
     if (lc_state == GLFW_PRESS && last_lc_state == GLFW_RELEASE) {
-        const int chunk_x = (int)floorf(target_block[0] / (float)CHUNK_SIZE_XZ);
-        const int chunk_z = (int)floorf(target_block[2] / (float)CHUNK_SIZE_XZ);
-        const int local_x = (int)floorf(target_block[0]) - (chunk_x * CHUNK_SIZE_XZ);
-        const int local_y = (int)floorf(target_block[1]);
-        const int local_z = (int)floorf(target_block[2]) - (chunk_z * CHUNK_SIZE_XZ);
-
-        target_chunk->blocks[local_x][local_y][local_z] = (uint8_t)BLOCK_AIR;
-
-        target_chunk->modified = true;
-        world_rebuild_after_change(world, chunk_x, chunk_z);
+        break_block(world, break_target);
     }
 
     /* Right-click -> A block is placed at the
      * neighbour coordinates. */
     if (rc_state == GLFW_PRESS && last_rc_state == GLFW_RELEASE) {
-        if (!world_valid_position(world, neighbour)) { return 0; }
-
-        const int chunk_x   = (int)floorf(neighbour[0] / (float)CHUNK_SIZE_XZ);
-        const int chunk_z   = (int)floorf(neighbour[2] / (float)CHUNK_SIZE_XZ);
-        const int n_local_x = (int)floorf(neighbour[0]) - (chunk_x * CHUNK_SIZE_XZ);
-        const int n_local_y = (int)floorf(neighbour[1]);
-        const int n_local_z = (int)floorf(neighbour[2]) - (chunk_z * CHUNK_SIZE_XZ);
-
-        /* Player AABB */
-        const float player_half_width = player->width / 2.0F;
-        vec3 player_aabb[2]           = {{player->position[0] - player_half_width,
-                                          player->position[1],
-                                          player->position[2] - player_half_width},
-                                         {player->position[0] + player_half_width,
-                                          player->position[1] + player->height,
-                                          player->position[2] + player_half_width}};
-
-        /* Block AABB */
-        vec3 block_aabb[2] = {
-            {neighbour[0], neighbour[1], neighbour[2]},
-            {neighbour[0] + 1.0F, neighbour[1] + 1.0F, neighbour[2] + 1.0F}};
-
-        /* If player and future placed block interesect, do not place the block. */
-        const bool overlap = glm_aabb_aabb(player_aabb, block_aabb);
-
-        if (overlap) { return 0; }
-
-        /* Can only place a block if there is air at the wanted spot */
-        if (neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] !=
-            (uint8_t)BLOCK_AIR) {
-            return 0;
-        }
-
-        neighbour_chunk->blocks[n_local_x][n_local_y][n_local_z] = (uint8_t)BLOCK_GLOW;
-        neighbour_chunk->modified                                = true;
-        memcheck = world_rebuild_after_change(world, chunk_x, chunk_z);
+        place_block(world, player, place_target, player->block);
     }
 
     last_lc_state = lc_state;
@@ -162,4 +117,15 @@ void handle_player_input(GLFWwindow* window, float* wish_forward, float* wish_ri
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { *wish_right -= 1.0F; }
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) { *jump_pressed = true; }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) { *sprint = true; }
+}
+
+void handle_block_switch(GLFWwindow* window, block_type_t* block_type) {
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) { *block_type = BLOCK_STONE; }
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) { *block_type = BLOCK_COBBLESTONE; }
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) { *block_type = BLOCK_DIRT; }
+    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) { *block_type = BLOCK_GRASS; }
+    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) { *block_type = BLOCK_SAND; }
+    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) { *block_type = BLOCK_LAMP; }
+    if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) { *block_type = BLOCK_PLANKS; }
+    if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) { *block_type = BLOCK_LOG; }
 }
