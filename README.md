@@ -24,6 +24,11 @@ To clean all build files and remake CMake files :
 make clean
 ```
 
+To rebuild the project and libraries (Necessary if source files were added) :
+```shell
+make rebuild
+```
+
 To run clang-tidy on all sources files :
 ```shell
 make tidy
