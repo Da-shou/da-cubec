@@ -11,6 +11,7 @@
 #define BLOCKS_H
 
 #include <stdbool.h>
+#include <cglm/types.h>
 
 static const float tile_offset = 0.25F;
 
@@ -108,6 +109,11 @@ static const block_type_t light_blocks[] = {
     BLOCK_GLOW,
 };
 
+/**
+ * @brief Checks if the given block type from block_type_t should emit light.
+ * @param block_type The type of block to check
+ * @return true if the block should emit light, false if not.
+ */
 bool is_light_block(block_type_t block_type);
 
-#endif
+#endif /* BLOCKS_H */

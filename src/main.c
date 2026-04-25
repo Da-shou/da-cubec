@@ -256,8 +256,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
             /* Only handling clicks if the block pointed to is not air. */
             if (block != (uint8_t)BLOCK_AIR && state->target_chunk != NULL) {
                 if (handle_clicks(game_window, state->world, state->player,
-                                  state->target_block, state->neighbour_block,
-                                  state->target_chunk, state->neighbour_chunk)) {
+                                  state->target_block, state->neighbour_block)) {
                     (void)fprintf(stderr,
                                   "Chunk building failed after handle_click, exiting.\n");
                     break;

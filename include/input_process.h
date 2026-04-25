@@ -8,7 +8,6 @@
 #ifndef INPUT_PROCESS_H
 #define INPUT_PROCESS_H
 
-#include "opengl_glfw.h"
 #include "game_config.h"
 #include "game_state.h"
 #include "player.h"
@@ -30,15 +29,12 @@ void handle_camera_mouse(GLFWwindow* window, const game_config_t* config,
  * @param window Pointer to the window that will poll the clicks.
  * @param world Pointer to the world that will be modified.
  * @param player Pointer to the player placing the blocks.
- * @param target_block Position of the block that was clicked.
- * @param neighbour Position of the neighbour block.
- * @param target_chunk Pointer to the chunk that contains the target block.
- * @param neighbour_chunk Pointer to the chunk that contains the neighbour block.
+ * @param break_target Position of the block that will be broken if left clicked.
+ * @param place_target Position of the block that will be placed if right clicked.
  * @return 0 on success, -1 on chunk building failure.
  */
 int handle_clicks(GLFWwindow* window, world_t* world, const player_t* player,
-                  vec3 target_block, vec3 neighbour, chunk_t* target_chunk,
-                  chunk_t* neighbour_chunk);
+                  vec3 break_target, vec3 place_target);
 
 /**
  * @brief Polls keyboard state and computes player movement wishes.

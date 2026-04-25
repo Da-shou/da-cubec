@@ -25,7 +25,7 @@
 /**
  * @brief Signature for a chunk terrain generator.
  * @param chunk The chunk to fill with blocks.
- * @param world_cx World-space chunk X coordinate.
+ * @param world_cx World-space chunk X coordinate. 
  * @param world_cz World-space chunk Z coordinate.
  * @param userdata Arbitrary params passed through from world_t.
  */
