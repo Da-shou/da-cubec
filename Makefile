@@ -28,3 +28,4 @@ docs: configure
 
 clean: configure
 	cmake --build $(BUILD) --target clean
+	rm -rf $(BUILD)
