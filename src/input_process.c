@@ -125,5 +125,5 @@ void handle_block_switch(GLFWwindow* window, block_type_t* block_type) {
     if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) { *block_type = BLOCK_DIRT; }
     if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) { *block_type = BLOCK_GRASS; }
     if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) { *block_type = BLOCK_SAND; }
-    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) { *block_type = BLOCK_GLOW; }
+    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) { *block_type = BLOCK_LAMP; }
 }

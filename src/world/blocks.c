@@ -15,3 +15,15 @@ bool is_light_block(const block_type_t block_type) {
     }
     return false;
 }
+
+void get_block_name(block_type_t block_type, const char** out) {
+    switch (block_type) {
+    case BLOCK_STONE: *out = "Stone"; break;
+    case BLOCK_COBBLESTONE: *out = "Cobblestone"; break;
+    case BLOCK_DIRT: *out = "Dirt"; break;
+    case BLOCK_GRASS: *out = "Grass"; break;
+    case BLOCK_SAND: *out = "Sand"; break;
+    case BLOCK_LAMP: *out = "Lamp"; break;
+	default: break;
+    }
+}

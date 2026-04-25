@@ -43,7 +43,7 @@ typedef enum {
     BLOCK_DIRT        = 3,
     BLOCK_GRASS       = 4,
     BLOCK_SAND        = 5,
-    BLOCK_GLOW        = 6
+    BLOCK_LAMP        = 6
 } block_type_t;
 
 /**
@@ -94,7 +94,7 @@ static const block_uv_t block_uvs[] = {
             .right  = {0.25F, 0.25F},
             .left   = {0.25F, 0.25F},
         },
-    [BLOCK_GLOW] =
+    [BLOCK_LAMP] =
         {
             .top    = {0.5F, 0.25F},
             .bottom = {0.5F, 0.25F},
@@ -106,7 +106,7 @@ static const block_uv_t block_uvs[] = {
 };
 
 static const block_type_t light_blocks[] = {
-    BLOCK_GLOW,
+    BLOCK_LAMP,
 };
 
 /**
@@ -115,5 +115,11 @@ static const block_type_t light_blocks[] = {
  * @return true if the block should emit light, false if not.
  */
 bool is_light_block(block_type_t block_type);
+
+/**
+ * @brief Fills the output string with the display name of the block type.
+ * @out String to be filled with the display name of the block.
+ */
+void get_block_name(block_type_t block_type, const char** out);
 
 #endif /* BLOCKS_H */
