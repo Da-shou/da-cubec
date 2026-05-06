@@ -92,7 +92,8 @@ if (UNIX)
     target_link_libraries(${PROJECT_NAME} PRIVATE pthread dl X11)
 endif ()
 
-# Create a symbolic link (or copy) of compile_commands.json to the root directory
+# Create a symbolic link (or copy) of 
+# compile_commands.json to the root directory
 if(EXISTS "${CMAKE_BINARY_DIR}/compile_commands.json")
     if(UNIX)
         # On Linux/macOS/WSL, a symbolic link is best
