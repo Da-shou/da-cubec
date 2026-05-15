@@ -8,7 +8,6 @@
 #ifndef TEXT_RENDERER_H
 #define TEXT_RENDERER_H
 
-#include "opengl_glfw.h"
 #include "shader.h"
 
 #define TEXT_RENDERER_FIRST_CHAR 32

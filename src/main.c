@@ -217,6 +217,7 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
                             s_projection_matrix);
             last_height = config->height;
             last_width  = config->width;
+            reload_fog(state);
             text_renderer_reload(&state->debug_text_renderer, config->width,
                                  config->height);
         }
