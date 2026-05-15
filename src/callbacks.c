@@ -1,5 +1,5 @@
 #include "callbacks.h"
-
+#include "GLFW/glfw3.h"
 #include "game_state.h"
 #include "camera.h"
 
@@ -43,5 +43,8 @@ void mouse_button_callback(GLFWwindow* window, const int button, const int actio
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 void framebuffer_size_callback(GLFWwindow* window, const int width, const int height) {
     (void)window;
+    game_state_t* game_state  = glfwGetWindowUserPointer(window);
+    game_state->config.width  = (uint16_t)width;
+    game_state->config.height = (uint16_t)height;
     glViewport(0, 0, width, height);
 }

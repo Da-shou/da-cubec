@@ -195,6 +195,14 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
     glDisable(GL_BLEND);
 }
 
+void text_renderer_reload(const text_renderer_t* renderer, uint16_t width,
+                          uint16_t height) {
+    shader_use(&renderer->shader);
+    mat4 projection_matrix;
+    glm_ortho(0.0F, (float)width, (float)height, 0.0F, -1.0F, 1.0F, projection_matrix);
+    shader_set_mat4(&renderer->shader, "projection", projection_matrix);
+}
+
 void text_renderer_destroy(const text_renderer_t* renderer) {
     glDeleteTextures(1, &renderer->texture_id);
     glDeleteBuffers(1, &renderer->vbo);

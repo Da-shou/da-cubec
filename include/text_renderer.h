@@ -58,6 +58,16 @@ void text_renderer_draw(const text_renderer_t* renderer, const char* text,
                         const vec3 bg_color, float bg_alpha);
 
 /**
+ * @brief Reloads the projection matrix of the text renderer, allowing it to scale
+ * to the window size.
+ * @param renderer Text renderer to use.
+ * @param width Width of the window to reload the text renderer to.
+ * @param height Width of the window to reload the text renderer to.
+ **/
+void text_renderer_reload(const text_renderer_t* renderer, uint16_t width,
+                          uint16_t height);
+
+/**
  * @brief Frees GPU resources held by a text renderer.
  * @param renderer Text renderer to destroy. */
 void text_renderer_destroy(const text_renderer_t* renderer);

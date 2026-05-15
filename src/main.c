@@ -166,14 +166,15 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
     static bool sprint        = false;
     static vec3* pov_origin;
     static int last_render_distance = MAX_RENDER_DISTANCE;
-
-    const game_config_t* config = &state->config;
+    static uint16_t last_width      = 0;
+    static uint16_t last_height     = 0;
 
     /* Setting the requested width and height after loading the configuration */
     glfwSetWindowSize(game_window, state->config.width, state->config.height);
 
     /* Main window loop */
     while (!glfwWindowShouldClose(game_window)) {
+        const game_config_t* config = &state->config;
         /* Calling this function allows us to gather all inputs
          * from the user such as mouse or keyboard. */
         glfwPollEvents();
@@ -208,6 +209,17 @@ void game_loop(GLFWwindow* game_window, game_state_t* state) {
         glUniformMatrix4fv(state->projection_location, 1, GL_FALSE,
                            (float*)s_projection_matrix);
         shader_set_vec3(&state->cube_shader, "camera_position", *pov_origin);
+
+        if (config->height != last_height || config->width != last_width) {
+            glm_perspective(glm_rad(config->fov),
+                            (float)config->width / (float)config->height, 0.1F,
+                            (float)(config->render_distance + 1) * CHUNK_SIZE_XZ,
+                            s_projection_matrix);
+            last_height = config->height;
+            last_width  = config->width;
+            text_renderer_reload(&state->debug_text_renderer, config->width,
+                                 config->height);
+        }
 
         /* If the render distance was changed by the user, the world needs to be reloaded,
          * as well as the projection matrix and the fog since they all depend on the
